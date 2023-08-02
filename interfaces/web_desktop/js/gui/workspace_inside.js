@@ -2277,6 +2277,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			function initFriendWorkspace()
 			{
+				console.log( 'initFriendWorkspace', [ e, d, Workspace.mode ])
 				// Make sure we have loaded
 				if( Workspace.mode != 'vr' && ( Workspace.screen && Workspace.screen.contentDiv ) )
 					if( Workspace.screen.contentDiv.offsetHeight < 100 )
