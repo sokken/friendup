@@ -490,7 +490,7 @@ class DbIO extends DbTable
 		{
 			foreach( $row as $k=>$v )
 			{
-				$this->$k = stripslashes( $v );
+				$this->$k = stripslashes( $v ?? '' );
 			}
 			if( method_exists( $this, 'OnLoaded' ) ) $this->OnLoaded();
 			return true;

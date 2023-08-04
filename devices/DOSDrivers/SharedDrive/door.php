@@ -75,12 +75,12 @@ if( !class_exists( 'SharedDrive' ) )
 				}
 			}
 			
-			if( $shared = $SqlDatabase->FetchObjects( '
+			if( $shared = $SqlDatabase->FetchObjects('
 				SELECT Path, UserID, ID, `Name`, `Hash` FROM FFileShared s
 				WHERE
 					s.DstUserSID = "Public" AND s.Path IN ( "' . implode( '", "', $paths ) . '" ) AND
-					s.UserID IN ( ' . implode( ', ', $userids ) . ' )
-			' ) )
+					s.UserID IN ( "' . implode( '", "', $userids ) . '" )'
+			))
 			{
 				foreach( $entries as $k=>$entry )
 				{

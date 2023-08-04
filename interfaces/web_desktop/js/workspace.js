@@ -785,7 +785,6 @@ Workspace = {
 		lp.limitless = true;
 		lp.onMessage = function( msg )
 		{
-			console.log( 'promp.onmessage', msg )
 			if( msg && msg.type && msg.src && msg.action == 'openWindow' )
 			{
 				switch( msg.type )
@@ -842,8 +841,6 @@ Workspace = {
 				}
 			}
 		}
-		const promp = '/loginprompt' + allowedHashVars()
-		console.log( 'promp', promp )
 		lp.setRichContentUrl( '/loginprompt' + allowedHashVars() );
 		Workspace.loginPrompt = lp;
 

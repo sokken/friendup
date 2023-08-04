@@ -135,7 +135,7 @@ if( !class_exists( 'DoorSQLDrive' ) )
 					// FIX WEBDAV problems
 					if( count( $path ) > 1 )
 					{
-						if( $path[1] != '' && $path[1]{0} == '/' )
+						if( $path[1] != '' && $path[1][0] == '/' )
 							$path[1] = substr( $path[1], 1, strlen( $path[1] ) );
 					}
 					$args->path = implode( ':', $path );
@@ -711,7 +711,7 @@ if( !class_exists( 'DoorSQLDrive' ) )
 					$fcount = 0;
 					while( $f = readdir( $dir ) )
 					{
-						if( $f{0} == '.' ) continue;
+						if( $f[0] == '.' ) continue;
 					
 						$fl = new dbIO( 'FSFile' );
 						$fl->FilesystemID = $this->ID;

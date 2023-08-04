@@ -69,7 +69,7 @@ $d = false;
 
 if( is_string( $args->args->data ) )
 {
-	$d = $args->args->data{0};
+	$d = $args->args->data[0];
 }
 // TODO: Look at this one ... why does it want to json encode to string when it's allready a string ??? ^-*
 if( $d == '{' || $d == '[' )

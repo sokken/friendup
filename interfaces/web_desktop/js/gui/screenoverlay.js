@@ -65,7 +65,6 @@ var ScreenOverlay = {
 	// Hide self
 	hide: function()
 	{
-		console.log( 'ScreenOverlay.hide', self.debug, this.visibility )
 		if( this.debug ) return;
 		var self = this;
 		

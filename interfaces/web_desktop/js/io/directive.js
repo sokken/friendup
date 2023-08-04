@@ -657,6 +657,10 @@ function ExecuteApplication( app, args, callback, retries, flags )
 						version  : version,
 						platform : platform,
 					};
+				} else {
+					fApp = {
+						fake : true,
+					}
 				}
 				
 				// Args could be sent in JSON format, then try to give this on.

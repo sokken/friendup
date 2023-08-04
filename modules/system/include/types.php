@@ -62,7 +62,7 @@ if( $blacklist )
 {
 	$blacklist = explode( ',', $blacklist );
 }
-if( count( $blacklist ) )
+if( is_countable( $blacklist ) )
 {
 	$out = new stdClass();
 	foreach( $blacklist as $bl )
@@ -82,7 +82,7 @@ if( $dir = opendir( 'devices/DOSDrivers' ) )
 {
 	while( $f = readdir( $dir ) )
 	{
-		if( $f{0} == '.' ) continue;
+		if( $f[0] == '.' ) continue;
 
 		if( !file_exists( $fn = 'devices/DOSDrivers/' . $f . '/sysinfo.json' ) )
 			continue;
