@@ -174,18 +174,22 @@ function FriendHeader( $header )
 	$content = trim( $content );
 	
 	// Move through the headers
-	if( count( $friendHeaders ) > 0 )
+	if ( is_countable( $friendHeaders ))
 	{
-		foreach( $friendHeaders as $k=>$head )
+		if( count( $friendHeaders ) > 0 )
 		{
-			// Overwrite it
-			if( $k == $type )
+			foreach( $friendHeaders as $k=>$head )
 			{
-				$friendHeaders[$k] = $content;
-				return true;
+				// Overwrite it
+				if( $k == $type )
+				{
+					$friendHeaders[$k] = $content;
+					return true;
+				}
 			}
 		}
 	}
+	
 	// Add it
 	$friendHeaders[$type] = $content;
 	return true;
