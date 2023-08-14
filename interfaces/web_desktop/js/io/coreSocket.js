@@ -166,8 +166,8 @@ FriendWebSocket.prototype.init = function()
 
 FriendWebSocket.prototype.connect = function()
 {
-	let self = this;
-	
+	const self = this;
+	window.addTiming( 'FriendWebSocket.connect', self.url )
 	// Reset
 	self.ready = false;
 	self.pongCount = 0;
@@ -215,8 +215,6 @@ FriendWebSocket.prototype.connect = function()
 			ws.cleanup();
 		return;
 	}
-		
-	console.log( 'Connecting a new native websocket!' );
 	
 	self.ws = new window.WebSocket( self.url, 'FC-protocol' );
 	
@@ -237,7 +235,10 @@ FriendWebSocket.prototype.attachHandlers = function()
 	self.ws.onerror = onError;
 	self.ws.onmessage = onMessage;
 	
-	function onOpen( e ){ if( self.ws == this ) self.handleOpen( e ); }
+	function onOpen( e ){ 
+		window.addTiming( 'ws onopen' )
+		if( self.ws == this ) self.handleOpen( e );
+	}
 	function onClose( e )
 	{ 
 		if( self.ws == this )

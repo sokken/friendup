@@ -31,8 +31,8 @@ Friend.User = {
     Login: function( username, password, remember, callback, event, flags )
     {
     	this.State = 'login';
-    	
-    	if( !event ) event = window.event;
+    	if( !event ) 
+    		event = window.event;
     	
     	let self = this;
 		
@@ -660,7 +660,7 @@ Friend.User = {
 				}
 				else
 				{
-					console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
+					//console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
 				}
 				// Clear execution queue
 				_executionQueue = {};

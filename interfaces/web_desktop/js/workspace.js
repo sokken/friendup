@@ -17,6 +17,65 @@
 
 var _protocol = document.location.href.split( '://' )[0];
 
+window._timings = []
+window.addTiming = function( str, obj ) {
+	const self = this
+	const t = window._timings
+	const now = Date.now()
+	let elapsed = 0
+	if ( null == window._timer_start )
+		window._timer_start = now
+	else
+		elapsed = now - window._timer_start
+	
+	const tims = [ now, elapsed, str, obj ]
+	/*
+	console.log( 'addTiming', tims, {
+		elapsed : elapsed,
+		elsec   : ( elapsed / 1000 ),
+	})
+	*/
+	t.push( tims )
+	
+	return t
+}
+
+window.showTimings = function() {
+	if ( null == window._timings )
+		return
+	
+	//console.log( 'timings', window._timings )
+	const s = window._timer_start
+	let p = null
+	window._timings.forEach(( tim, i ) => {
+		const n = tim[ 0 ]
+		const e = tim[ 1 ]
+		const str = tim[ 2 ]
+		const obj = tim[ 3 ]
+		let step = 0
+		if ( p != null ) {
+			step = n - p
+		}
+		p = n
+		
+		console.log( '#' + i, {
+			'step'  : getS( step ),
+			'total' : getS( e ),
+			'desc'  : str,
+			'data'  : obj,
+		})
+	})
+	
+	window._timings = null
+	
+	function getS( ms ) {
+		if ( !ms )
+			return 0
+		
+		return ms / 1000
+	}
+}
+
 Workspace = {
 	receivePush: function()
 	{
@@ -73,7 +132,8 @@ Workspace = {
 	init: function()
 	{
 		// First things first
-		if( this.initialized ) return;
+		if( this.initialized )
+			return
 
 		// Preload some images
 		var imgs = [
@@ -881,7 +941,7 @@ Workspace = {
 	},
 	initUserWorkspace: function( json, callback, ev )
 	{
-		console.log( 'Test2: Init user workspace.' );
+		window.addTiming( 'initUserWorkspace' )
 		
 		let _this = Workspace;
 

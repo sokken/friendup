@@ -46,12 +46,15 @@ function ExecuteApplication( app, args, callback, retries, flags )
 		retries,
 		flags,
 	]);*/
+	
 	// Just nothing.
 	if( !app ) {
 		console.log( 'just nothing things', app );
 		return;
 	}
 	
+	window.addTiming( 'ExecuteAppliction', app )
+	window.showTimings()
 	// If we don't have any cached basics, wait a bit
 	if( typeof( _applicationBasics ) == 'undefined' || !_applicationBasics.js )
 	{
@@ -657,11 +660,13 @@ function ExecuteApplication( app, args, callback, retries, flags )
 						version  : version,
 						platform : platform,
 					};
-				} else {
+				}
+				/* else {
 					fApp = {
 						fake : true,
 					}
 				}
+				*/
 				
 				// Args could be sent in JSON format, then try to give this on.
 				var oargs = args;

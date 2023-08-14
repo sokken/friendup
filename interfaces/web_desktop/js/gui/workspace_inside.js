@@ -930,6 +930,7 @@ var WorkspaceInside = {
 	// Initialize virtual workspaces
 	initWorkspaces: function( cbk, counter )
 	{
+		window.addTiming( 'initWorkspaces' )
 		if( !counter ) counter = 0;
 		if( this.mode == 'vr' || isMobile || Workspace.isSingleTask ) 
 		{
@@ -2262,6 +2263,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// NB: Start of workspace_inside.js ----------------------------------------
 	refreshUserSettings: function( callback )
 	{
+		window.addTiming( 'refreshUserSettings' )
 		let b = new Module( 'system' );
 		b.onExecuted = function( e, d )
 		{
@@ -2277,7 +2279,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			function initFriendWorkspace()
 			{
-				console.log( 'initFriendWorkspace', [ e, d, Workspace.mode ])
+				window.addTiming( 'iniFriendWorkspace' )
 				// Make sure we have loaded
 				if( Workspace.mode != 'vr' && ( Workspace.screen && Workspace.screen.contentDiv ) )
 					if( Workspace.screen.contentDiv.offsetHeight < 100 )
@@ -2329,6 +2331,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					{
 						Workspace.themeData = false;
 					}
+					
 					Workspace.applyThemeConfig();
 					Workspace.loadSystemInfo();
 					
@@ -2499,6 +2502,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									seq = [];
 								}
 							}
+							
 							if( seq.length )
 							{
 								if( ScreenOverlay.debug )
@@ -2563,9 +2567,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 												{
 													l.func();
 												}
+												
 												return;
 											}
 										}
+										
 										// Hide overlay
 										ScreenOverlay.hide();
 										

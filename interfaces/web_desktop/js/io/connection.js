@@ -199,10 +199,7 @@ FriendConnection.prototype.setId = function( event, conf )
 
 FriendConnection.prototype.onWsMessage = function( msg )
 {
-	let self = this;
-
-	//console.log("Message came: ", msg );
-	
+	const self = this;
 	if ( 'response' === msg.type )
 	{
 		handleResponse( msg );
@@ -299,7 +296,6 @@ FriendConnection.prototype.onWsState = function( e )
 FriendConnection.prototype.onWsEnd = function( e )
 {
 	let self = this;
-	console.log( 'onWsEnd', e );
 	self.releaseWebSocket();
 	if ( self.onend )
 		self.onend( e );
