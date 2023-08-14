@@ -21,6 +21,9 @@ window._timings = []
 window.addTiming = function( str, obj ) {
 	const self = this
 	const t = window._timings
+	if ( null == t )
+		return
+	
 	const now = Date.now()
 	let elapsed = 0
 	if ( null == window._timer_start )
