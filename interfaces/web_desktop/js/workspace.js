@@ -536,6 +536,7 @@ Workspace = {
 
 		setKeys: function( u, p )
 		{
+			console.trace( 'encryption.setKeys called' )
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
 				if( u && !Workspace.loginUsername ) Workspace.loginUsername = u;
