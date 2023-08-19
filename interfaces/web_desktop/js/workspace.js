@@ -25,36 +25,35 @@ window.addTiming = function( str, obj ) {
 		return
 	
 	const now = Date.now()
-	let elapsed = 0
-	if ( null == window._timer_start )
-		window._timer_start = now
-	else
-		elapsed = now - window._timer_start
-	
-	const tims = [ now, elapsed, str, obj ]
-	/*
-	console.log( 'addTiming', tims, {
-		elapsed : elapsed,
-		elsec   : ( elapsed / 1000 ),
-	})
-	*/
+	const tims = [ now, str, obj ]
 	t.push( tims )
 	
 	return t
 }
 
-window.showTimings = function() {
-	if ( null == window._timings )
+window.showTimings = function( timings ) {
+	if ( null == timings ) {
+		timings = window._timings
+		window._timings = null
+	}
+	
+	if ( null == timings )
 		return
 	
-	//console.log( 'timings', window._timings )
-	const s = window._timer_start
+	const s = timings[ 0 ][ 0 ]
 	let p = null
-	window._timings.forEach(( tim, i ) => {
+	timings.forEach(( tim, i ) => {
 		const n = tim[ 0 ]
-		const e = tim[ 1 ]
-		const str = tim[ 2 ]
-		const obj = tim[ 3 ]
+		const e = n - s
+		const str = tim[ 1 ]
+		const obj = tim[ 2 ]
+		if ( 0 === str.indexOf( '_REQUEST' )) {
+			console.log( 'vvvvvvvvvvvvv ' + str, obj )
+			window.showTimings( obj )
+			console.log( '^^^^^^^^^^^^^' )
+			return
+		}
+		
 		let step = 0
 		if ( p != null ) {
 			step = n - p
@@ -68,8 +67,6 @@ window.showTimings = function() {
 			'data'  : obj,
 		})
 	})
-	
-	window._timings = null
 	
 	function getS( ms ) {
 		if ( !ms )
@@ -595,6 +592,7 @@ Workspace = {
 		},
 		generateKeys: function( u, p )
 		{
+			console.trace( 'encryption.generateKeys called' )
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
 				if( window.ScreenOverlay )
