@@ -44,9 +44,13 @@ var ScreenOverlay = {
 	// Trick hide
 	invisible: function()
 	{
-		if( this.debug ) return;
+		if( this.debug ) 
+			return;
+
 		var self = this;
-		if( !this.visibility ) return;
+		if( !this.visibility ) 
+			return;
+
 		this.div.classList.add( 'Hiding' );
 		setTimeout( function()
 		{
@@ -67,6 +71,7 @@ var ScreenOverlay = {
 	// Hide self
 	hide: function()
 	{
+		console.log( 'ScreenOverlay.hide', [ this.debug, this.visibility ])
 		if( this.debug ) 
 			return;
 
