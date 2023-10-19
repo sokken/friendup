@@ -4032,11 +4032,18 @@ function doReveal()
 					let i = new Image();
 					if( Workspace.wallpaperImageDecoded )
 						i.src = Workspace.wallpaperImageDecoded;
-					else i.src = getImageUrl( Workspace.wallpaperImage );
+					else 
+						i.src = getImageUrl( Workspace.wallpaperImage );
+						
 					i.onload = function()
 					{
 						// Tell app we can show ourselves!
-						document.body.removeChild( i );
+						try {
+							document.body.removeChild( i );
+						} catch( ex ) {
+							console.log( 'remove i ex', ex );
+						}
+						
 						document.body.classList.add( 'Revealed' );
 						if( document.body.classList.contains( 'ThemeRefreshing' ) )
 						{
@@ -4044,6 +4051,7 @@ function doReveal()
 						}
 						friendApp.reveal();
 					}
+					
 					i.style.visibility = 'hidden';
 					document.body.appendChild( i );
 					if( i.width && i.width > 0 )
