@@ -930,7 +930,7 @@ cAjax.prototype.handleWebSocketResponse = function( wsdata )
 		{
 			let t = JSON.parse( self.returnData );
 			// Deprecate from 1.0 beta 2 "no user!"
-			if( t && ( t.response.toLowerCase() == 'user not found' || t.response.toLowerCase() == 'user session not found' ) )
+			if( ( null != t ) && t.response && ( t.response.toLowerCase() == 'user not found' || t.response.toLowerCase() == 'user session not found' ) )
 			{
 				if( window.Workspace && t.response.toLowerCase() == 'user session not found' )
 				{ 

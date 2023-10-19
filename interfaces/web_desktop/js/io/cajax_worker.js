@@ -59,7 +59,11 @@ var AjaxWorker = {
 					{
 						var t = JSON.parse( jax.rawData );
 						// Deprecate from 1.0 beta 2 "no user!"
-						var res = t ? t.response.toLowerCase() : '';
+						let res = null;
+						if ( t && t.response ) {	
+							res = t ? t.response.toLowerCase() : '';
+						}
+
 						if( t && ( res == 'user not found' || res == 'user session not found' ) )
 						{
 							if( Workspace )
