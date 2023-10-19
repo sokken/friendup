@@ -4038,12 +4038,7 @@ function doReveal()
 					i.onload = function()
 					{
 						// Tell app we can show ourselves!
-						try {
-							document.body.removeChild( i );
-						} catch( ex ) {
-							console.log( 'remove i ex', ex );
-						}
-						
+						//document.body.removeChild( i );
 						document.body.classList.add( 'Revealed' );
 						if( document.body.classList.contains( 'ThemeRefreshing' ) )
 						{
