@@ -2118,6 +2118,7 @@ var WorkspaceInside = {
 	},
 	loadSystemInfo: function()
 	{
+		console.log( 'loadSystemInfo' );
 		let f = new window.Library( 'system.library' );
 		/*
 			For whatever reason, it receives data on the error argument..
@@ -2125,6 +2126,10 @@ var WorkspaceInside = {
 		f.onExecuted = function( e, d )
 		{
 			let str = JSON.stringify(e);
+			console.log( 'loadSystemInfo res', {
+				e   : e,
+				str : str,
+			});
 			Workspace.systemInfo = e;
 		}
 		f.forceHTTP = true;
@@ -2134,6 +2139,7 @@ var WorkspaceInside = {
 	// TODO: Move to a proper theme parser
 	applyThemeConfig: function()
 	{
+		console.log( 'applyThemeConfig' );
 		if( !this.themeData )
 			return;
 		
@@ -2169,6 +2175,7 @@ var WorkspaceInside = {
 		
 		let str = '';
 		
+		console.log( 'themeData', this.themeData );
 		for( let a in this.themeData )
 		{
 			if( !this.themeData[a] ) continue;
@@ -2259,6 +2266,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 		}
 		this.themeStyleElement.innerHTML = str;
+		console.log( 'applyThemeConfig done' );
 	},
 	// NB: Start of workspace_inside.js ----------------------------------------
 	refreshUserSettings: function( callback )
@@ -2341,6 +2349,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						Workspace.themeData = false;
 					}
 					
+
 					Workspace.applyThemeConfig();
 					Workspace.loadSystemInfo();
 					
