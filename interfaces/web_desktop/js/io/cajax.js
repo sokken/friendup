@@ -216,8 +216,8 @@ cAjax = function()
 					try
 					{
 						let t = JSON.parse( jax.rawData );
-						if ( !t ) {
-							console.trace( 'no t for', {
+						if ( !t || !t.response ) {
+							console.trace( 'no t.r for', {
 								jax : jax,
 								raw : jax.rawData,
 							});
