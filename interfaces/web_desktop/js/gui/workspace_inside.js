@@ -2344,6 +2344,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					Workspace.applyThemeConfig();
 					Workspace.loadSystemInfo();
 					
+					console.log( 'after applytheme, also mobile check', [ isMobile ]);
 					// Fallback
 					if( !isMobile )
 					{
@@ -2452,6 +2453,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					// Make sure iOS has the correct information
 					if( window.friendApp && window.webkit && window.friendApp.setBackgroundColor )
 					{
+						console.log( 'mobile app color things' );
 						let col = '#34495E';
 						switch( Workspace.themeData.colorSchemeText )
 						{
@@ -2467,27 +2469,37 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					// If we haven't refreshed, do it now
 					if( !Workspace.desktopFirstRefresh )
 					{
+						console.log( 'first refresh' );
 						Workspace.refreshDesktop();
 					}
 					
+					console.log( 'after refresh, is startupseqregister=?', Workspace.startupSequenceRegistered );
 					// Do the startup sequence in sequence (only once)
 					if( !Workspace.startupSequenceRegistered )
 					{	
 						Workspace.startupSequenceRegistered = true;
 						
+						console.log( 'do startup sequence i guess' );
 						// Reload the docks here
 						Workspace.reloadDocks();
-						
 						
 						// In single tasking mode, we just skip
 						if( Workspace.isSingleTask )
 						{
+							console.log( 'singletask' );
 							// Oh! We wanted to start an application!
 							if( GetUrlVar( 'app' ) )
 							{
-								let args = false;
-								if( GetUrlVar( 'args' ) ) args = GetUrlVar( 'args' );
-								ExecuteApplication( GetUrlVar( 'app' ), args );
+								let args = GetUrlVar( 'args' );
+								if( !args ) 
+									args = false;
+
+								const urlApp = GetUrlVar( 'app' );
+								console.log( 'exec app', {
+									urlApp  : urlApp,
+									urlArgs : args,
+								});
+								ExecuteApplication( urlApp, args );
 							}
 							ScreenOverlay.hide();
 							PollTray();
@@ -2514,6 +2526,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							
 							if( seq.length )
 							{
+								console.log( 'startupseq', seq );
 								if( ScreenOverlay.debug )
 									ScreenOverlay.setTitle( i18n( 'i18n_starting_your_session' ) );
 								let l = {
