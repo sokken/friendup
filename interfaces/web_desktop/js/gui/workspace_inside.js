@@ -4357,8 +4357,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			    {
 			        return setTimeout( function(){ Workspace.refreshDesktop( callback, forceRefresh ) }, 25 );
 			    }
-				let eles = self.screen.div.getElementsByClassName( 'ScreenContent' );
-				if( eles.length )
+				let eles = self?.screen?.div?.getElementsByClassName( 'ScreenContent' );
+				if( eles?.length )
 				{
 					let ext = false;
 					let found = false;
@@ -4505,8 +4505,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// We have no wallpaper...
 			else if( Workspace.mode == 'standard' || Workspace.mode == 'default' )
 			{
-				let eles = self.screen.div.getElementsByClassName( 'ScreenContent' );
-				if( eles.length )
+				let eles = self?.screen?.div?.getElementsByClassName( 'ScreenContent' );
+				if( eles?.length )
 				{
 					eles[0].style.backgroundImage = '';
 					setupDriveClicks();
