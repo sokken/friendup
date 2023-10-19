@@ -2295,11 +2295,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					d : d,
 				});
 				// Make sure we have loaded
-				if( Workspace.mode != 'vr' && ( Workspace.screen && Workspace.screen.contentDiv ) )
+				
+				/*
+				if( Workspace.mode != 'vr' && ( Workspace.screen && Workspace.screen.contentDiv ) ) {
 					if( Workspace.screen.contentDiv.offsetHeight < 100 ) {
 						console.log( 'thingie wrong size, retry' );
 						return setTimeout( initFriendWorkspace, 50 );
 					}
+				}
+				*/
 					
 				if( e == 'ok' && d )
 				{
