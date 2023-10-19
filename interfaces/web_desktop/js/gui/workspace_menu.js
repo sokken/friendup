@@ -184,7 +184,7 @@ var WorkspaceMenu =
 	
 		// Blank menu on windows without any directory view or menu
 		var viewScreen = false;
-		try{ viewScreen = currentMovable.windowObject.flags.screen; } catch( e ){};
+		try{ viewScreen = currentMovable?.windowObject?.flags?.screen; } catch( e ){};
 		
 		// We have a screen!
 		if( currentMovable && viewScreen && viewScreen == currentScreen.screen  )

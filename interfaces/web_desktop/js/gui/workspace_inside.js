@@ -2313,6 +2313,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					
 					if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 					{
+						console.log( 'if1' );
 						if( dat.wallpaperdoors.substr(0,5) == 'color' )
 						{
 							Workspace.wallpaperImage = 'color';
