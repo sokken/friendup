@@ -2306,6 +2306,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					Workspace.userSettingsLoaded = true;
 					let dat = JSON.parse( d );
 					console.log( 'dat', dat );
+					try {
+
+					
 					if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 					{
 						if( dat.wallpaperdoors.substr(0,5) == 'color' )
@@ -2347,6 +2350,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					else
 					{
 						Workspace.themeData = false;
+					}
+
+					} catch( lol ) {
+						console.log( '???', lol );
 					}
 					
 
