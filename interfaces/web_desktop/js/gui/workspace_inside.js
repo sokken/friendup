@@ -2264,6 +2264,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	refreshUserSettings: function( callback )
 	{
 		window.addTiming( 'refreshUserSettings' )
+		console.log( 'refreshUserSettings' );
 		let b = new Module( 'system' );
 		b.onExecuted = function( e, d )
 		{
@@ -11199,10 +11200,6 @@ _applicationBasics = {};
 var _applicationBasicsLoading = false;
 function loadApplicationBasics( callback )
 {
-	console.log( 'loadApplicationBasics', {
-		callback : callback,
-		hasCB  : !!callback,
-	});
 	if( _applicationBasicsLoading ) 
 	{
 		clearTimeout( _applicationBasicsLoading );
@@ -11260,11 +11257,9 @@ function loadApplicationBasics( callback )
 		let j_ = new File( js );
 		j_.onLoad = function( data )
 		{
-			console.log( 'BASICS LOADED: ' );
 			_applicationBasics.js = data;
 			if( callback )
 			{
-				console.log( 'basics loaed, calling back' );
 				try
 				{
 					callback();
