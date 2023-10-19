@@ -2289,6 +2289,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				{
 					Workspace.userSettingsLoaded = true;
 					let dat = JSON.parse( d );
+					console.log( 'dat', dat );
 					if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 					{
 						if( dat.wallpaperdoors.substr(0,5) == 'color' )
@@ -2516,6 +2517,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 											//console.log( 'Waiting for websocket... ' + Math.random() );
 											return setTimeout( function(){ l.func() }, 500 );
 										}
+
 										if( !ScreenOverlay.done && l.index < seq.length )
 										{
 											// Register for Friend DOS
