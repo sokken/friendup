@@ -157,7 +157,10 @@ var FriendLibrary = function ( library, encryption )
 						}
 					}
 					
-					var json = JSON.parse( rc );
+					let json = null;
+					try {
+						json = JSON.parse( rc );
+					} catch( ex ) {}
 					if( json )
 					{
 						return t.onExecuted( json );
