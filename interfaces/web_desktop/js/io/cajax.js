@@ -216,10 +216,17 @@ cAjax = function()
 					try
 					{
 						let t = JSON.parse( jax.rawData );
-						// Deprecate from 1.0 beta 2 "no user!"
-						let res = t ? t.response.toLowerCase() : '';
-						if( t && ( res == 'user not found' || res.toLowerCase() == 'user session not found' ) )
+						if ( !t ) {
+							console.trace( 'no t for', {
+								jax : jax,
+								raw : jax.rawData,
+							});
+						} else
 						{
+							// Deprecate from 1.0 beta 2 "no user!"
+							let res = t ? t.response.toLowerCase() : '';
+							if( t && ( res == 'user not found' || res.toLowerCase() == 'user session not found' ) )
+							{
 							if( window.Workspace && res.toLowerCase() == 'user session not found' ) 
 								Workspace.flushSession();
 							if( window.Workspace )
@@ -234,6 +241,7 @@ cAjax = function()
 								AddToCajaxQueue( jax );
 								return Friend.User.CheckServerConnection();
 							}
+						}
 						}
 					}
 					catch( e )
