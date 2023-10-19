@@ -2118,7 +2118,11 @@ var WorkspaceInside = {
 	},
 	loadSystemInfo: function()
 	{
-		console.log( 'loadSystemInfo' );
+		console.log( 'loadSystemInfo', Workspace.systemInfo );
+		if ( null != Workspace.systemInfo || Workspace.is_loading_system_info )
+			return;
+
+		Workspace.is_loading_system_info = true;
 		let f = new window.Library( 'system.library' );
 		/*
 			For whatever reason, it receives data on the error argument..
@@ -2131,6 +2135,7 @@ var WorkspaceInside = {
 				str : str,
 			});
 			Workspace.systemInfo = e;
+			workspace.is_loading_system_info = false;
 		}
 		f.forceHTTP = true;
 		f.execute( 'admin', {command:'info'} );

@@ -216,36 +216,32 @@ cAjax = function()
 					try
 					{
 						let t = JSON.parse( jax.rawData );
-						if ( !t || !t.response ) {
-							console.trace( 'no t.r for', {
-								jax : jax,
-								raw : jax.rawData,
-							});
-						} else
-						{
+						if ( t?.response?.toLowerCase ) {
 							// Deprecate from 1.0 beta 2 "no user!"
-							let res = t ? t.response.toLowerCase() : '';
-							if( t && ( res == 'user not found' || res.toLowerCase() == 'user session not found' ) )
+							let res = t.response.toLowerCase()
+							if(  res == 'user not found' || res == 'user session not found' )
 							{
-							if( window.Workspace && res.toLowerCase() == 'user session not found' ) 
-								Workspace.flushSession();
-							if( window.Workspace )
-							{
-								// Drop these (don't retry!) because of remote fs disconnect
-								if( jax.url.indexOf( 'file/info' ) > 0 )
+								if( window.Workspace && res.toLowerCase() == 'user session not found' ) 
+									Workspace.flushSession();
+
+								if( window.Workspace )
 								{
-									return jax.destroy();
+									// Drop these (don't retry!) because of remote fs disconnect
+									if( jax.url.indexOf( 'file/info' ) > 0 )
+									{
+										return jax.destroy();
+									}
+									
+									// Add to queue
+									AddToCajaxQueue( jax );
+									return Friend.User.CheckServerConnection();
 								}
-								
-								// Add to queue
-								AddToCajaxQueue( jax );
-								return Friend.User.CheckServerConnection();
 							}
-						}
 						}
 					}
 					catch( e )
 					{
+						console.trace( 'caught json thing', jax, jax.rawData );
 						if( !jax.rawData )
 						{
 							console.log( '[cAjax] Can not understand server response: ', jax.rawData );
