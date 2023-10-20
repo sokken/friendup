@@ -2118,7 +2118,7 @@ var WorkspaceInside = {
 	},
 	loadSystemInfo: function()
 	{
-		console.log( 'loadSystemInfo', Workspace.systemInfo );
+		console.log( 'loadSystemInfo', [ Workspace.systemInfo, Workspace.is_loading_system_info ]);
 		if ( null != Workspace.systemInfo || Workspace.is_loading_system_info )
 			return;
 
@@ -2277,19 +2277,27 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	refreshUserSettings: function( callback )
 	{
 		window.addTiming( 'refreshUserSettings' )
-		console.log( 'refreshUserSettings' );
-		let b = new Module( 'system' );
-		b.onExecuted = function( e, d )
+		console.trace( 'refreshUserSettings' );
+		if ( !Workspace.serverConfig && !Workspace.loading_server_config )
 		{
-			if( e == 'ok' )
+			console.log( 'load server config' )
+			Workspace.loading_server_config = true;
+			let b = new Module( 'system' );
+			b.onExecuted = function( e, d )
 			{
-				Workspace.serverConfig = JSON.parse( d );
+				if( e == 'ok' )
+				{
+					console.log( 'serverConfig' )
+					Workspace.serverConfig = JSON.parse( d );
+					Workspace.loading_server_config = false;
+				}
 			}
+			b.execute( 'sampleconfig' );
 		}
-		b.execute( 'sampleconfig' );
-		
+
 		let m = new Module( 'system' );
-		m.onExecuted = function( e, d )
+		m.onExecuted = handleSystemStuff
+		function handleSystemStuff( e, d )
 		{
 			console.log( 'system stuff', [ e, d ]);
 			function initFriendWorkspace()
@@ -9783,6 +9791,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
+		console.log( 'Workspace.onready', this.onReadyList );
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -9801,8 +9810,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		//if we dont have a sessionid we will need to wait a bit here...
 		//
 
-		if( typeof friendApp != 'undefined' && typeof friendApp.exit == 'function')
+		if( friendApp != null && typeof friendApp.exit == 'function')
 		{
+			console.log( 'check mobile app things', friendApp );
 			// if this is mobile app we must register it
 			// if its already registered FC will not do it again
 			let version = null;
@@ -9841,7 +9851,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						console.log( 'Failed to create uma.' );
 					}
 				}
-				l.execute( 'mobile/createuma', { sessionid: Workspace.sessionId, apptoken: appToken, deviceid: deviceID, appversion: version, platform: platform } );
+				const uma_args = { 
+					sessionid: Workspace.sessionId, 
+					apptoken: appToken, 
+					deviceid: deviceID, 
+					appversion: version, 
+					platform: platform 
+				};
+				console.log( 'mobile app createuma args', uma_args )
+				l.execute( 'mobile/createuma', uma_args )
 			}
 		}
 		return true;
