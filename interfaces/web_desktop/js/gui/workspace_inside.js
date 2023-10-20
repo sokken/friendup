@@ -2125,7 +2125,7 @@ var WorkspaceInside = {
 		return Workspace.is_loading_system_info
 		
 		function loadSysInfo( resolve, reject ) {
-			if ( Workspace.systemInfo )
+			if ( Workspace.systemInfo ) {
 				resolve();
 				return;
 			}
@@ -2148,7 +2148,7 @@ var WorkspaceInside = {
 			
 			f.forceHTTP = true;
 			f.execute( 'admin', {command:'info'} );
-		})
+		}
 	},
 	// If we have stored a theme config for the current theme, use its setup
 	// TODO: Move to a proper theme parser
