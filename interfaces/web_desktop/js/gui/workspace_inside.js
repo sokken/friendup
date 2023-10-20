@@ -9791,7 +9791,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
-		console.log( 'Workspace.onready', this.onReadyList );
+		console.trace( 'Workspace.onready', this.onReadyList );
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
