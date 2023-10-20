@@ -2118,12 +2118,18 @@ var WorkspaceInside = {
 	},
 	loadSystemInfo: function()
 	{
-		return new Promise(( resolve, reject ) => {
-			console.log( 'loadSystemInfo', [ Workspace.systemInfo, Workspace.is_loading_system_info ]);
-			if ( !Workspace.systemInfo || Workspace.is_loading_system_info )
+		if ( Workspace.is_loading_system_info )
+			return Workspace.is_loading_system_info
+		
+		Workspace.is_loading_system_info = new Promise( loadSysInfo )
+		return Workspace.is_loading_system_info
+		
+		function loadSysInfo( resolve, reject ) {
+			if ( Workspace.systemInfo )
+				resolve();
 				return;
+			}
 			
-			Workspace.is_loading_system_info = true;
 			let f = new window.Library( 'system.library' );
 			/*
 				For whatever reason, it receives data on the error argument..
@@ -2136,9 +2142,10 @@ var WorkspaceInside = {
 					str : str,
 				});
 				Workspace.systemInfo = e;
-				workspace.is_loading_system_info = false;
+				workspace.is_loading_system_info = null;
 				resolve()
 			}
+			
 			f.forceHTTP = true;
 			f.execute( 'admin', {command:'info'} );
 		})
@@ -2290,8 +2297,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			{
 				if( e == 'ok' )
 				{
-					console.log( 'serverConfig loaded', Workspace.serverConfig )
+					
 					Workspace.serverConfig = JSON.parse( d )
+					console.log( 'serverConfig loaded', Workspace.serverConfig )
 					Workspace.loading_server_config = false
 				}
 			}
@@ -2396,7 +2404,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						console.log( '???', lol );
 					}
 					
-
 					Workspace.applyThemeConfig();
 					await Workspace.loadSystemInfo();
 					
