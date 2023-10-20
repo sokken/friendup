@@ -2118,27 +2118,30 @@ var WorkspaceInside = {
 	},
 	loadSystemInfo: function()
 	{
-		console.log( 'loadSystemInfo', [ Workspace.systemInfo, Workspace.is_loading_system_info ]);
-		if ( null != Workspace.systemInfo || Workspace.is_loading_system_info )
-			return;
-
-		Workspace.is_loading_system_info = true;
-		let f = new window.Library( 'system.library' );
-		/*
-			For whatever reason, it receives data on the error argument..
-		*/
-		f.onExecuted = function( e, d )
-		{
-			let str = JSON.stringify(e);
-			console.log( 'loadSystemInfo res', {
-				e   : e,
-				str : str,
-			});
-			Workspace.systemInfo = e;
-			workspace.is_loading_system_info = false;
-		}
-		f.forceHTTP = true;
-		f.execute( 'admin', {command:'info'} );
+		return new Promise(( resolve, reject ) => {
+			console.log( 'loadSystemInfo', [ Workspace.systemInfo, Workspace.is_loading_system_info ]);
+			if ( null != Workspace.systemInfo || Workspace.is_loading_system_info )
+				return;
+			
+			Workspace.is_loading_system_info = true;
+			let f = new window.Library( 'system.library' );
+			/*
+				For whatever reason, it receives data on the error argument..
+			*/
+			f.onExecuted = function( e, d )
+			{
+				let str = JSON.stringify(e);
+				console.log( 'loadSystemInfo res', {
+					e   : e,
+					str : str,
+				});
+				Workspace.systemInfo = e;
+				workspace.is_loading_system_info = false;
+				resolve()
+			}
+			f.forceHTTP = true;
+			f.execute( 'admin', {command:'info'} );
+		})
 	},
 	// If we have stored a theme config for the current theme, use its setup
 	// TODO: Move to a proper theme parser
@@ -2321,7 +2324,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				initFriendWorkspace
 			);
 
-			function initFriendWorkspace()
+			async function initFriendWorkspace()
 			{
 				window.addTiming( 'iniFriendWorkspace' )
 				console.log( 'initFriendWorkspace', {
@@ -2395,7 +2398,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					
 
 					Workspace.applyThemeConfig();
-					Workspace.loadSystemInfo();
+					await Workspace.loadSystemInfo();
 					
 					console.log( 'after applytheme, also mobile check', [ isMobile ]);
 					// Fallback
@@ -2534,7 +2537,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						
 						console.log( 'do startup sequence i guess' );
 						// Reload the docks here
-						Workspace.reloadDocks();
+						try {
+							Workspace.reloadDocks();
+						} catch( ex ) {
+							console.log( 'reloadDocks ex', ex );
+						}
 						
 						// In single tasking mode, we just skip
 						if( Workspace.isSingleTask )
@@ -2565,6 +2572,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						Workspace.onReadyList.push( function()
 						{
 							let seq = dat.startupsequence;
+							console.log( 'onreadylist item', seq );
 							if( typeof( seq ) != 'object' )
 							{
 								try
@@ -3838,7 +3846,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	refreshTheme: function( themeName, update, themeConfig, initpass )
 	{
 		let self = this;
-		
+		console.log( 'refreshTheme', [ themeName, update, themeConfig, initpass ]);
 		// Only on force or first time
 		if( this.themeRefreshed && !update )
 		{
@@ -3877,6 +3885,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			// Add resources for theme settings --------------------------------
 			rdat = JSON.parse( rdat );
+			console.log( 'refreshTHeme - something loaded', rdat );
 			// Done resources theme settings -----------------------------------
 			
 			Workspace.themeRefreshed = true;
@@ -3914,6 +3923,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					styles.type = 'text/css';
 					styles.onload = function()
 					{
+						console.log( 'styles.onload' );
 						document.body.classList.add( 'ThemeLoaded' );
 						setTimeout( function()
 						{
@@ -4005,6 +4015,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 										}
 									}
 									
+									console.log( 'ready!' );
+									addTiming( 'workspace ready' );
 									// We are ready!
 									Workspace.readyToRun = true;
 									if( window.friendApp && friendApp.onWorkspaceReady )
@@ -10975,17 +10987,38 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 
 Workspace.pushTrashcan = {};
 
+Workspace.receivePushV2 = function( jsonMsg, ready ) {
+	console.log( receivePushV2, [ jsonMsg, ready ]);
+}
+
 // Receive push notification (when a user clicks native push notification on phone)
 Workspace.receivePush = function( jsonMsg, ready )
 {
-	//console.log( 'Workspace.receivePush', jsonMsg );
-	if( !isMobile ) return 'mobile';
-	let msg = jsonMsg ? jsonMsg : ( window.friendApp && typeof friendApp.get_notification == 'function' ? friendApp.get_notification() : false );
-
+	console.log( 'Workspace.receivePush', {
+		jsonMSg  :  jsonMsg,
+		ready    :  ready,
+		isMobile :  isMobile,
+	});
+	
+	if( !isMobile ) 
+		return 'mobile';
+	
+	let msg = null;
+	if ( null != jsonMsg )
+		msg = jsonMsg
+	else {
+		if ( friendApp?.get_notification )
+			msg = friendApp.get_notification();
+		else
+			msg = false;
+	}
+	
 	// we use 1 as special case for no push being here... to make it easier to know when to launch startup sequence... maybe not ideal, but works
 	if( msg == false || msg == 1 ) 
 	{
-		if( !ready && this.onReady ) this.onReady();
+		if( !ready && this.onReady ) 
+			this.onReady();
+		
 		return 'nomsg';
 	}
 	try
@@ -11173,7 +11206,8 @@ Workspace.receivePush = function( jsonMsg, ready )
 				}
 			}, 1000 );
 			
-			if( !ready && Workspace.onReady ) Workspace.onReady();
+			if( !ready && Workspace.onReady ) 
+				Workspace.onReady();
 		}
 	
 		mobileDebug( 'Start app ' + msg.application + ' and ' + _executionQueue[ msg.application ], true );
@@ -11262,7 +11296,7 @@ function mobileDebug( str, clear )
 _applicationBasics = {};
 async function loadApplicationBasics( callback )
 {
-	console.log( 'loadApplicationBasics', Workspace.app_basics_loading );
+	console.trace( 'loadApplicationBasics', Workspace.app_basics_loading );
 	// Don't do in login
 	if( Workspace.loginPrompt )
 	{
