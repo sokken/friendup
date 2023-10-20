@@ -2140,9 +2140,9 @@ var WorkspaceInside = {
 				console.log( 'loadSystemInfo res', {
 					e   : e,
 					str : str,
-				});
-				Workspace.systemInfo = e;
-				workspace.is_loading_system_info = null;
+				})
+				Workspace.systemInfo = e
+				Workspace.is_loading_system_info = null
 				resolve()
 			}
 			
