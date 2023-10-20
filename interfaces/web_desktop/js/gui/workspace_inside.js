@@ -9810,7 +9810,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		//if we dont have a sessionid we will need to wait a bit here...
 		//
 
-		if( friendApp != null && typeof friendApp.exit == 'function')
+		if( friendApp?.exit != null )
 		{
 			console.log( 'check mobile app things', friendApp );
 			// if this is mobile app we must register it
