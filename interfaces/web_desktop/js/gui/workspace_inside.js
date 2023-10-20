@@ -2120,7 +2120,7 @@ var WorkspaceInside = {
 	{
 		return new Promise(( resolve, reject ) => {
 			console.log( 'loadSystemInfo', [ Workspace.systemInfo, Workspace.is_loading_system_info ]);
-			if ( null != Workspace.systemInfo || Workspace.is_loading_system_info )
+			if ( !Workspace.systemInfo || Workspace.is_loading_system_info )
 				return;
 			
 			Workspace.is_loading_system_info = true;
