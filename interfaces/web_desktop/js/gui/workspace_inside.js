@@ -2323,7 +2323,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			loadApplicationBasics(
 				initFriendWorkspace
 			);
-
+			
 			async function initFriendWorkspace()
 			{
 				window.addTiming( 'iniFriendWorkspace' )
@@ -11301,12 +11301,14 @@ async function loadApplicationBasics( callback )
 	if( Workspace.loginPrompt )
 	{
 		if( callback )
-			callback();
-		return;
+			callback()
+		return
 	}
 
 	if( Workspace.app_basics_loading ) 
 	{
+		if ( callback )
+			callback()
 		return
 		//clearTimeout( Workspace.app_basics_loading );
 	}
