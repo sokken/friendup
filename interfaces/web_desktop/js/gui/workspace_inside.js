@@ -2287,19 +2287,40 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			{
 				if( e == 'ok' )
 				{
-					console.log( 'serverConfig' )
-					Workspace.serverConfig = JSON.parse( d );
-					Workspace.loading_server_config = false;
+					console.log( 'serverConfig loaded', Workspace.serverConfig )
+					Workspace.serverConfig = JSON.parse( d )
+					Workspace.loading_server_config = false
 				}
 			}
 			b.execute( 'sampleconfig' );
 		}
+		
+		if ( Workspace.user_settings_loading ) {
+			window.setTimeout( refreshUserSettings, 50 );
+			return;
+		}
 
+		Workspace.user_settings_loading = true;
 		let m = new Module( 'system' );
 		m.onExecuted = handleSystemStuff
+		m.forceHTTP = true;
+		m.execute( 'getsetting', { settings: [ 
+			'avatar', 'workspacemode', 'wallpaperdoors', 'wallpaperwindows', 'language', 
+			'menumode', 'startupsequence', 'navigationmode', 'windowlist', 
+			'focusmode', 'hiddensystem', 'workspacecount', 
+			'scrolldesktopicons', 'hidedesktopicons', 'wizardrun', 'themedata_' + Workspace.theme,
+			'workspacemode', 'workspace_labels'
+		] } );
+
 		function handleSystemStuff( e, d )
 		{
 			console.log( 'system stuff', [ e, d ]);
+			Workspace.user_settings_loading = false;
+			// Load application cache's and then init workspace
+			loadApplicationBasics(
+				initFriendWorkspace
+			);
+
 			function initFriendWorkspace()
 			{
 				window.addTiming( 'iniFriendWorkspace' )
@@ -2662,20 +2683,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				}
 				if( callback && typeof( callback ) == 'function' ) callback();
 			}
-			
-			// Load application cache's and then init workspace
-			loadApplicationBasics(
-				initFriendWorkspace()
-			);
 		}
-		m.forceHTTP = true;
-		m.execute( 'getsetting', { settings: [ 
-			'avatar', 'workspacemode', 'wallpaperdoors', 'wallpaperwindows', 'language', 
-			'menumode', 'startupsequence', 'navigationmode', 'windowlist', 
-			'focusmode', 'hiddensystem', 'workspacecount', 
-			'scrolldesktopicons', 'hidedesktopicons', 'wizardrun', 'themedata_' + Workspace.theme,
-			'workspacemode', 'workspace_labels'
-		] } );
 	},
 	// Called on onunload
 	unloadFriendNetwork: function( e )
@@ -11252,79 +11260,100 @@ function mobileDebug( str, clear )
 // TODO: Test loading different themes
 
 _applicationBasics = {};
-var _applicationBasicsLoading = false;
-function loadApplicationBasics( callback )
+async function loadApplicationBasics( callback )
 {
-	if( _applicationBasicsLoading ) 
+	console.log( 'loadApplicationBasics', Workspace.app_basics_loading );
+	// Don't do in login
+	if( Workspace.loginPrompt )
 	{
-		clearTimeout( _applicationBasicsLoading );
+		if( callback )
+			callback();
+		return;
 	}
-	_applicationBasicsLoading = setTimeout( function()
+
+	if( Workspace.app_basics_loading ) 
 	{
-		_applicationBasicsLoading = null;
-		
-		// Don't do in login
-		if( Workspace.loginPrompt )
-		{
-			if( callback )
-				callback();
-			return;
-		}
-		
-		// Preload basic scripts
+		return
+		//clearTimeout( Workspace.app_basics_loading );
+	}
+
+	Workspace.app_basics_loading = true
+
+	// Preload basic scripts
+	const a = new Promise(( resolve, reject ) => {
 		let a_ = new File( '/webclient/js/apps/api.js' );
 		a_.onLoad = function( data )
 		{
 			_applicationBasics.apiV1 = URL.createObjectURL( new Blob( [ data ], { type: 'text/javascript' } ) );
+			resolve();
 		}
-		a_.load();
+
+		console.log( 'a loaded' )
+		a_.load()
+	})
+	
+	const b = new Promise(( resolve, reject ) => {
 		let sb_ = new File( '/themes/friendup12/scrollbars.css' );
 		sb_.onLoad = function( data )
 		{
 			if( _applicationBasics.css )
 				_applicationBasics.css += data;
-			else _applicationBasics.css = data;
+			else 
+				_applicationBasics.css = data;
+
+			console.log( 'b loaded' )
+			resolve()
 		}
-		sb_.load();
-		// Preload basic scripts
+		sb_.load()
+	})
+
+	// Preload basic scripts
+	const c = new Promise(( resolve, reject ) => {
 		let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
 		c_.onLoad = function( data )
 		{
 			if( _applicationBasics.css )
 				_applicationBasics.css += data;
-			else _applicationBasics.css = data;
+			else 
+				_applicationBasics.css = data;
+
+			console.log( 'c loaded' )
+			resolve()
 		}
-		c_.load();
-		
+		c_.load()
+	})
+	
+	const d = new Promise(( resolve, reject ) => {
 		let js = '/webclient/' + [ 'js/oo.js',
-		'js/api/friendappapi.js',
-		'js/utils/engine.js',
-		'js/utils/tool.js',
-		'js/utils/json.js',
-		'js/io/cajax.js',
-		'js/io/appConnection.js',
-		'js/io/coreSocket.js',
-		'js/gui/treeview.js',
-		'js/fui/fui_v1.js',
-		'js/fui/classes/baseclasses.fui.js',
-		'js/fui/classes/group.fui.js',
-		'js/fui/classes/listview.fui.js' ].join( ';/webclient/' );
+			'js/api/friendappapi.js',
+			'js/utils/engine.js',
+			'js/utils/tool.js',
+			'js/utils/json.js',
+			'js/io/cajax.js',
+			'js/io/appConnection.js',
+			'js/io/coreSocket.js',
+			'js/gui/treeview.js',
+			'js/fui/fui_v1.js',
+			'js/fui/classes/baseclasses.fui.js',
+			'js/fui/classes/group.fui.js',
+			'js/fui/classes/listview.fui.js' 
+		].join( ';/webclient/' );
+
 		let j_ = new File( js );
 		j_.onLoad = function( data )
 		{
-			_applicationBasics.js = data;
-			if( callback )
-			{
-				try
-				{
-					callback();
-				}
-				catch( e )
-				{
-				}
-			}
+			_applicationBasics.js = data
+			resolve()
 		}
-		j_.load();
-	}, 2 );
+		j_.load()
+	})
+
+	const waiters = [ a, b, c, d ]
+	console.log( 'waiters', waiters )
+	await Promise.all( waiters )
+	console.log( 'all loaed, ahve cb?', callback )
+	if( callback != null )
+		callback()
+	
 };
 
