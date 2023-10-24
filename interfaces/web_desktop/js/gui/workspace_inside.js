@@ -10995,6 +10995,7 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 Workspace.pushTrashcan = {};
 
 Workspace.receivePushV2 = function( jsonMsg, ready ) {
+	const self = this;
 	console.log( 'receivePushV2', [ jsonMsg, ready ]);
 	
 	self.onReady();
