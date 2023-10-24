@@ -10995,7 +10995,9 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 Workspace.pushTrashcan = {};
 
 Workspace.receivePushV2 = function( jsonMsg, ready ) {
-	console.log( receivePushV2, [ jsonMsg, ready ]);
+	console.log( 'receivePushV2', [ jsonMsg, ready ]);
+	
+	self.onReady();
 }
 
 // Receive push notification (when a user clicks native push notification on phone)
