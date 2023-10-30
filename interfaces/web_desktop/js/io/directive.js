@@ -56,9 +56,9 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	window.addTiming( 'ExecuteAppliction', app )
 	window.showTimings()
 	// If we don't have any cached basics, wait a bit
-	if( typeof( _applicationBasics ) == 'undefined' || !_applicationBasics.js )
+	if( !window._applicationBasics?.js )
 	{
-		//console.log( 'ExecuteApplication - retries', retries );
+		console.log( 'XXXecuteApplication - no basics, retries', retries );
 		if( retries == 3 ) 
 			return console.log( 'Could not execute app: ' + app );
 		loadApplicationBasics( function()
@@ -66,6 +66,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ExecuteApplication( app, args, callback, !retries ? 3 : retries++, flags );
 		} );
 	}
+	
 	var appName = app;
 	if( app.indexOf( ':' ) > 0 )
 	{
@@ -461,9 +462,9 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					j.onload = function()
 					{	
 						let ws;
-						if( _applicationBasics && _applicationBasics.apiV1 )
+						if( window._applicationBasics && window._applicationBasics.apiV1 )
 						{
-							ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + _applicationBasics.apiV1 + '"' );
+							ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + window._applicationBasics.apiV1 + '"' );
 						}
 						else
 						{
@@ -700,7 +701,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					domain:   sdomain,
 					registerCallback: cid,
 					clipboard: Friend.clipboard,
-					cachedAppData: _applicationBasics
+					cachedAppData: window._applicationBasics
 				};
 				if( conf.State ) o.state = conf.State;
 
@@ -1341,9 +1342,9 @@ function ExecuteJSX( data, app, args, path, callback, conf, flags )
 				j.onload = function()
 				{
 					let ws;
-					if( _applicationBasics.apiV1 )
+					if( window._applicationBasics.apiV1 )
 					{
-						ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + _applicationBasics.apiV1 + '"' );
+						ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + window._applicationBasics.apiV1 + '"' );
 					}
 					else
 					{
@@ -1538,7 +1539,7 @@ function ExecuteJSX( data, app, args, path, callback, conf, flags )
 						viewId:           false,
 						registerCallback: cid,
 						clipboard:        Friend.clipboard,
-						cachedAppData:    _applicationBasics,
+						cachedAppData:    window._applicationBasics,
 						args:			  args
 					};
 

@@ -1,6 +1,7 @@
 // Apps on startup
 Friend.startupApps = {};
 
+console.log( 'WorkspaceInside' );
 // Added to workspace
 var WorkspaceInside = {
 	// Tray icons
@@ -271,12 +272,15 @@ var WorkspaceInside = {
 	// Check workspace wallpapers
 	checkWorkspaceWallpapers: function( loaded )
 	{
-		if( this.mode == 'vr' ) return;
-		if( globalConfig.workspacecount <= 1 ) return;
+		if( this.mode == 'vr' ) 
+			return
+		
+		if( globalConfig.workspacecount <= 1 ) 
+			return
 
 		if( !Workspace.wallpaperLoaded && !loaded ) 
 		{
-			return;
+			return
 		}
 		
 		// Check if we already have workspace wallpapers
@@ -931,6 +935,7 @@ var WorkspaceInside = {
 	initWorkspaces: function( cbk, counter )
 	{
 		window.addTiming( 'initWorkspaces' )
+		console.trace( 'initWorkspaces', cbk, counter );
 		if( !counter ) counter = 0;
 		if( this.mode == 'vr' || isMobile || Workspace.isSingleTask ) 
 		{
@@ -2116,6 +2121,19 @@ var WorkspaceInside = {
 			Workspace.mainDock.closeDesklet();
 		this.exitMobileMenu();
 	},
+	getSystemInfo : function()
+	{
+		return new Promise( get );
+		async function get( resovle, reject ) {
+			if ( Workspace.systemInfo ) {
+				resolve( Workspace.systemInfo )
+				return
+			}
+			
+			await Workspace.loadSystemInfo()
+			resolve( Workspace.systemInfo )
+		}
+	},
 	loadSystemInfo: function()
 	{
 		if ( Workspace.is_loading_system_info )
@@ -2284,419 +2302,479 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		console.log( 'applyThemeConfig done' );
 	},
 	// NB: Start of workspace_inside.js ----------------------------------------
-	refreshUserSettings: function( callback )
-	{
-		window.addTiming( 'refreshUserSettings' )
-		console.trace( 'refreshUserSettings' );
-		if ( !Workspace.serverConfig && !Workspace.loading_server_config )
-		{
-			console.log( 'load server config' )
-			Workspace.loading_server_config = true;
+	loadServerConfig : function() {
+		if ( Workspace.serverConfigPromise )
+			return Workspace.serverConfigPromise;
+		
+		Workspace.serverConfigPromise = new Promise( load );
+		return Workspace.serverConfigPromise;
+		
+		function load( resolve, reject ) {
 			let b = new Module( 'system' );
 			b.onExecuted = function( e, d )
 			{
-				if( e == 'ok' )
-				{
-					
-					Workspace.serverConfig = JSON.parse( d )
-					console.log( 'serverConfig loaded', Workspace.serverConfig )
-					Workspace.loading_server_config = false
+				Workspace.serverConfigPromise = null
+				if ( e != 'ok' ) {
+					console.log( 'loadServerConfig - error', [ e, d ])
+					resolve()
+					return
 				}
+				
+				try {
+					Workspace.serverConfig = JSON.parse( d )
+				} catch ( jex ) {
+					console.log( 'loadServerConfig - could not parse', d )
+					resolve()
+					return
+				}
+				
+				console.log( 'serverConfig loaded', Workspace.serverConfig )
+				resolve()
 			}
-			b.execute( 'sampleconfig' );
+			b.execute( 'sampleconfig' )
+		}
+	},
+	loadUserSettings : function() {
+		if ( Workspace.userSettingsPromise )
+			return Workspace.userSettingsPromise;
+		
+		Workspace.userSettingsPromise = new Promise( load );
+		return Workspace.userSettingsPromise;
+		
+		function load( resolve, reject ) {
+			let m = new Module( 'system' );
+			m.onExecuted = ( e, d ) => {
+				if ( 'ok' != e ) {
+					resolve( null )
+					return
+				}
+				
+				let res = null
+				try {
+					res = JSON.parse( d );
+				} catch( ex ) {
+					console.log( 'loadUserSettings - failed to parse', d );
+				}
+				
+				console.log( 'usettings', res );
+				resolve( res )
+			}
+			
+			m.forceHTTP = true;
+			m.execute( 'getsetting', { settings: [ 
+				'avatar', 'workspacemode', 'wallpaperdoors', 'wallpaperwindows', 'language', 
+				'menumode', 'startupsequence', 'navigationmode', 'windowlist', 
+				'focusmode', 'hiddensystem', 'workspacecount', 
+				'scrolldesktopicons', 'hidedesktopicons', 'wizardrun', 'themedata_' + Workspace.theme,
+				'workspacemode', 'workspace_labels'
+			] } );
+		}
+	},
+	refreshUserSettings: async function( callback )
+	{
+		const self = this;
+		if ( callback )
+			throw new Error( 'callback deprecated, fix!' );
+		
+		await Workspace.loadSystemInfo();
+		
+		if ( Workspace.refreshUserSettingsPromise )
+			return Workspace.refreshUserSettingsPromise
+		
+		Workspace.refreshUserSettingsPromise = new Promise( refresh )
+		return Workspace.refreshUserSettingsPromise
+		
+		async function refresh( resolve, reject ) {
+			
+			window.addTiming( 'refreshUserSettings' )
+			console.trace( 'refreshUserSettings' );
+			if ( null == Workspace.serverConfig )
+				await self.loadServerConfig()
+			
+			if ( Workspace.userSettingsPromise ) {
+				//window.setTimeout( refreshUserSettings, 50 );
+				console.trace( 'y u twice???' )
+				return;
+			}
+			
+			const uSettings = await self.loadUserSettings()
+			await updateFromSettings( uSettings )
+			console.log( 'refresh done' )
+			resolve()
 		}
 		
-		if ( Workspace.user_settings_loading ) {
-			window.setTimeout( refreshUserSettings, 50 );
-			return;
-		}
-
-		Workspace.user_settings_loading = true;
-		let m = new Module( 'system' );
-		m.onExecuted = handleSystemStuff
-		m.forceHTTP = true;
-		m.execute( 'getsetting', { settings: [ 
-			'avatar', 'workspacemode', 'wallpaperdoors', 'wallpaperwindows', 'language', 
-			'menumode', 'startupsequence', 'navigationmode', 'windowlist', 
-			'focusmode', 'hiddensystem', 'workspacecount', 
-			'scrolldesktopicons', 'hidedesktopicons', 'wizardrun', 'themedata_' + Workspace.theme,
-			'workspacemode', 'workspace_labels'
-		] } );
-
-		function handleSystemStuff( e, d )
+		async function updateFromSettings( uSettings )
 		{
-			console.log( 'system stuff', [ e, d ]);
-			Workspace.user_settings_loading = false;
+			console.log( 'updateFromSettings', uSettings );
 			// Load application cache's and then init workspace
-			loadApplicationBasics(
-				initFriendWorkspace
-			);
+			try {
+				await initFriendWorkspace();
+			} catch( ex ) {
+				console.log( 'XX', ex );
+			}
 			
-			async function initFriendWorkspace()
-			{
-				window.addTiming( 'iniFriendWorkspace' )
-				console.log( 'initFriendWorkspace', {
-					e : e,
-					d : d,
+			// Make sure we have loaded
+			
+			console.log( 'check screensize' )
+			await checkScreenSize();
+			console.log( 'screen sized' )
+			function checkScreenSize() {
+				return new Promise(( resolve, reject ) => {
+					if ( 'vr' == Workspace.mode ) {
+						resolve()
+						return
+					}
+					
+					let checkTimer = setTimeout( check, 50 )
+					
+					function check() {
+						if( Workspace.screen?.contentDiv ) {
+							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
+								console.log( 'thingie size yep', checkTimer )
+								window.clearTimeout( checkTimer )
+								resolve()
+							}
+						}
+					}
 				});
-				// Make sure we have loaded
-				
-				if( Workspace.mode != 'vr' && ( Workspace.screen && Workspace.screen.contentDiv ) ) {
-					if( Workspace.screen.contentDiv.offsetHeight < 100 ) {
-						console.log( 'thingie wrong size, retry' );
-						return setTimeout( initFriendWorkspace, 50 );
-					}
-				}
-					
-				if( e == 'ok' && d )
+			}
+			
+			if ( uSettings ) {
+				dat = uSettings
+				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 				{
-					Workspace.userSettingsLoaded = true;
-					let dat = JSON.parse( d );
-					console.log( 'dat', dat );
-					try {
-
-					
-					if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
+					console.log( 'if1' );
+					if( dat.wallpaperdoors.substr(0,5) == 'color' )
 					{
-						console.log( 'if1' );
-						if( dat.wallpaperdoors.substr(0,5) == 'color' )
+						Workspace.wallpaperImage = 'color';
+						Workspace.wallpaperImageDecoded = false;
+						document.body.classList.remove( 'NoWallpaper' );
+						document.body.classList.remove( 'DefaultWallpaper' );
+					}
+					else if( dat.wallpaperdoors.length )
+					{
+						Workspace.wallpaperImage = dat.wallpaperdoors;
+						if( 
+							dat.wallpaperdoors.indexOf( ':' ) > 0 && 
+							( dat.wallpaperdoors.indexOf( 'http://' ) != 0 || dat.wallpaperdoors.indexOf( 'https://' ) ) 
+						)
 						{
-							Workspace.wallpaperImage = 'color';
-							Workspace.wallpaperImageDecoded = false;
-							document.body.classList.remove( 'NoWallpaper' );
-							document.body.classList.remove( 'DefaultWallpaper' );
+							Workspace.wallpaperImageDecoded = getImageUrl( Workspace.wallpaperImage );
 						}
-						else if( dat.wallpaperdoors.length )
-						{
-							Workspace.wallpaperImage = dat.wallpaperdoors;
-							if( 
-								dat.wallpaperdoors.indexOf( ':' ) > 0 && 
-								( dat.wallpaperdoors.indexOf( 'http://' ) != 0 || dat.wallpaperdoors.indexOf( 'https://' ) ) 
-							)
-							{
-								Workspace.wallpaperImageDecoded = getImageUrl( Workspace.wallpaperImage );
-							}
-							document.body.classList.remove( 'NoWallpaper' );
-							document.body.classList.remove( 'DefaultWallpaper' );
-						}
-						else 
-						{
-							document.body.classList.add( 'DefaultWallpaper' );
-							Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
-							Workspace.wallpaperImageDecoded = false;
-						}
+						document.body.classList.remove( 'NoWallpaper' );
+						document.body.classList.remove( 'DefaultWallpaper' );
 					}
-					else
+					else 
 					{
-						document.body.classList.add( 'NoWallpaper' );
-					}
-					// Check for theme specifics
-					if( dat[ 'themedata_' + Workspace.theme ] )
-					{
-						Workspace.themeData = dat[ 'themedata_' + Workspace.theme ];
-					}
-					else
-					{
-						Workspace.themeData = false;
-					}
-
-					} catch( lol ) {
-						console.log( '???', lol );
-					}
-					
-					Workspace.applyThemeConfig();
-					await Workspace.loadSystemInfo();
-					
-					console.log( 'after applytheme, also mobile check', [ isMobile ]);
-					// Fallback
-					if( !isMobile )
-					{
-						if( !dat.wizardrun )
-						{
-							if( !Workspace.WizardExecuted )
-							{
-								//ExecuteApplication( 'FriendWizard' );
-								Workspace.WizardExecuted = true;
-							}
-						}
-					}
-					
-					if( !Workspace.wallpaperImage || Workspace.wallpaperImage == '""' || Workspace.wallpaperImage === '' )
-					{
+						document.body.classList.add( 'DefaultWallpaper' );
 						Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
 						Workspace.wallpaperImageDecoded = false;
-					}
-					
-					if( dat.wallpaperwindows )
-					{
-						Workspace.windowWallpaperImage = dat.wallpaperwindows;
-					}
-
-					if( dat.language )
-					{
-						globalConfig.language = dat.language.spokenLanguage;
-						globalConfig.alternateLanguage = dat.language.spokenAlternate ? dat.language.spokenAlternate : 'en-US';
-					}
-					if( dat.menumode )
-					{
-						globalConfig.menuMode = dat.menumode;
-					}
-					if( dat.focusmode )
-					{
-						globalConfig.focusMode = dat.focusmode;
-						document.body.setAttribute( 'focusmode', dat.focusmode ); // Register for styling
-					}
-					if( dat.navigationmode )
-					{
-						globalConfig.navigationMode = dat.navigationmode;
-					}
-					if( dat.hiddensystem )
-					{
-						globalConfig.hiddenSystem = dat.hiddensystem;
-					}
-					if( window.isMobile )
-					{
-						globalConfig.viewList = 'separate';
-					}
-					else if( dat.windowlist )
-					{
-						globalConfig.viewList = dat.windowlist;
-						document.body.setAttribute( 'viewlist', dat.windowlist ); // Register for styling
-					}
-					if( dat.scrolldesktopicons == 1 )
-					{
-						globalConfig.scrolldesktopicons = dat.scrolldesktopicons;
-					}
-					else globalConfig.scrolldesktopicons = 0;
-					if( dat.hidedesktopicons == 1 )
-					{
-						globalConfig.hidedesktopicons = dat.scrolldesktopicons;
-						document.body.classList.add( 'DesktopIconsHidden' );
-					}
-					else
-					{
-						globalConfig.hidedesktopicons = 0;
-						document.body.classList.remove( 'DesktopIconsHidden' );
-					}
-					// Can only have workspaces on mobile
-					// TODO: Implement dynamic workspace count for mobile (one workspace per app)
-					if( dat.workspacecount >= 0 && !window.isMobile )
-					{
-						globalConfig.workspacecount = dat.workspacecount;
-					}
-					else
-					{
-						globalConfig.workspacecount = 1;
-					}
-
-					if( dat.workspacemode )
-					{
-						Workspace.workspacemode = dat.workspacemode;
-					}
-					else
-					{
-						Workspace.workspacemode = 'developer';
-					}
-				
-					// Disable console log now..
-					if( Workspace.workspacemode == 'normal' || Workspace.workspacemode == 'gamified' )
-					{
-						//console.log = function(){};
-					}
-					
-					if( dat.workspace_labels )
-					{
-						globalConfig.workspace_labels = dat.workspace_labels;
-					}
-					else
-					{
-						globalConfig.workspace_labels = [];
-					}
-					
-					// Make sure iOS has the correct information
-					if( window.friendApp && window.webkit && window.friendApp.setBackgroundColor )
-					{
-						console.log( 'mobile app color things' );
-						let col = '#34495E';
-						switch( Workspace.themeData.colorSchemeText )
-						{
-							case 'charcoal':
-								col = '#3b3b3b';
-								break;
-							default:
-								break;
-						}
-						window.friendApp.setBackgroundColor( col );
-					}
-					
-					// If we haven't refreshed, do it now
-					if( !Workspace.desktopFirstRefresh )
-					{
-						console.log( 'first refresh' );
-						Workspace.refreshDesktop();
-					}
-					
-					console.log( 'after refresh, is startupseqregister=?', Workspace.startupSequenceRegistered );
-					// Do the startup sequence in sequence (only once)
-					if( !Workspace.startupSequenceRegistered )
-					{	
-						Workspace.startupSequenceRegistered = true;
-						
-						console.log( 'do startup sequence i guess' );
-						// Reload the docks here
-						try {
-							Workspace.reloadDocks();
-						} catch( ex ) {
-							console.log( 'reloadDocks ex', ex );
-						}
-						
-						// In single tasking mode, we just skip
-						if( Workspace.isSingleTask )
-						{
-							console.log( 'singletask' );
-							// Oh! We wanted to start an application!
-							if( GetUrlVar( 'app' ) )
-							{
-								let args = GetUrlVar( 'args' );
-								if( !args ) 
-									args = false;
-
-								const urlApp = GetUrlVar( 'app' );
-								console.log( 'exec app', {
-									urlApp  : urlApp,
-									urlArgs : args,
-								});
-								ExecuteApplication( urlApp, args );
-							}
-							ScreenOverlay.hide();
-							PollTray();
-							PollTaskbar();					
-							return;
-						}
-						
-						/* We have a startup application! */
-						
-						Workspace.onReadyList.push( function()
-						{
-							let seq = dat.startupsequence;
-							console.log( 'onreadylist item', seq );
-							if( typeof( seq ) != 'object' )
-							{
-								try
-								{
-									seq = JSON.parse( seq );
-								}
-								catch( e )
-								{
-									seq = [];
-								}
-							}
-							
-							if( seq.length )
-							{
-								console.log( 'startupseq', seq );
-								if( ScreenOverlay.debug )
-									ScreenOverlay.setTitle( i18n( 'i18n_starting_your_session' ) );
-								let l = {
-									index: 0,
-									func: function()
-									{
-										if( Workspace.getWebSocketsState() != 'open' )
-										{
-											//console.log( 'Waiting for websocket... ' + Math.random() );
-											return setTimeout( function(){ l.func() }, 500 );
-										}
-
-										if( !ScreenOverlay.done && l.index < seq.length )
-										{
-											// Register for Friend DOS
-											ScreenOverlay.launchIndex = l.index;
-											let cmd = seq[ l.index++ ];
-											if( cmd && cmd.length )
-											{
-												// Sanitize
-												if( cmd.indexOf( 'launch' ) == 0 )
-												{
-													let appString = cmd.substr( 7, cmd.length - 7 );
-													let appName = appString.split( ' ' )[0];
-													let args = appString.substr( appName.length + 1, appString.length - appName.length + 1 );
-													let found = false;
-													for( let b = 0; b < Workspace.applications.length; b++ )
-													{
-														if( Workspace.applications[ b ].applicationName == appName )
-														{
-															found = true;
-															break;
-														}
-													}
-													if( !found && !Friend.startupApps[ appName ] )
-													{
-														let slot;
-														if( ScreenOverlay.debug )
-															slot = ScreenOverlay.addStatus( i18n( 'i18n_processing' ), cmd );											
-														ScreenOverlay.addDebug( 'Executing ' + cmd );
-														
-														Workspace.shell.execute( cmd, function( res )
-														{
-															if( ScreenOverlay.debug )
-															{
-																ScreenOverlay.editStatus( slot, res ? 'Ok' : 'Error' );
-																ScreenOverlay.addDebug( 'Done ' + cmd );
-															}
-															l.func();
-															if( Workspace.mainDock && !Workspace.isSingleTask )
-																Workspace.mainDock.closeDesklet();
-														} );
-													}
-													// Just skip
-													else
-													{
-														l.func();
-													}
-												}
-												else
-												{
-													l.func();
-												}
-												
-												return;
-											}
-										}
-										
-										// Hide overlay
-										ScreenOverlay.hide();
-										
-										PollTray();
-										PollTaskbar();
-										l.func = function()
-										{
-											//
-										}
-										// We are done. Empty startup apps!
-										Friend.startupApps = {};
-									}
-								}
-								l.func();
-							}
-							else
-							{
-								// Hide overlay
-								ScreenOverlay.hide();
-								PollTray();
-								PollTaskbar();
-							}
-						} );
 					}
 				}
 				else
 				{
+					document.body.classList.add( 'NoWallpaper' );
+				}
+				// Check for theme specifics
+				if( dat[ 'themedata_' + Workspace.theme ] )
+				{
+					Workspace.themeData = dat[ 'themedata_' + Workspace.theme ];
+				}
+				else
+				{
+					Workspace.themeData = false;
+				}
+				
+				Workspace.applyThemeConfig();
+				
+				console.log( 'after applytheme, also mobile check', [ isMobile ]);
+				// Fallback
+				if( !isMobile )
+				{
+					if( !dat.wizardrun )
+					{
+						if( !Workspace.WizardExecuted )
+						{
+							//ExecuteApplication( 'FriendWizard' );
+							Workspace.WizardExecuted = true;
+						}
+					}
+				}
+				
+				if( !Workspace.wallpaperImage || Workspace.wallpaperImage == '""' || Workspace.wallpaperImage === '' )
+				{
 					Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
 					Workspace.wallpaperImageDecoded = false;
-					Workspace.windowWallpaperImage = '';
-					document.body.classList.add( 'DefaultWallpaper' );
-					doReveal();
 				}
-				if( callback && typeof( callback ) == 'function' ) callback();
+				
+				if( dat.wallpaperwindows )
+				{
+					Workspace.windowWallpaperImage = dat.wallpaperwindows;
+				}
+
+				if( dat.language )
+				{
+					globalConfig.language = dat.language.spokenLanguage;
+					globalConfig.alternateLanguage = dat.language.spokenAlternate ? dat.language.spokenAlternate : 'en-US';
+				}
+				if( dat.menumode )
+				{
+					globalConfig.menuMode = dat.menumode;
+				}
+				if( dat.focusmode )
+				{
+					globalConfig.focusMode = dat.focusmode;
+					document.body.setAttribute( 'focusmode', dat.focusmode ); // Register for styling
+				}
+				if( dat.navigationmode )
+				{
+					globalConfig.navigationMode = dat.navigationmode;
+				}
+				if( dat.hiddensystem )
+				{
+					globalConfig.hiddenSystem = dat.hiddensystem;
+				}
+				if( window.isMobile )
+				{
+					globalConfig.viewList = 'separate';
+				}
+				else if( dat.windowlist )
+				{
+					globalConfig.viewList = dat.windowlist;
+					document.body.setAttribute( 'viewlist', dat.windowlist ); // Register for styling
+				}
+				if( dat.scrolldesktopicons == 1 )
+				{
+					globalConfig.scrolldesktopicons = dat.scrolldesktopicons;
+				}
+				else globalConfig.scrolldesktopicons = 0;
+				if( dat.hidedesktopicons == 1 )
+				{
+					globalConfig.hidedesktopicons = dat.scrolldesktopicons;
+					document.body.classList.add( 'DesktopIconsHidden' );
+				}
+				else
+				{
+					globalConfig.hidedesktopicons = 0;
+					document.body.classList.remove( 'DesktopIconsHidden' );
+				}
+				// Can only have workspaces on mobile
+				// TODO: Implement dynamic workspace count for mobile (one workspace per app)
+				if( dat.workspacecount >= 0 && !window.isMobile )
+				{
+					globalConfig.workspacecount = dat.workspacecount;
+				}
+				else
+				{
+					globalConfig.workspacecount = 1;
+				}
+
+				if( dat.workspacemode )
+				{
+					Workspace.workspacemode = dat.workspacemode;
+				}
+				else
+				{
+					Workspace.workspacemode = 'developer';
+				}
+			
+				// Disable console log now..
+				if( Workspace.workspacemode == 'normal' || Workspace.workspacemode == 'gamified' )
+				{
+					//console.log = function(){};
+				}
+				
+				if( dat.workspace_labels )
+				{
+					globalConfig.workspace_labels = dat.workspace_labels;
+				}
+				else
+				{
+					globalConfig.workspace_labels = [];
+				}
+				
+				// Make sure iOS has the correct information
+				if( window.friendApp && window.webkit && window.friendApp.setBackgroundColor )
+				{
+					console.log( 'mobile app color things' );
+					let col = '#34495E';
+					switch( Workspace.themeData.colorSchemeText )
+					{
+						case 'charcoal':
+							col = '#3b3b3b';
+							break;
+						default:
+							break;
+					}
+					window.friendApp.setBackgroundColor( col );
+				}
+				
+				// If we haven't refreshed, do it now
+				if( !Workspace.desktopFirstRefresh )
+				{
+					console.log( 'first refresh' );
+					Workspace.refreshDesktop();
+				}
+				
+				console.log( 'after refresh, is startupseqregister=?', Workspace.startupSequenceRegistered );
+				// Do the startup sequence in sequence (only once)
+				if( !Workspace.startupSequenceRegistered )
+				{	
+					Workspace.startupSequenceRegistered = true;
+					
+					console.log( 'do startup sequence i guess' );
+					// Reload the docks here
+					try {
+						Workspace.reloadDocks();
+					} catch( ex ) {
+						console.log( 'reloadDocks ex', ex );
+					}
+					
+					// In single tasking mode, we just skip
+					if( Workspace.isSingleTask )
+					{
+						console.log( 'singletask' );
+						// Oh! We wanted to start an application!
+						if( GetUrlVar( 'app' ) )
+						{
+							let args = GetUrlVar( 'args' );
+							if( !args ) 
+								args = false;
+
+							const urlApp = GetUrlVar( 'app' );
+							console.log( 'exec app', {
+								urlApp  : urlApp,
+								urlArgs : args,
+							});
+							ExecuteApplication( urlApp, args );
+						}
+						ScreenOverlay.hide();
+						PollTray();
+						PollTaskbar();					
+						return;
+					}
+					
+					/* We have a startup application! */
+					
+					Workspace.onReadyList.push( function()
+					{
+						let seq = dat.startupsequence;
+						console.log( 'onreadylist item', seq );
+						if( typeof( seq ) != 'object' )
+						{
+							try
+							{
+								seq = JSON.parse( seq );
+							}
+							catch( e )
+							{
+								seq = [];
+							}
+						}
+						
+						if( seq.length )
+						{
+							console.log( 'startupseq', seq );
+							if( ScreenOverlay.debug )
+								ScreenOverlay.setTitle( i18n( 'i18n_starting_your_session' ) );
+							let l = {
+								index: 0,
+								func: function()
+								{
+									if( Workspace.getWebSocketsState() != 'open' )
+									{
+										//console.log( 'Waiting for websocket... ' + Math.random() );
+										return setTimeout( function(){ l.func() }, 500 );
+									}
+
+									if( !ScreenOverlay.done && l.index < seq.length )
+									{
+										// Register for Friend DOS
+										ScreenOverlay.launchIndex = l.index;
+										let cmd = seq[ l.index++ ];
+										if( cmd && cmd.length )
+										{
+											// Sanitize
+											if( cmd.indexOf( 'launch' ) == 0 )
+											{
+												let appString = cmd.substr( 7, cmd.length - 7 );
+												let appName = appString.split( ' ' )[0];
+												let args = appString.substr( appName.length + 1, appString.length - appName.length + 1 );
+												let found = false;
+												for( let b = 0; b < Workspace.applications.length; b++ )
+												{
+													if( Workspace.applications[ b ].applicationName == appName )
+													{
+														found = true;
+														break;
+													}
+												}
+												if( !found && !Friend.startupApps[ appName ] )
+												{
+													let slot;
+													if( ScreenOverlay.debug )
+														slot = ScreenOverlay.addStatus( i18n( 'i18n_processing' ), cmd );											
+													ScreenOverlay.addDebug( 'Executing ' + cmd );
+													
+													Workspace.shell.execute( cmd, function( res )
+													{
+														if( ScreenOverlay.debug )
+														{
+															ScreenOverlay.editStatus( slot, res ? 'Ok' : 'Error' );
+															ScreenOverlay.addDebug( 'Done ' + cmd );
+														}
+														l.func();
+														if( Workspace.mainDock && !Workspace.isSingleTask )
+															Workspace.mainDock.closeDesklet();
+													} );
+												}
+												// Just skip
+												else
+												{
+													l.func();
+												}
+											}
+											else
+											{
+												l.func();
+											}
+											
+											return;
+										}
+									}
+									
+									// Hide overlay
+									ScreenOverlay.hide();
+									
+									PollTray();
+									PollTaskbar();
+									l.func = function()
+									{
+										//
+									}
+									// We are done. Empty startup apps!
+									Friend.startupApps = {};
+								}
+							}
+							l.func();
+						}
+						else
+						{
+							// Hide overlay
+							ScreenOverlay.hide();
+							PollTray();
+							PollTaskbar();
+						}
+					} );
+				}
+			}
+			else
+			{
+				Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
+				Workspace.wallpaperImageDecoded = false;
+				Workspace.windowWallpaperImage = '';
+				document.body.classList.add( 'DefaultWallpaper' );
+				doReveal();
 			}
 		}
 	},
@@ -3852,7 +3930,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	refreshTheme: function( themeName, update, themeConfig, initpass )
 	{
-		let self = this;
+		const self = this;
 		console.log( 'refreshTheme', [ themeName, update, themeConfig, initpass ]);
 		// Only on force or first time
 		if( this.themeRefreshed && !update )
@@ -3888,7 +3966,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		Workspace.theme = themeName;
 		
 		let m = new File( 'System:../themes/' + themeName + '/settings.json' );
-		m.onLoad = function( rdat )
+		m.onLoad = async function( rdat )
 		{
 			// Add resources for theme settings --------------------------------
 			rdat = JSON.parse( rdat );
@@ -3896,7 +3974,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// Done resources theme settings -----------------------------------
 			
 			Workspace.themeRefreshed = true;
-			Workspace.refreshUserSettings( function() 
+			await Workspace.refreshUserSettings()
+			do_thing();
+			
+			function do_thing() 
 			{
 				CheckScreenTitle();
 
@@ -4086,7 +4167,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 				// Flush theme info
 				themeInfo.loaded = false;
-			} );
+			}
 		}
 		m.load();
 	},
@@ -4281,12 +4362,14 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Just refresh the desktop ------------------------------------------------
 	refreshDesktop: function( callback, forceRefresh )
 	{
+		const self = this;
+		
 		// Need to wait
-		if( !this.userSettingsLoaded ) return;
+		console.log( 'refreshDesktop', self.userSettingsLoaded );
+		if( !this.userSettingsLoaded )
+			return
+		
 		this.desktopFirstRefresh = true;
-		
-		let self = this;
-		
 		// Get those dynamic classes
 		RefreshDynamicClasses( {} );
 		
@@ -4388,6 +4471,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// Recall wallpaper
 			else if( Workspace.mode != 'vr' && self.wallpaperImage != 'color' )
 			{
+				console.log( 'recall wallpaper' );
 			    if( typeof( self.wallpaperImage ) == undefined )
 			    {
 			        return setTimeout( function(){ Workspace.refreshDesktop( callback, forceRefresh ) }, 25 );
@@ -4467,6 +4551,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						default:
 							Workspace.wallpaperLoaded = false;
 							let src = found ? getImageUrl( self.wallpaperImage ) : '/webclient/gfx/theme/default_login_screen.jpg';
+							console.log( 'set default wallpaper', [ found, src ]);
 							let workspaceBackgroundImage = new Image();
 							workspaceBackgroundImage.onload = function()
 							{
@@ -9818,7 +9903,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
-		console.trace( 'Workspace.onready', this.onReadyList );
+		console.trace( 'Workspace.onready', this.onReadyList?.length );
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -11303,10 +11388,16 @@ function mobileDebug( str, clear )
 // Cache the app themes --------------------------------------------------------
 // TODO: Test loading different themes
 
-_applicationBasics = {};
+//_applicationBasics = {};
 async function loadApplicationBasics( callback )
 {
+	if( callback != null )
+		callback()
+	
+	return;
+	
 	console.trace( 'loadApplicationBasics', Workspace.app_basics_loading );
+	window.addTiming( 'app bacics scripts start' )
 	// Don't do in login
 	if( Workspace.loginPrompt )
 	{
@@ -11334,7 +11425,6 @@ async function loadApplicationBasics( callback )
 			resolve();
 		}
 
-		console.log( 'a loaded' )
 		a_.load()
 	})
 	
@@ -11347,7 +11437,6 @@ async function loadApplicationBasics( callback )
 			else 
 				_applicationBasics.css = data;
 
-			console.log( 'b loaded' )
 			resolve()
 		}
 		sb_.load()
@@ -11358,12 +11447,13 @@ async function loadApplicationBasics( callback )
 		let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
 		c_.onLoad = function( data )
 		{
+			console.log( 'theme css', data );
+			data = '';
 			if( _applicationBasics.css )
 				_applicationBasics.css += data;
 			else 
 				_applicationBasics.css = data;
 
-			console.log( 'c loaded' )
 			resolve()
 		}
 		c_.load()
@@ -11395,9 +11485,10 @@ async function loadApplicationBasics( callback )
 	})
 
 	const waiters = [ a, b, c, d ]
-	console.log( 'waiters', waiters )
 	await Promise.all( waiters )
-	console.log( 'all loaed, ahve cb?', callback )
+	window._applicationBasics = _applicationBasics;
+	window.addTiming( 'app bacics scripts load done' )
+	
 	if( callback != null )
 		callback()
 	

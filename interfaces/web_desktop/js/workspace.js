@@ -124,6 +124,7 @@ Workspace = {
 		ScreenOverlay.init();
 		Workspace.init();
 		
+		console.log( 'Workspace.preinit - fap?', window.friendApp );
 		if( window.friendApp )
 		{
 			document.body.classList.add( 'friendapp' );
@@ -131,31 +132,43 @@ Workspace = {
 	},
 	init: function()
 	{
-		// First things first
+		console.trace( 'W.init', this.initialized )
+		
 		if( this.initialized )
 			return
-
+		
+		this.loadAllTheThings();
+		
 		// Preload some images
 		var imgs = [
 			'/webclient/gfx/system/offline_16px.png',
 			'/themes/friendup12/gfx/busy.png'
 		];
 		this.imgPreload = [];
+		imgs.forEach( src => {
+			const i = new Image();
+			i.src = src;
+			this.imgPreload.push( i );
+		});
+		
+		/*
 		for( var a = 0; a < imgs.length; a++ )
 		{
 			var i = new Image();
 			i.src = imgs[a];
 			this.imgPreload.push( i );
 		}
-
+		*/
+		
 		// Wait for load
 		if( typeof( InitWindowEvents ) == 'undefined' || typeof( InitGuibaseEvents ) == 'undefined' )
 		{
+			console.log( 'wait for load' )
 			return setTimeout( 'Workspace.init()', 50 );
 		}
 		
 		this.initialized = true;
-
+		
 		checkMobileBrowser();
 		if( !this.addedMobileCSS && window.isMobile )
 		{
@@ -163,17 +176,19 @@ Workspace = {
 			AddCSSByUrl( '/webclient/css/responsive.css' );
 			this.addedMobileCSS = true;
 		}
-
+		
 		// Show the login prompt if we're not logged in!
 		Friend.User.Login();
 	},
+	
 	// Ready after init
 	// NB: This is where we go towards workspace_inside.js
 	postInit: function()
 	{
-		if( this.postInitialized ) return;
-		
-		let self = this;
+		const self = this;
+		console.trace( 'Workspace.postinit', window.Workspace.sessionId );
+		if( self.postInitialized )
+			return;
 		
 		// Everything must be ready
 		if( typeof( ge ) == 'undefined' )
@@ -391,17 +406,20 @@ Workspace = {
 			}
 			this.clockInterval = setInterval( clock, 1000 );
 		}
-
+		
 		// Start the workspace session!
-		this.initializingWorkspaces = true;
-		this.initWorkspaces( function( returnValue )
+		this.initializingWorkspaces = true
+		this.initWorkspaces( workspacesCB )
+		// Init security subdomains
+		SubSubDomains.initSubSubDomains();
+		
+		async function workspacesCB()
 		{
 			// Recall wallpaper from settings
-			self.refreshUserSettings( function(){ 
-				// Refresh desktop for the first time
-				Workspace.refreshDesktop( false, true );
-			} );
-
+			await self.refreshUserSettings()
+			console.log( 'workspacesCB - refreshUserSettings returned' );
+			Workspace.refreshDesktop( false, true );
+			
 			// Create desktop
 			self.directoryView = new DirectoryView( wbscreen.contentDiv );
 
@@ -492,11 +510,7 @@ Workspace = {
 				}
 			}
 			self.reloadDocks();
-		} );
-
-		// Init security subdomains
-		SubSubDomains.initSubSubDomains();
-		
+		}
 		// console.log( 'Test2: Done post init.' );
 	},
 	setLoading: function( isLoading )
@@ -915,6 +929,13 @@ Workspace = {
 	},
 	login: function( u, p, r, callback, ev )
 	{
+		console.log( 'Workspace.login', {
+			u  : u,
+			p  : p,
+			r  : r,
+			cb : callback,
+			ev : ev,
+		})
 		// Use authmodule login
 		if( Workspace.authModuleLogin )
 		{
@@ -941,180 +962,83 @@ Workspace = {
 	doLeave: function()
 	{
 	},
-	initUserWorkspace: function( json, callback, ev )
+	initUserWorkspace: async function( json, callback, ev )
 	{
-		window.addTiming( 'initUserWorkspace' )
+		window.addTiming( 'initUserWorkspace' );
+		console.log( 'initUserWorkspace', [ json, callback, ev ]);
 		
-		let _this = Workspace;
-
-		// Once we are done
-		function SetupWorkspaceData( json, cb )
+		await init()
+			
+		if ( null != callback )
+			callback()
+		
+		async function init()
 		{
-			// console.log( 'Test2: Set it up.', json );
 			
-			// Ok, we're in
-			_this.sessionId = json.sessionid ? json.sessionid : null;
-			_this.userId    = json.userid;
-			_this.fullName  = json.fullname;
-			if( json.username ) _this.loginUsername = json.username;
-
-			// After a user has logged in we want to prepare the workspace for him.
+			Workspace.loadSystemInfo()
+		
+			const _this = Workspace;
 			
-			// Store user data in localstorage for later verification encrypted
-			let userdata = ApplicationStorage.load( { applicationName : 'Workspace' } );
-
-			if( userdata )
+			// Manipulate screen overlay
+			// (this will only be shown once!)
+			// TODO: Figure out if this is the right behavior in every case
+			//       implementation circumvents relogin issue
+			if( !Workspace.screenOverlayShown )
 			{
-				userdata.sessionId     = _this.sessionId;
-				userdata.userId        = _this.userId;
-				userdata.loginUsername = _this.loginUsername;
-				userdata.fullName      = _this.fullName;
-
-				ApplicationStorage.save( userdata, { applicationName : 'Workspace' } );
+				ScreenOverlay.show();
+				Workspace.screenOverlayShown = true;
 			}
-
-			// Only renew session..
-			if( ge( 'SessionBlock' ) )
+			
+			console.log( 'this.userWorkspaceInitialized', this.userWorkspaceInitialized )
+			if( this.userWorkspaceInitialized )
 			{
-				// Could be many
-				while( ge( 'SessionBlock' ) )
-				{
-					document.body.removeChild( ge( 'SessionBlock' ) );
-				}
-				// console.log( 'Test2: Renewing all sessions.' );
+				await SetupWorkspaceData( json )
+				document.body.classList.remove( 'Login' );
+				document.body.classList.add( 'Inside' );
 				
-				// We have renewed our session, make sure to set it and run ajax queue
-				Friend.User.RenewAllSessionIds( _this.sessionId );
-
-				// Call back!
-				if( cb ) cb();
-				return;
+				return 1;
 			}
-
-			// Set server key
-			// TODO: Find a better place to set server publickey earlier in the process, temporary ... again time restraints makes delivery fast and sloppy ...
-			if( !_this.encryption.keys.server )
-			{
-				_this.encryption.getServerKey( function( server )
-				{
-					_this.encryption.keys.server = ( server ? { publickey: server } : false );
-				} );
-			}
-
-			// Make sure we have a public key for this user (depending on login interface)
-			// TODO: See if we actually need this (and it doesn't work properly)
-			/*if( window.friendApp )
-			{
-				var credentials = friendApp.getCredentials();
-				var info = Workspace.generateKeys( credentials.username, credentials.password );
-				var m = new Module( 'system' );
-				m.onExecuted = function( e, d )
-				{
-					// Call back!
-					if( cb ) cb();
-				}
-				m.execute( 'setuserpublickey', { publickey: info.publickey } );
-				return;
-			}*/
-
-			// Call back!
-			if( cb ) cb();
-		}
-
-		// Manipulate screen overlay
-		// (this will only be shown once!)
-		// TODO: Figure out if this is the right behavior in every case
-		//       implementation circumvents relogin issue
-		if( !Workspace.screenOverlayShown )
-		{
-			ScreenOverlay.show();
-			Workspace.screenOverlayShown = true;
-		}
-		
-		if( !this.userWorkspaceInitialized )
-		{
-			// console.log( 'Test2: Doing the initialization.' );
-			this.userWorkspaceInitialized = true;
-
-			// Loading remaining scripts
-			let s = document.createElement( 'script' );
-			s.src = '/webclient/js/gui/workspace_inside.js;' +
-				'webclient/3rdparty/adapter.js;' +
-				'webclient/js/utils/speech-input.js;' +
-				'webclient/js/utils/events.js;' +
-				'webclient/js/utils/utilities.js;' +
-				'webclient/js/io/directive.js;' +
-				'webclient/js/io/door.js;' +
-				'webclient/js/io/dormant.js;' +
-				'webclient/js/io/dormantramdisc.js;' +
-				'webclient/js/io/door_system.js;' +
-				'webclient/js/io/module.js;' +
-				'webclient/js/io/file.js;' +
-				'webclient/js/io/progress.js;' +
-				'webclient/js/io/friendnetwork.js;' +
-				'webclient/js/io/friendnetworkshare.js;' +
-				'webclient/js/io/friendnetworkfriends.js;' +
-				'webclient/js/io/friendnetworkdrive.js;' +
-				'webclient/js/io/friendnetworkpower.js;' +
-				'webclient/js/io/friendnetworkextension.js;' +
-				'webclient/js/io/friendnetworkdoor.js;' +
-				'webclient/js/io/friendnetworkapps.js;' +
-				'webclient/js/io/workspace_fileoperations.js;' + 
-				'webclient/js/io/DOS.js;' +
-				'webclient/3rdparty/favico.js/favico-0.3.10.min.js;' +
-				'webclient/js/gui/widget.js;' +
-				'webclient/js/gui/listview.js;' +
-				'webclient/js/gui/directoryview.js;' +
-				'webclient/js/io/directoryview_fileoperations.js;' +
-				'webclient/js/gui/menufactory.js;' +
-				'webclient/js/gui/workspace_menu.js;' +
-				'webclient/js/gui/deepestfield.js;' +
-				'webclient/js/gui/filedialog.js;' +
-				'webclient/js/gui/printdialog.js;' +
-				'webclient/js/gui/desklet.js;' +
-				'webclient/js/gui/calendar.js;' +
-				'webclient/js/gui/colorpicker.js;' +
-				'webclient/js/gui/workspace_calendar.js;' +
-				'webclient/js/gui/workspace_tray.js;' +
-				'webclient/js/gui/workspace_sharing.js;' +
-				'webclient/js/gui/tutorial.js;' +
-				'webclient/js/media/audio.js;' +
-				'webclient/js/io/p2p.js;' +
-				'webclient/js/io/request.js;' +
-				'webclient/js/io/coreSocket.js;' +
-				'webclient/js/io/networkSocket.js;' +
-				'webclient/js/io/connection.js;' +
-				'webclient/js/friendmind.js;' +
-				'webclient/js/frienddos.js;' +
-				'webclient/js/oo.js;' + 
-				'webclient/js/api/friendAPIv1_2.js';
-			s.onload = function()
-			{
-			    // Start with expanding the workspace object
-				// TODO: If we have sessionid - verify it through ajax.
-				// TODO: This block is only for already initialized workspace
+			else {
+				// console.log( 'Test2: Doing the initialization.' );
+				this.userWorkspaceInitialized = true;
+				
+				/*
+				const skripts = await this.loadManySkripts();
+				console.log( 'skripts', skripts );
+				
+				let s = document.createElement( 'script' );
+				s.innerHTML = skripts;
+				document.body.appendChild( s );
+				*/
+				
+				//s.onload = function()
+				//{
+				    // Start with expanding the workspace object
+					// TODO: If we have sessionid - verify it through ajax.
+					// TODO: This block is only for already initialized workspace
 				if( _this.sessionId && _this.postInitialized )
 				{
 					//console.log( 'This is the session.:', _this.sessionId );
-					if( callback && typeof( callback ) == 'function' ) callback( true );
+					if( callback && typeof( callback ) == 'function' ) 
+						callback( true );
+					
 					return true;
 				}
-
+				
 				if( !json || !json.sessionid ) 
 				{
 					// console.log( 'Test2: Got in sessionid error.', json );
 					return false;
 				}
-
-                // Just get it done!
+				
 				InitWorkspaceNetwork();
-
+				
 				// Reset some options
 				if( ev && ev.shiftKey )
 				{
 					_this.themeOverride = 'friendup12';
 				}
-
+				
 				if( GetUrlVar( 'interface' ) )
 				{
 					switch( GetUrlVar( 'interface' ) )
@@ -1126,24 +1050,23 @@ Workspace = {
 							break;
 					}
 				}
-
+				
 				if( GetUrlVar( 'noleavealert' ) )
 				{
 					_this.noLeaveAlert = true;
 				}
 
-				SetupWorkspaceData( json );
+				await SetupWorkspaceData( json );
 				
 				if( !_this.workspaceHasLoadedOnceBefore )
 				{
 					Workspace.setLoading( true );
 					_this.workspaceHasLoadedOnceBefore = true;
 				}
-
-
+				
 				// Lets load the stored window positions!
 				LoadWindowStorage();
-
+				
 				// Set up a shell instance for the workspace
 				let uid = FriendDOS.addSession( _this );
 				_this.shell = FriendDOS.getSession( uid );
@@ -1163,83 +1086,29 @@ Workspace = {
 				// See if we have some theme settings
 				else
 				{
-					// Check eula
-					let m = new Module( 'system' );
-					m.onExecuted = function( e, d )
-					{	
-						let m = new Module( 'system' );
-						m.onExecuted = function( ee, dd )
-						{
-					        if( ee != 'ok' )
-					        {
-					        	if( dd )
-					        	{
-					        		try
-					        		{
-					        			let js = JSON.parse( dd );
-					        			if( js.euladocument )
-					        			{
-					        				Workspace.euladocument = js.euladocument;
-					        			}
-					        		}
-					        		catch( e ){};
-					        	}
-					            ShowEula();
-							}
-				            afterEula( e );								
-						}
-						m.execute( 'checkeula' );
-						
-						// When eula is displayed or not
-						function afterEula( e )
-						{
-							// Invites
-							if( json.inviteHash )
-							{
-								let inv = new Module( 'system' );
-								inv.onExecuted = function( err, dat )
-								{
-									// TODO: Make some better error handling ...
-									if( err != 'ok' ) console.log( '[ERROR] verifyinvite: ' + ( dat ? dat : err ) );
-								}
-								inv.execute( 'verifyinvite', { hash: json.inviteHash } );
-							}
-							
-							if( e == 'ok' )
-							{
-								let s = {};
-								try
-								{
-									s = JSON.parse( d );
-								}
-								catch( e )
-								{ 
-									s = {}; 
-								};
-								if( s && s.Theme && s.Theme.length )
-								{
-									_this.refreshTheme( s.Theme.toLowerCase(), false );
-								}
-								else
-								{
-									_this.refreshTheme( false, false );
-								}
-								_this.mimeTypes = s.Mimetypes;
-							}
-							else _this.refreshTheme( false, false );
-
-							if( _this.loginPrompt )
-							{
-								_this.loginPrompt.close();
-								_this.loginPrompt = false;
-							}
-							_this.init();
-						}
-					}
-					m.execute( 'usersettings' );
+					checkELUA();
+					checkUserSettings();
+					
 				}
 				
+				await loadLocale();
+				Workspace.postInit();
+				
+				return 1;
+			}
+		}
+		
+		function loadLocale()
+		{
+			if ( Workspace.loadLocalePromise )
+				return Workspace.loadLocalePromise
+			
+			Workspace.loadLocalePromise = new Promise( load )
+			return Workspace.loadLocalePromise
+			
+			function load( resolve, reject ) {
 				// Language
+				const _this = Workspace;
 				_this.locale = 'en';
 				let l = new Module( 'system' );
 				l.onExecuted = function( e, d )
@@ -1256,7 +1125,7 @@ Workspace = {
 					{
 						//console.log( 'This: ', d );
 					}
-
+					
 					// Add it!
 					i18nClearLocale();
 					if( e == 'ok' )
@@ -1272,7 +1141,7 @@ Workspace = {
 					{
 						i18nAddPath( 'locale/en.locale' );
 					}
-
+					
 					try
 					{
 						if( decoded.response == 'Failed to load user.' )
@@ -1292,33 +1161,397 @@ Workspace = {
 						Workspace.friendVersion = decoded.friendversion;
 					}
 					
-					if( callback && typeof( callback ) == 'function' ) callback();
-					Workspace.postInit();
+					resolve()
 				}
+				
 				l.execute( 'getsetting', { settings: [ 'locale', 'friendversion' ] } );
 				
-				return 1;
 			}
-			document.body.appendChild( s );
 		}
-		// We've already logged in
-		else
+				
+		function checkELUA() {
+			if ( Workspace.eluaPromise )
+				return Workspace.eluaPromise
+			
+			Workspace.eluaPromise = new Promise( check )
+			return Workspace.eluaPromise
+			
+			function check( resolve, reject ) {
+				let m = new Module( 'system' );
+				m.onExecuted = function( ee, dd )
+				{
+					console.log( 'check elua', [ ee, dd ])
+			        if( ee != 'ok' )
+			        {
+			        	if( dd )
+			        	{
+			        		try
+			        		{
+			        			let js = JSON.parse( dd );
+			        			if( js.euladocument )
+			        			{
+			        				Workspace.euladocument = js.euladocument;
+			        			}
+			        		}
+			        		catch( e ){};
+			        	}
+			            ShowEula()
+					}
+					
+					Workspace.eluaPromise = null
+					resolve()
+				}
+				m.execute( 'checkeula' );
+			}
+			
+		}
+		
+		function checkUserSettings() {
+			if ( Workspace.checkUserSettingsPromise )
+				return Workspace.checkUserSettingsPromise
+			
+			Workspace.checkUserSettingsPromise = new Promise( check )
+			return Workspace.checkUserSettingsPromise
+			
+			function check( resolve, reject ) {
+				const _this = Workspace;
+				let m = new Module( 'system' );
+				m.onExecuted = function( e, d )
+				{	
+					if( json.inviteHash )
+					{
+						let inv = new Module( 'system' );
+						inv.onExecuted = function( err, dat )
+						{
+							// TODO: Make some better error handling ...
+							if( err != 'ok' ) console.log( '[ERROR] verifyinvite: ' + ( dat ? dat : err ) );
+						}
+						inv.execute( 'verifyinvite', { hash: json.inviteHash } );
+					}
+					
+					if( e == 'ok' )
+					{
+						let s = {};
+						try
+						{
+							s = JSON.parse( d );
+						}
+						catch( e )
+						{ 
+							s = {}; 
+						};
+						if( s && s.Theme && s.Theme.length )
+						{
+							_this.refreshTheme( s.Theme.toLowerCase(), false );
+						}
+						else
+						{
+							_this.refreshTheme( false, false );
+						}
+						_this.mimeTypes = s.Mimetypes;
+					}
+					else _this.refreshTheme( false, false );
+
+					if( _this.loginPrompt )
+					{
+						_this.loginPrompt.close();
+						_this.loginPrompt = false;
+					}
+					
+					console.log( 'calling workspace init??' );
+					_this.init();
+					
+					resolve();
+					
+				}
+				m.execute( 'usersettings' );
+			}
+		}
+		
+		async function SetupWorkspaceData( json )
 		{
-			setupWorkspaceData( json, function()
+			console.log( 'SetupWorkspaceData', json );
+			const _this = Workspace;
+			// Ok, we're in
+			_this.sessionId = json.sessionid ? json.sessionid : null;
+			_this.userId    = json.userid;
+			_this.fullName  = json.fullname;
+			if( json.username ) 
+				_this.loginUsername = json.username;
+			
+			
+			// After a user has logged in we want to prepare the workspace for him.
+			
+			// Store user data in localstorage for later verification encrypted
+			let userdata = ApplicationStorage.load( { applicationName : 'Workspace' } );
+			window.addTiming( 'SetupWorkspaceData', [ json, userdata ]);
+			
+			if( userdata )
 			{
-				document.body.classList.remove( 'Login' );
-				document.body.classList.add( 'Inside' );
-			} );
-			if( callback && typeof( callback ) == 'function' ) callback();
-			return 1;
+				userdata.sessionId     = _this.sessionId;
+				userdata.userId        = _this.userId;
+				userdata.loginUsername = _this.loginUsername;
+				userdata.fullName      = _this.fullName;
+
+				ApplicationStorage.save( userdata, { applicationName : 'Workspace' } );
+				window.addTiming( 'userdata stored', userdata );
+			}
+			
+			// Only renew session..
+			if( ge( 'SessionBlock' ) )
+			{
+				// Could be many
+				while( ge( 'SessionBlock' ) )
+				{
+					document.body.removeChild( ge( 'SessionBlock' ) );
+				}
+				// console.log( 'Test2: Renewing all sessions.' );
+				
+				// We have renewed our session, make sure to set it and run ajax queue
+				Friend.User.RenewAllSessionIds( _this.sessionId );
+				
+				return;
+			}
+			
+			// Set server key
+			// TODO: Find a better place to set server publickey earlier in the process, temporary ... again time restraints makes delivery fast and sloppy ...
+			if( !_this.encryption.keys.server )
+			{
+				_this.encryption.getServerKey( function( server )
+				{
+					_this.encryption.keys.server = ( server ? { publickey: server } : false );
+				} );
+			}
+			
+			// Make sure we have a public key for this user (depending on login interface)
+			// TODO: See if we actually need this (and it doesn't work properly)
+			/*if( window.friendApp )
+			{
+				var credentials = friendApp.getCredentials();
+				var info = Workspace.generateKeys( credentials.username, credentials.password );
+				var m = new Module( 'system' );
+				m.onExecuted = function( e, d )
+				{
+					// Call back!
+					if( cb ) cb();
+				}
+				m.execute( 'setuserpublickey', { publickey: info.publickey } );
+				return;
+			}*/
+			
+			
 		}
-		/* done here. workspace is shown. */
+		
 	},
 	//set an additional URL to call on logout
 	setLogoutURL: function( logoutURL )
 	{
 		if( logoutURL )
 			Workspace.logoutURL = logoutURL;
+	},
+	loadAllTheThings : async function() {
+		console.log( 'load all the things' );
+		if ( null == window._applicationBasics )
+			window._applicationBasics = {};
+		
+		const loaders = [
+			this.loadAPIjs(),
+			this.loadScrollCss(),
+			this.loadAssortedJs(),
+			this.loadManySkripts(),
+		];
+		console.log( 'loaders', loaders );
+		await Promise.all( loaders );
+		console.log( 'all loaded', window._applicationBasics );
+		
+	},
+	getterOfText : function( path ) {
+		return new Promise(( resolve, reject ) => {
+			const get = new XMLHttpRequest()
+			get.onload = onload
+			get.open( "get", path, true )
+			get.send()
+			
+			function onload () {
+			    //console.log( 'getterOfText response', this.responseText )
+			    resolve( this.responseText )
+			}
+		})
+	},
+	loadAPIjs : async function() {
+		const _applicationBasics = window._applicationBasics;
+		const path = '/webclient/js/apps/api.js';
+		const data = await this.getterOfText( path );
+		_applicationBasics.apiV1 = URL.createObjectURL( new Blob( [ data ], { type: 'text/javascript' } ));
+		console.log( 'apis loaded', _applicationBasics );
+			
+			
+			
+			/*
+			const a_ = new File( '/webclient/js/apps/api.js' );
+			a_.onLoad = function( data )
+			{
+				_applicationBasics.apiV1 = URL.createObjectURL( new Blob( [ data ], { type: 'text/javascript' } ) );
+				resolve();
+			}
+
+			a_.load()
+			*/
+	},
+	loadScrollCss : async function() {
+		const _applicationBasics = window._applicationBasics;
+		const path = '/themes/friendup12/scrollbars.css';
+		const css = await this.getterOfText( path );
+		if( _applicationBasics.css )
+			_applicationBasics.css += css;
+		else 
+			_applicationBasics.css = css;
+			
+		console.log( 'scrollcss loaded' );
+		
+		/*
+		const b = new Promise(( resolve, reject ) => {
+			const sb_ = new File( '/themes/friendup12/scrollbars.css' );
+			sb_.onLoad = function( data )
+			{
+				if( _applicationBasics.css )
+					_applicationBasics.css += data;
+				else 
+					_applicationBasics.css = data;
+
+				resolve()
+			}
+			sb_.load()
+		})
+		*/
+	},
+	loadThemeCss : function() {
+		const _applicationBasics = window._applicationBasics;
+		const c = new Promise(( resolve, reject ) => {
+			let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
+			c_.onLoad = function( data )
+			{
+				console.log( 'theme css', data );
+				if( _applicationBasics.css )
+					_applicationBasics.css += data;
+				else 
+					_applicationBasics.css = data;
+
+				resolve()
+			}
+			c_.load()
+		})
+	},
+	loadAssortedJs : async function() {
+		const _applicationBasics = window._applicationBasics
+		const path = '/webclient/' + [ 'js/oo.js',
+				'js/api/friendappapi.js',
+				'js/utils/engine.js',
+				'js/utils/tool.js',
+				'js/utils/json.js',
+				'js/io/cajax.js',
+				'js/io/appConnection.js',
+				'js/io/coreSocket.js',
+				'js/gui/treeview.js',
+				'js/fui/fui_v1.js',
+				'js/fui/classes/baseclasses.fui.js',
+				'js/fui/classes/group.fui.js',
+				'js/fui/classes/listview.fui.js' 
+			].join( ';/webclient/' );
+		const data = await this.getterOfText( path )
+		window._applicationBasics.js = data
+		
+		console.log( 'assJs loaded' );
+		
+		/*
+		const d = new Promise(( resolve, reject ) => {
+			const js = path;
+			let j_ = new File( js );
+			j_.onLoad = function( data )
+			{
+				_applicationBasics.js = data
+				resolve()
+			}
+			j_.load()
+		});
+		*/
+	},
+	loadManySkripts : async function() {
+		const skriptsPath = '/webclient/js/gui/workspace_inside.js;' +
+			'webclient/3rdparty/adapter.js;' +
+			'webclient/js/utils/speech-input.js;' +
+			'webclient/js/utils/events.js;' +
+			'webclient/js/utils/utilities.js;' +
+			'webclient/js/io/directive.js;' +
+			'webclient/js/io/door.js;' +
+			'webclient/js/io/dormant.js;' +
+			'webclient/js/io/dormantramdisc.js;' +
+			'webclient/js/io/door_system.js;' +
+			'webclient/js/io/module.js;' +
+			'webclient/js/io/file.js;' +
+			'webclient/js/io/progress.js;' +
+			'webclient/js/io/friendnetwork.js;' +
+			'webclient/js/io/friendnetworkshare.js;' +
+			'webclient/js/io/friendnetworkfriends.js;' +
+			'webclient/js/io/friendnetworkdrive.js;' +
+			'webclient/js/io/friendnetworkpower.js;' +
+			'webclient/js/io/friendnetworkextension.js;' +
+			'webclient/js/io/friendnetworkdoor.js;' +
+			'webclient/js/io/friendnetworkapps.js;' +
+			'webclient/js/io/workspace_fileoperations.js;' + 
+			'webclient/js/io/DOS.js;' +
+			'webclient/3rdparty/favico.js/favico-0.3.10.min.js;' +
+			'webclient/js/gui/widget.js;' +
+			'webclient/js/gui/listview.js;' +
+			'webclient/js/gui/directoryview.js;' +
+			'webclient/js/io/directoryview_fileoperations.js;' +
+			'webclient/js/gui/menufactory.js;' +
+			'webclient/js/gui/workspace_menu.js;' +
+			'webclient/js/gui/deepestfield.js;' +
+			'webclient/js/gui/filedialog.js;' +
+			'webclient/js/gui/printdialog.js;' +
+			'webclient/js/gui/desklet.js;' +
+			'webclient/js/gui/calendar.js;' +
+			'webclient/js/gui/colorpicker.js;' +
+			'webclient/js/gui/workspace_calendar.js;' +
+			'webclient/js/gui/workspace_tray.js;' +
+			'webclient/js/gui/workspace_sharing.js;' +
+			'webclient/js/gui/tutorial.js;' +
+			'webclient/js/media/audio.js;' +
+			'webclient/js/io/p2p.js;' +
+			'webclient/js/io/request.js;' +
+			'webclient/js/io/coreSocket.js;' +
+			'webclient/js/io/networkSocket.js;' +
+			'webclient/js/io/connection.js;' +
+			'webclient/js/friendmind.js;' +
+			'webclient/js/frienddos.js;' +
+			'webclient/js/oo.js;' + 
+			'webclient/js/api/friendAPIv1_2.js';
+		
+		const skriptContent = await this.getterOfText( skriptsPath );
+		//const skripts = await this.loadManySkripts();
+		//console.log( 'skripts', skriptContent );
+		const s = document.createElement( 'script' );
+		s.innerHTML = skriptContent;
+		document.body.appendChild( s );
+		
+		return
+		/*
+		return new Promise(( resolve, reject ) => {
+			
+			
+			window.addTiming( 'skripts start load' );
+			const s_ = new File( js );
+			s_.onLoad = function( data )
+			{
+				//_applicationBasics.js = data
+				console.log( 'loaded skripts in file', data );
+				addTiming( 'extra skripties loaded' );
+				resolve( data )
+			}
+			s_.load()
+		});
+		*/
 	}
 };
 
