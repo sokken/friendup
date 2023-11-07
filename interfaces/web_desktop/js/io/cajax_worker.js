@@ -108,13 +108,8 @@ var AjaxWorker = {
 				}
 			
 				// Clean out possible queue
-				var o = [];
-				for( var a = 0; a < Friend.cajax.length; a++ )
-				{
-					if( Friend.cajax[a] != jax )
-						o.push( Friend.cajax[a] );
-				}
-				Friend.cajax = o;
+				removeFromQueue( jax );
+				
 				// End clean queue
 			
 				// Register send time
@@ -144,13 +139,7 @@ var AjaxWorker = {
 				jax.decreaseProcessCount();
 			
 				// Clean out possible queue
-				var o = [];
-				for( var a = 0; a < Friend.cajax.length; a++ )
-				{
-					if( Friend.cajax[a] != jax )
-						o.push( Friend.cajax[a] );
-				}
-				Friend.cajax = o;
+				removeFromQueue( jax )
 				// End clean queue
 
 				// tell our caller...
@@ -163,6 +152,10 @@ var AjaxWorker = {
 			}
 		}
 		
+		function removeFromQueue( jax ) {
+			const leftovers = Friend.cajax.filter( item => item.id != jax.id )
+			Friend.cajax = leftovers;
+		}
 	}
 }
 AjaxWorker.init();

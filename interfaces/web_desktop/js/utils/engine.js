@@ -653,22 +653,46 @@ function i18n( string )
 // Add translations by path
 function i18nAddPath( path, callback )
 {
-	var j = new cAjax();
-	j.open( 'get', path, true );
-	j.onload = function()
-	{
-		var s = this.responseText().split( "\n" );
-		for( var a = 0; a < s.length; a++ )
-		{
-			var p = s[a].split( ":" );
-			if( Trim( p[0] ).length && Trim( p[1] ).length )
-			{
-				i18n_translations[Trim( p[0] )] = Trim( p[1] );
-			}
-		}
-		if( typeof callback == 'function' ) callback();
+	const self = Workspace
+	const id = 'i18n_' + path
+	const cache = self.getFromCache( id )
+	if ( cache ) {
+		setTranslations( cache )
+		if ( null != callback )
+			callback()
+		return
 	}
-	j.send();
+	
+	var j = new cAjax()
+	j.open( 'get', path, true )
+	j.onload = loaded
+	j.send()
+	
+	function loaded()
+	{
+		const res = this.responseText().split( "\n" )
+		const pairs = []
+		res.forEach( pair => {
+			const parts = pair.split( ':' )
+			const id = Trim( parts[ 0 ])
+			const trans = Trim( parts[ 1 ])
+			if ( id && trans ) {
+				pairs.push([ id, trans ])
+			}
+		})
+		
+		self.setInCache( id, pairs )
+		setTranslations( pairs )
+		
+		if( typeof callback == 'function' ) 
+			callback()
+	}
+	
+	function setTranslations( pairs ) {
+		pairs.forEach( pair => 
+			i18n_translations[ pair[ 0 ]] = pair[ 1 ]
+		)
+	}
 }
 
 // Add translations from string

@@ -1042,9 +1042,12 @@ function InitDynamicClassSystem()
 
 function GetThemeInfo( property )
 {
-	if( !Workspace.loginUsername ) return false;
+	if( !Workspace.loginUsername ) 
+		return false
+	
 	if( !themeInfo.loaded )
 	{
+		addTiming( 'GetThemeInfo start parse' )
 		themeInfo.loaded = true;
 		// Flush old rules
 		let sheet = false;
@@ -1056,6 +1059,7 @@ function GetThemeInfo( property )
 				break;
 			}
 		}
+		
 		if( sheet )
 		{
 			for( var a = 0; a < sheet.cssRules.length; a++ )
@@ -1106,10 +1110,14 @@ function GetThemeInfo( property )
 				if( key ) themeInfo[ key ] = rule.style;
 			}
 		}
+		
+		addTiming( 'GetThemeInfo done parsing' )
 	}
+	
 	if( themeInfo[ property ] )
-		return themeInfo[ property ];
-	return false;
+		return themeInfo[ property ]
+	
+	return false
 }
 
 // Cover windows with overlay
@@ -2236,7 +2244,7 @@ movableListener = function( e, data )
 		{
 			let scrl = window.regionWindow.directoryview.scroller;
 			
-			if( !scrl.scrolling )
+			if( scrl && !scrl.scrolling )
 			{
 				scrl.scrollTopStart  = scrl.scrollTop;
 				scrl.scrollLeftStart = scrl.scrollLeft;

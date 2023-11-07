@@ -30,7 +30,8 @@ if( !Friend.cajax ) Friend.cajax = [];
 function AddToCajaxQueue( ele )
 {
 	// If we're queueing it
-	if( ele.onQueue ) ele.onQueue();
+	if( ele.onQueue ) 
+		ele.onQueue()
 	
 	// Queued objects get eternal life
 	if( ele.life )
@@ -65,33 +66,15 @@ function AddToCajaxQueue( ele )
 		}
 	}
 	// Add ajax element to the top of the queue
-	let o = [ ele ];
-	for( let a = 0; a < Friend.cajax.length; a++ )
-		o.push( Friend.cajax[ a ] );
-	Friend.cajax = o;
+	Friend.cajax = [ ele, ...Friend.cajax ];
 }
 
-function RemoveFromCajaxQueue( ele )
+function RemoveFromCajaxQueue( item )
 {
-	let o = [];
-	let executeLength = 6;
-	let executors = [];
-	for( let a = 0; a < Friend.cajax.length; a++ )
-	{
-		if( Friend.cajax[a] != ele )
-		{
-			if( executeLength > 0 )
-			{
-				executors.push( Friend.cajax[a] );
-				executeLength--;
-			}
-			else
-			{
-				o.push( Friend.cajax[a] );
-			}
-		}
-	}
-	Friend.cajax = o;
+	const leftovers = Friend.cajax.filter( j => {
+		return j.id != item.id;
+	});
+	Friend.cajax = leftovers;
 }
 
 // Cancel all queued cajax calls on id
@@ -116,7 +99,7 @@ function CancelCajaxOnId( id )
 cAjax = function()
 {
 	let self = this;
-	
+	self.id = friendUP.tool.uid();
 	_cajax_process_count++;
 	
 	// cajax only survives for so long..
@@ -257,7 +240,9 @@ cAjax = function()
 					{
 						let r = JSON.parse( jax.returnData );
 						
-						let res = r ? r.response.toLowerCase() : '';
+						let res = '';
+						if ( r?.response?.toLowerCase )
+							res = r.response.toLowerCase();
 						
 						if( res == 'user not found' || res.toLowerCase() == 'user session not found' )
 						{
@@ -405,7 +390,6 @@ cAjax.prototype.destroy = function()
 cAjax.prototype.open = function( method, url, syncing, hasReturnCode )
 {
 	let self = this;
-	
 	if( this.opened )
 	{
 		//console.log( '[cajax] Impossible error! Illegal reuse of object.' );
@@ -549,6 +533,7 @@ cAjax.prototype.send = function( data, callback )
 {
 	RemoveFromCajaxQueue( this );
 
+	this.yepsend = true;
     // TODO: Make queue work
     /*if( window.Workspace && Workspace.refreshWorkspaces && !Workspace.sessionId && !this.loginCall )
     {
@@ -566,6 +551,7 @@ cAjax.prototype.send = function( data, callback )
 		this.onload = function( e, d )
 		{
 			this.onload = null;
+			this.reppy = [ e, d ];
 			this.onloadAfter( e, d );
 			this.onloadAfter = null;
 			CleanAjaxCalls();
@@ -701,7 +687,6 @@ cAjax.prototype.send = function( data, callback )
 				{
 					if( self.onload )
 					{
-						console.log( 'This error could be.' );
 						self.onload( false, false );
 						self.destroy();
 					}
@@ -731,7 +716,6 @@ cAjax.prototype.send = function( data, callback )
 						reject( 'error' );
 						if( self.onload )
 						{
-							console.log( 'Error...' );
 							self.onload( false, false );
 							self.destroy();
 						}
@@ -743,7 +727,6 @@ cAjax.prototype.send = function( data, callback )
 					{
 						if( callback )
 						{
-							console.log( 'Other error' );
 							callback( false, false );
 						}
 						else
@@ -1020,7 +1003,8 @@ function CleanAjaxCalls()
 	}
 	else
 	{
-		Friend.cajax[0].send();
+		const req = Friend.cajax[0];
+		req.send();
 	}
 }
 

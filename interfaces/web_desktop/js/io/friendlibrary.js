@@ -158,15 +158,23 @@ var FriendLibrary = function ( library, encryption )
 					}
 					
 					let json = null;
-					try {
-						json = JSON.parse( rc );
-					} catch( ex ) {}
+					if ( '{' == rc[0]
+						|| '[' == rc[0]
+					) {
+						try {
+							json = JSON.parse( rc );
+						} catch( ex ) {}
+					}
+					
 					if( json )
 					{
+						console.log( 'json', json );
 						return t.onExecuted( json );
+					} else {
+						console.log( 'not json', rc )
+						t.onExecuted( rc, d )
 					}
-					// No json then..
-					t.onExecuted( rc, d );
+					
 					t.destroy();
 				}
 				// No, it's not that

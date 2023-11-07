@@ -471,15 +471,9 @@ Friend.User = {
 		// Reset this in this case
 		_cajax_http_connections = 0;
 		
-		// Check if there's a queue of objects waiting to run
-		if( Friend.cajax && Friend.cajax.length )
-		{
-			for( var a = 0; a < Friend.cajax.length; a++ )
-			{
-				Friend.cajax[a].send();
-			}
-			Friend.cajax = [];
-		}
+		Friend.cajax?.forEach( req => req.send())
+		Friend.cajax = [];
+		
 	},
 	// Reset the password
 	ResetPassword: function( username, callback )
@@ -645,14 +639,17 @@ Friend.User = {
 				document.body.classList.remove( 'Offline' );
 				if( Workspace.screen )
 					Workspace.screen.hideOfflineMessage();
+				
 				Workspace.workspaceIsDisconnected = false;
 				if( Workspace.nudgeWorkspacesWidget )
 					Workspace.nudgeWorkspacesWidget();
+				
 				// Just remove this by force
 				document.body.classList.remove( 'Busy' );
 				// Just refresh it
 				if( Workspace.refreshDesktop )
-					Workspace.refreshDesktop( true, false );
+					Workspace.refreshDesktop();
+				
 				// Try to reboot the websocket
 				if( !Workspace.conn && Workspace.initWebSocket )
 				{

@@ -357,8 +357,13 @@ var WorkspaceInside = {
 	// Invite a friend to the Workspace
 	inviteFriend: function()
 	{
-		if( !Workspace.serverConfig || !Workspace.serverConfig.invitesEnabled )
+		console.log( 'inviteFriend', Workspace.serverConfig )
+		if( !Workspace.serverConfig 
+			|| !Workspace.serverConfig.invitesEnabled
+		 ) {
 			return;
+		}
+		
 		let version = 2;
 		
 		let self = this;
@@ -934,16 +939,44 @@ var WorkspaceInside = {
 	// Initialize virtual workspaces
 	initWorkspaces: function( cbk, counter )
 	{
-		window.addTiming( 'initWorkspaces' )
-		console.trace( 'initWorkspaces', cbk, counter );
-		if( !counter ) counter = 0;
-		if( this.mode == 'vr' || isMobile || Workspace.isSingleTask ) 
-		{
-			this.initializingWorkspaces = false;
-			Workspace.setLoading( false );
-			return cbk ? cbk( false ) : null;
-		}
+		const self = this;
+		if ( cbk )
+			throw new Error( 'callback is deprecated, fix!' )
 		
+		if ( self.initWorkspacesPromise )
+			return self.initWorkspacesPromise
+		
+		self.initWorkspacesPromise = new Promise( init )
+		return self.initWorkspacesPromise
+		
+		async function init( resolve, reject ) {
+			done()
+			return;
+			
+			console.log( 'initWorkspaces.init, globalConfig', {
+				globalConfig : globalConfig,
+			})
+			
+			function done() {
+				delete self.initWorkspacesPromise
+				resolve()
+			}
+			
+			if( self.mode == 'vr' || isMobile || Workspace.isSingleTask ) 
+			{
+				self.initializingWorkspaces = false;
+				Workspace.setLoading( false );
+				done()
+				return
+			}
+			
+		/*
+		if( !counter ) 
+			counter = 0;
+			*/
+		
+		
+		/*
 		// Welcome screen
 		if( cbk )
 		{
@@ -980,135 +1013,145 @@ var WorkspaceInside = {
 			// Say we now have initialized workspaces
 			this.initializingWorkspaces = false;
 		}
-		
-		if( globalConfig.workspacesInitialized )
-		{
-			globalConfig.workspacesInitialized = false;
-			let el = ge( 'DoorsScreen' ).getElementsByClassName( 'VirtualWorkspaces' );
-			if( el.length )
-			{
-				el[0].parentNode.removeChild( el[0] );
-			}
-		}
-		if( !globalConfig.workspacesInitialized )
-		{
-			if( !this.screen ) return cbk( false );
+		*/
 			
-			this.screen.setFlag( 'vcolumns', globalConfig.workspacecount );
-			if( globalConfig.workspacecount > 1 )
+			if( globalConfig.workspacesInitialized )
 			{
-				globalConfig.workspacesInitialized = true;
-				if( typeof( globalConfig.workspaceCurrent ) == 'undefined' )
-					globalConfig.workspaceCurrent = 0;
-				ge( 'DoorsScreen' ).screenObject.contentDiv.style.transition = 'left 0.25s';
-				if( !ge( 'DoorsScreen' ).screenObject.contentDiv.style.left )
-					ge( 'DoorsScreen' ).screenObject.contentDiv.style.left = '0';
-				let wp = document.createElement( 'wp' );
-				let d = document.createElement( 'div' )
-				d.className = 'VirtualWorkspaces';
-				for( let a = 0; a < globalConfig.workspacecount; a++ )
+				globalConfig.workspacesInitialized = false;
+				let el = ge( 'DoorsScreen' ).getElementsByClassName( 'VirtualWorkspaces' );
+				if( el.length )
 				{
-					let w = document.createElement( 'div' );
-					w.className = 'Workspace';
-					w.setAttribute( 'position', 'top_center' );
-					( function( num ){
-						CreateHelpBubble( w, false, false, { getText: function()
-						{
-							// Create a text representing the content in the virtual workspace
-							let apps = {};
-							let str = '';
-							for( let a in movableWindows )
+					el[0].parentNode.removeChild( el[0] );
+				}
+			}
+			
+			if( !globalConfig.workspacesInitialized )
+			{
+				if( !self.screen ) {
+					done()
+					return
+				}
+				
+				self.screen.setFlag( 'vcolumns', globalConfig.workspacecount );
+				if( globalConfig.workspacecount > 1 )
+				{
+					globalConfig.workspacesInitialized = true;
+					if( typeof( globalConfig.workspaceCurrent ) == 'undefined' )
+						globalConfig.workspaceCurrent = 0;
+					
+					ge( 'DoorsScreen' ).screenObject.contentDiv.style.transition = 'left 0.25s';
+					if( !ge( 'DoorsScreen' ).screenObject.contentDiv.style.left )
+						ge( 'DoorsScreen' ).screenObject.contentDiv.style.left = '0';
+					
+					let wp = document.createElement( 'wp' );
+					let d = document.createElement( 'div' )
+					d.className = 'VirtualWorkspaces';
+					for( let a = 0; a < globalConfig.workspacecount; a++ )
+					{
+						let w = document.createElement( 'div' );
+						w.className = 'Workspace';
+						w.setAttribute( 'position', 'top_center' );
+						( function( num ){
+							CreateHelpBubble( w, false, false, { getText: function()
 							{
-								if( movableWindows[ a ].windowObject.workspace == num )
+								// Create a text representing the content in the virtual workspace
+								let apps = {};
+								let str = '';
+								for( let a in movableWindows )
 								{
-									if( movableWindows[ a ].windowObject.applicationName )
+									if( movableWindows[ a ].windowObject.workspace == num )
 									{
-										if( !apps[ movableWindows[ a ].windowObject.applicationName ] || !apps[ movableWindows[ a ].windowObject.applicationName ].count )
+										if( movableWindows[ a ].windowObject.applicationName )
 										{
-											apps[ movableWindows[ a ].windowObject.applicationName ] = {
-												count: 0,
-												string: movableWindows[ a ].titleString
-											};
+											if( !apps[ movableWindows[ a ].windowObject.applicationName ] || !apps[ movableWindows[ a ].windowObject.applicationName ].count )
+											{
+												apps[ movableWindows[ a ].windowObject.applicationName ] = {
+													count: 0,
+													string: movableWindows[ a ].titleString
+												};
+											}
+											apps[ movableWindows[ a ].windowObject.applicationName ].count++;
 										}
-										apps[ movableWindows[ a ].windowObject.applicationName ].count++;
-									}
-									else
-									{
-										str += movableWindows[ a ].titleString + "\n";
+										else
+										{
+											str += movableWindows[ a ].titleString + "\n";
+										}
 									}
 								}
-							}
-							let o = '';
-							for( let a in apps )
-								o += ( apps[ a ].string + ( apps[ a ].count > 1 ? ( ' (' + apps[ a ].count + ')' ) : '' ) ) + "\n";
-							return o + str;
-						} } );
-					} )( a );
-					if( a == globalConfig.workspaceCurrent ) w.className += ' Active';
+								let o = '';
+								for( let a in apps )
+									o += ( apps[ a ].string + ( apps[ a ].count > 1 ? ( ' (' + apps[ a ].count + ')' ) : '' ) ) + "\n";
+								return o + str;
+							} } );
+						} )( a );
+						
+						if( a == globalConfig.workspaceCurrent ) 
+							w.className += ' Active';
+						
+						// Check if the label is an icon or a number
+						if( 
+							globalConfig.workspace_labels && 
+							typeof( globalConfig.workspace_labels ) == 'object' && 
+							globalConfig.workspace_labels[ a ] && 
+							globalConfig.workspace_labels[ a ] != '[' &&
+							globalConfig.workspace_labels[ a ] != ']'
+						)
+						{
+							w.innerHTML = '<span class="' + globalConfig.workspace_labels[ a ] + '"></span>';
+							w.className += ' WithIcon';
+						}
+						else
+						{
+							w.innerHTML = '<span>' + ( a + 1 ) + '</span>';
+						}
+						w.ind = a;
+						w.onmousedown = function( e )
+						{
+							Workspace.setWorkspace( this.ind, d, e );
+						}
+						d.appendChild( w );
+					}
 					
-					// Check if the label is an icon or a number
-					if( 
-						globalConfig.workspace_labels && 
-						typeof( globalConfig.workspace_labels ) == 'object' && 
-						globalConfig.workspace_labels[ a ] && 
-						globalConfig.workspace_labels[ a ] != '[' &&
-						globalConfig.workspace_labels[ a ] != ']'
-					)
+					ge( 'DoorsScreen' ).getElementsByClassName( 'Left' )[0].appendChild( d );
+					
+					Workspace.checkWorkspaceWallpapers();
+					
+					// Keep windows in the right place
+					for( let c in movableWindows )
 					{
-						w.innerHTML = '<span class="' + globalConfig.workspace_labels[ a ] + '"></span>';
-						w.className += ' WithIcon';
+						if( movableWindows[ c ].windowObject.workspace > globalConfig.workspacecount - 1 )
+						{
+							movableWindows[ c ].windowObject.sendToWorkspace( globalConfig.workspacecount - 1 );
+						}
 					}
-					else
+					
+					// We don't wanna show offscreen
+					if( globalConfig.workspaceCurrent > globalConfig.workspacecount - 1 )
 					{
-						w.innerHTML = '<span>' + ( a + 1 ) + '</span>';
+						Workspace.setWorkspace( globalConfig.workspacecount - 1 );
 					}
-					w.ind = a;
-					w.onmousedown = function( e )
-					{
-						Workspace.setWorkspace( this.ind, d, e );
-					}
-					d.appendChild( w );
+					
+					PollTrayPosition();
 				}
-				ge( 'DoorsScreen' ).getElementsByClassName( 'Left' )[0].appendChild( d );
-				
-				Workspace.checkWorkspaceWallpapers();
-				
-				// Keep windows in the right place
-				for( let c in movableWindows )
+				// Put all on workspace 1
+				else
 				{
-					if( movableWindows[ c ].windowObject.workspace > globalConfig.workspacecount - 1 )
+					for( let c in movableWindows )
 					{
-						movableWindows[ c ].windowObject.sendToWorkspace( globalConfig.workspacecount - 1 );
+						movableWindows[ c ].windowObject.sendToWorkspace( 0 );
 					}
+					Workspace.setWorkspace( 0 );
 				}
-				
-				// We don't wanna show offscreen
-				if( globalConfig.workspaceCurrent > globalConfig.workspacecount - 1 )
-				{
-					Workspace.setWorkspace( globalConfig.workspacecount - 1 );
-				}
-				
-				PollTrayPosition();
 			}
-			// Put all on workspace 1
-			else
-			{
-				for( let c in movableWindows )
-				{
-					movableWindows[ c ].windowObject.sendToWorkspace( 0 );
-				}
-				Workspace.setWorkspace( 0 );
-			}
+			// Refresh our dynamic classes now..
+			RefreshDynamicClasses();
+			
+			// Try to show workspace
+			Workspace.setLoading( false )
+			
+			done()
+			
 		}
-		// Refresh our dynamic classes now..
-		RefreshDynamicClasses();
-		
-		// Run callback
-		if( cbk )
-			cbk( true );
-		
-		// Try to show workspace
-		Workspace.setLoading( false );
 	},
 	setWorkspace: function( index, workspaceButtons, e )
 	{
@@ -2121,29 +2164,26 @@ var WorkspaceInside = {
 			Workspace.mainDock.closeDesklet();
 		this.exitMobileMenu();
 	},
-	getSystemInfo : function()
+	getSystemInfo : async function()
 	{
-		return new Promise( get );
-		async function get( resovle, reject ) {
-			if ( Workspace.systemInfo ) {
-				resolve( Workspace.systemInfo )
-				return
-			}
-			
-			await Workspace.loadSystemInfo()
-			resolve( Workspace.systemInfo )
-		}
+		const self = this
+		if ( Workspace.systemInfo )
+			return Workspace.systemInfo
+		
+		await self.loadSystemInfo()
+		return Workspace.systemInfo
 	},
 	loadSystemInfo: function()
 	{
-		if ( Workspace.is_loading_system_info )
-			return Workspace.is_loading_system_info
+		if ( Workspace.loadSystemInfoPromise )
+			return Workspace.loadSystemInfoPromise
 		
-		Workspace.is_loading_system_info = new Promise( loadSysInfo )
-		return Workspace.is_loading_system_info
+		Workspace.loadSystemInfoPromise = new Promise( loadSysInfo )
+		return Workspace.loadSystemInfoPromise
 		
 		function loadSysInfo( resolve, reject ) {
 			if ( Workspace.systemInfo ) {
+				delete Workspace.loadSystemInfoPromise
 				resolve();
 				return;
 			}
@@ -2160,7 +2200,7 @@ var WorkspaceInside = {
 					str : str,
 				})
 				Workspace.systemInfo = e
-				Workspace.is_loading_system_info = null
+				delete Workspace.loadSystemInfoPromise
 				resolve()
 			}
 			
@@ -2334,32 +2374,27 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			b.execute( 'sampleconfig' )
 		}
 	},
-	loadUserSettings : function() {
-		if ( Workspace.userSettingsPromise )
-			return Workspace.userSettingsPromise;
+	getGeneralSettings : async function() {
+		const self = this
+		console.log( 'getGeneralSettings', Workspace.generalSettings )
+		if ( Workspace.generalSettings )
+			return Workspace.generalSettings
 		
-		Workspace.userSettingsPromise = new Promise( load );
-		return Workspace.userSettingsPromise;
+		await self.loadGeneralSettings()
+		return Workspace.generalSettings
+	},
+	loadGeneralSettings : function() {
+		console.trace( 'loadGeneralSettings', Workspace.generalSettingsPromise )
+		if ( Workspace.generalSettingsPromise )
+			return Workspace.generalSettingsPromise;
+		
+		Workspace.generalSettingsPromise = new Promise( load );
+		return Workspace.generalSettingsPromise;
 		
 		function load( resolve, reject ) {
-			let m = new Module( 'system' );
-			m.onExecuted = ( e, d ) => {
-				if ( 'ok' != e ) {
-					resolve( null )
-					return
-				}
-				
-				let res = null
-				try {
-					res = JSON.parse( d );
-				} catch( ex ) {
-					console.log( 'loadUserSettings - failed to parse', d );
-				}
-				
-				console.log( 'usettings', res );
-				resolve( res )
-			}
-			
+			Workspace.generalSettings = null
+			let m = new Module( 'system' )
+			m.onExecuted = handleLoad
 			m.forceHTTP = true;
 			m.execute( 'getsetting', { settings: [ 
 				'avatar', 'workspacemode', 'wallpaperdoors', 'wallpaperwindows', 'language', 
@@ -2368,15 +2403,35 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				'scrolldesktopicons', 'hidedesktopicons', 'wizardrun', 'themedata_' + Workspace.theme,
 				'workspacemode', 'workspace_labels'
 			] } );
+			
+			function handleLoad( e, d ) {
+				delete Workspace.generalSettingsPromise
+				if ( 'ok' != e ) {
+					resolve()
+					return
+				}
+				
+				let res = null
+				try {
+					res = JSON.parse( d );
+				} catch( ex ) {
+					console.log( 'loadGeneralSettings - failed to parse', d );
+				}
+				
+				if ( res )
+					Workspace.generalSettings = res
+				
+				console.log( 'loadGeneralSettings done', res )
+				resolve()
+			}
 		}
 	},
 	refreshUserSettings: async function( callback )
 	{
+		console.log( 'refreshUserSettings', !!Workspace.refreshUserSettingsPromise )
 		const self = this;
 		if ( callback )
 			throw new Error( 'callback deprecated, fix!' );
-		
-		await Workspace.loadSystemInfo();
 		
 		if ( Workspace.refreshUserSettingsPromise )
 			return Workspace.refreshUserSettingsPromise
@@ -2385,39 +2440,26 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return Workspace.refreshUserSettingsPromise
 		
 		async function refresh( resolve, reject ) {
+			// make sure systeminfo is loaded
 			
 			window.addTiming( 'refreshUserSettings' )
 			console.trace( 'refreshUserSettings' );
-			if ( null == Workspace.serverConfig )
-				await self.loadServerConfig()
-			
-			if ( Workspace.userSettingsPromise ) {
-				//window.setTimeout( refreshUserSettings, 50 );
-				console.trace( 'y u twice???' )
-				return;
-			}
-			
-			const uSettings = await self.loadUserSettings()
+			const uSettings = await self.getGeneralSettings()
 			await updateFromSettings( uSettings )
-			console.log( 'refresh done' )
+			
+			console.log( 'refreshUserSettings done' )
+			delete Workspace.refreshUserSettingsPromise
 			resolve()
 		}
 		
 		async function updateFromSettings( uSettings )
 		{
 			console.log( 'updateFromSettings', uSettings );
-			// Load application cache's and then init workspace
-			try {
-				await initFriendWorkspace();
-			} catch( ex ) {
-				console.log( 'XX', ex );
-			}
 			
 			// Make sure we have loaded
-			
-			console.log( 'check screensize' )
+			addTiming( 'checkScreenSize' )
 			await checkScreenSize();
-			console.log( 'screen sized' )
+			addTiming( 'checkScreenSize done' )
 			function checkScreenSize() {
 				return new Promise(( resolve, reject ) => {
 					if ( 'vr' == Workspace.mode ) {
@@ -2426,6 +2468,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					}
 					
 					let checkTimer = setTimeout( check, 50 )
+					check()
 					
 					function check() {
 						if( Workspace.screen?.contentDiv ) {
@@ -2443,7 +2486,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				dat = uSettings
 				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 				{
-					console.log( 'if1' );
+					console.log( 'set wallpaper from wallpaperdoors' );
 					if( dat.wallpaperdoors.substr(0,5) == 'color' )
 					{
 						Workspace.wallpaperImage = 'color';
@@ -2503,6 +2546,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				if( !Workspace.wallpaperImage || Workspace.wallpaperImage == '""' || Workspace.wallpaperImage === '' )
 				{
+					console.log( 'set wallpaperImage default login screen' )
 					Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
 					Workspace.wallpaperImageDecoded = false;
 				}
@@ -3842,7 +3886,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			let mw = movableWindows[a];
 
-			if( !mw.content ) continue;
+			if( !mw.content ) 
+				continue
+			
 			if( mw.content.fileInfo )
 			{
 				if( mw.content.fileInfo.Path.toLowerCase() == path.toLowerCase() && typeof mw.content.refresh == 'function' )
@@ -3913,7 +3959,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 
 		for( let a in movableWindows )
 		{
-			if( !movableWindows[a] || !movableWindows[a].content ) continue;
+			if( !movableWindows[a] || !movableWindows[a].content ) 
+				continue
+			
 			if( movableWindows[a].content.fileInfo )
 			{
 				if( movableWindows[a].content.fileInfo.Path.toLowerCase() == path.toLowerCase() )
@@ -3928,248 +3976,368 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	{
 		console.log( 'Disk notification!', windowList, type );
 	},
-	refreshTheme: function( themeName, update, themeConfig, initpass )
-	{
-		const self = this;
-		console.log( 'refreshTheme', [ themeName, update, themeConfig, initpass ]);
-		// Only on force or first time
-		if( this.themeRefreshed && !update )
-		{
-			return;
-		}
-
-		if( !initpass )
-		{
-			document.body.classList.add( 'ThemeRefreshing' );
-			return setTimeout( function()
-			{
-				Workspace.refreshTheme( themeName, update, themeConfig, true );
-			}, 150 );
-		}
-
-		// Check url var
-		if( GetUrlVar( 'fullscreenapp' ) )
-		{
-			document.body.classList.add( 'FullscreenApp' );
-		}
-
-		if( Workspace.themeOverride ) themeName = Workspace.themeOverride.toLowerCase();
-
-		// Setting loading
-		Workspace.setLoading( true );
-
-		if( !themeName ) themeName = 'friendup12';
-		if( themeName == 'friendup' ) themeName = 'friendup12';
+	getTheme : async function() {
+		const self = Workspace
+		const theme = self.themeName
+		if ( null != self.themeData[ theme ])
+			return self.themeData[ theme ]
 		
-		themeName = themeName.toLowerCase();
+		await self.loadTheme()
+		return self.themeData[ theme ]
+	},
+	loadTheme : function() {
+		const self = Workspace
+		if ( self.loadThemePromise )
+			return self.loadThemePromise
 		
-		Workspace.theme = themeName;
+		self.loadThemePromise = new Promise( loadT )
+		return self.loadThemePromise
 		
-		let m = new File( 'System:../themes/' + themeName + '/settings.json' );
-		m.onLoad = async function( rdat )
-		{
-			// Add resources for theme settings --------------------------------
-			rdat = JSON.parse( rdat );
-			console.log( 'refreshTHeme - something loaded', rdat );
-			// Done resources theme settings -----------------------------------
+		async function loadT( resolve, reject ) {
+			let m = new File( 'System:../themes/' + themeName + '/settings.json' );
+			m.onLoad = handle
+			m.load();
 			
-			Workspace.themeRefreshed = true;
-			await Workspace.refreshUserSettings()
-			do_thing();
-			
-			function do_thing() 
-			{
-				CheckScreenTitle();
-
-				let h = document.getElementsByTagName( 'head' );
-				if( h )
-				{
-					h = h[0];
-
-					// Remove old one
-					let l = h.getElementsByTagName( 'link' );
-					for( let b = 0; b < l.length; b++ )
-					{
-						if( l[b].parentNode != h ) continue;
-						l[b].href = '';
-						l[b].parentNode.removeChild( l[b] );
-					}
-					// Remove scrollbars
-					l = document.body.getElementsByTagName( 'link' );
-					for( let b = 0; b < l.length; b++ )
-					{
-						if( l[b].href.indexOf( '/scrollbars.css' ) > 0 )
-						{
-							l[b].href = '';
-							l[b].parentNode.removeChild( l[b] );
-						}
-					}
-
-					// New css!
-					let styles = document.createElement( 'link' );
-					styles.rel = 'stylesheet';
-					styles.type = 'text/css';
-					styles.onload = function()
-					{
-						console.log( 'styles.onload' );
-						document.body.classList.add( 'ThemeLoaded' );
-						setTimeout( function()
-						{
-							document.body.classList.remove( 'ThemeRefreshing' );
-						}, 150 );
-						// We are inside (wait for wallpaper) - watchdog
-						if( !Workspace.insideInterval )
-						{
-							let retries = 0;
-							Workspace.insideInterval = setInterval( function()
-							{
-							    // If we're still readjusting, wait a little
-        						if( !isMobile && window.outerHeight > 480 && document.body.offsetHeight < 480 )
-        						    return;
-        						
-        						if( parseInt( GetThemeInfo( 'ScreenTitle' ).height ) <= 0 )
-        						    return;
-        						
-								// If we're in VR, just immediately go in, or when wallpaper loaded or when we waited 5 secs
-								if( Workspace.mode == 'vr' || Workspace.wallpaperLoaded || retries++ > 100 )
-								{
-								    clearInterval( Workspace.insideInterval );
-									Workspace.insideInterval = null;
-								
-									// Set right classes
-									if( !Workspace.initializingWorkspaces )
-									{
-										Workspace.setLoading( false );
-									}
-									
-									document.title = Friend.windowBaseString;
-									
-									// Remove the overlay when inside
-									if( Workspace.screen )
-										Workspace.screen.hideOverlay();
-								
-									// Refresh widgets
-									Workspace.refreshExtraWidgetContents();
-								
-									// Redraw now
-									if( !isMobile )
-										DeepestField.redraw();
-									
-									if( location.hash && location.hash.indexOf( 'clean' ) ) Workspace.goDialogShown = true;
-									
-									// Show about dialog
-									if( !isMobile && window.go && !Workspace.goDialogShown )
-									{
-										AboutGoServer();
-										Workspace.goDialogShown = true;
-									}
-									
-									// Make sure we update icons...
-									Workspace.redrawIcons( 1 );
-									
-									// Update locale for download applet
-									if( ge( 'Tray' ) && ge( 'Tray' ).downloadApplet )
-									{
-										ge( 'Tray' ).downloadApplet.innerHTML = '<div class="BubbleInfo"><div>' + i18n( 'i18n_drag_files_to_download' ) + '.</div></div>';
-									}
-									// And the calendar applet
-									if( ge( 'Tray' ) && ge( 'Tray' ).calendarApplet )
-									{
-										ge( 'Tray' ).calendarApplet.innerHTML = '<div class="BubbleInfo"><div>' + i18n( 'i18n_add_calendar_event' ) + '.</div></div>';
-									}
-									
-									// New version of Friend?
-									if( Workspace.loginUsername != 'go' )
-									{
-										if( !Workspace.friendVersion || Workspace.friendVersion != Workspace.systemInfo.FriendCoreVersion )
-										{
-											Workspace.upgradeWorkspaceSettings( function(){
-												setTimeout( function()
-												{
-													let n = Notify( 
-														{ 
-															title: 'Workspace was upgraded', 
-															text: 'Your Workspace and settings were upgraded to ' + Workspace.systemInfo.FriendCoreVersion + '.', 
-															sticky: true
-														}, 
-														false, 
-														function()
-														{
-															CloseNotification( n );
-														} 
-													);
-												}, 1000 );
-											} );
-										}
-									}
-									
-									console.log( 'ready!' );
-									addTiming( 'workspace ready' );
-									// We are ready!
-									Workspace.readyToRun = true;
-									if( window.friendApp && friendApp.onWorkspaceReady )
-									{
-										friendApp.onWorkspaceReady();
-									}
-									else
-									{
-										Workspace.onReady();
-									}
-									Workspace.updateViewState( 'active' );
-								}
-							}, 50 );
-						}
-					
-						// Flush theme info
-						themeInfo.loaded = false;
-					
-						// Refresh them
-						Workspace.initWorkspaces();
-					
-						// Redraw icons if they are delayed
-						Workspace.redrawIcons();
-						
-						// Make sure screen dimensions are read
-						_kresize();
-					}
-
-					if( themeName && themeName != 'default' )
-					{
-						AddCSSByUrl( '/themes/' + themeName + '/scrollbars.css' );
-						styles.href = '/system.library/module/?module=system&command=theme&args=' + encodeURIComponent( '{"theme":"' + themeName + '"}' ) + '&sessionid=' + Workspace.sessionId;
-					}
-					else
-					{
-						AddCSSByUrl( '/themes/friendup12/scrollbars.css' );
-						styles.href = '/system.library/module/?module=system&command=theme&args=' + encodeURIComponent( '{"theme":"friendup12"}' ) + '&sessionid=' + Workspace.sessionId;
-					}
-
-					// Add new one
-					h.appendChild( styles );
-					
-					// Constrain all windows
-					ConstrainWindows();
-				}
-
-				// Update running applications
-				let taskIframes = ge( 'Tasks' ).getElementsByClassName( 'AppSandbox' );
-				for( let a = 0; a < taskIframes.length; a++ )
-				{
-					let msg = {
-						type: 'system',
-						command: 'refreshtheme',
-						theme: themeName
-					};
-					if( themeConfig )
-						msg.themeData = themeConfig;
-					taskIframes[a].ifr.contentWindow.postMessage( JSON.stringify( msg ), '*' );
-				}
-		
-				// Flush theme info
-				themeInfo.loaded = false;
+			function handle( err, td ) {
+				console.log( 'handleTheme', {
+					err : err,
+					td  : td,
+				})
+				
+				delete Workspace.loadThemePromise
+				resolve()
 			}
 		}
-		m.load();
+	},
+	
+	setThemeStyle : function() {
+		const self = Workspace
+		if ( self.setThemePromise )
+			return self.setThemePromise
+		
+		if ( self.themeStyle && self.themeStyle.id != self.themeName ) {
+			self.themeStyle.parentNode.removeChild( self.themeStyle )
+			delete self.themeStyle
+		}
+		
+		self.setThemePromise = new Promise( set )
+		return self.setThemePromise
+		
+		async function set( resolve, reject ) {
+			if ( self.themeStyle ) {
+				delete self.setThemePromise
+				resolve()
+				return
+			}
+			
+			const themeName = Workspace.themeName
+			const cache = Workspace.getFromCache( 'themeStyles' )
+			if ( cache )
+				setStyle( themeName, cache )
+			else
+				await setFromPath( themeName )
+			
+			delete self.setThemePromise
+			resolve()
+			
+			async function setFromPath( themeName ) {
+				const path = '/system.library/module/?module=system&command=theme&args=' + encodeURIComponent( '{"theme":"' + themeName + '"}' ) + '&sessionid=' + Workspace.sessionId;
+				const text = await Workspace.getterOfText( path )
+				Workspace.setInCache( 'themeStyles', text )
+				setStyle( themeName, text )
+			}
+			
+			function setStyle( themeName, cssText ) {
+				const styles = document.createElement( 'style' )
+				styles.id = themeName
+				styles.rel = 'stylesheet'
+				styles.type = 'text/css'
+				if ( styles.styleSheet )
+					styles.styleSheet.cssText = cssText
+				else
+					styles.appendChild( document.createTextNode( cssText ))
+				
+				document.head.appendChild( styles )
+				self.themeStyle = styles
+				
+				//styles.href = 
+			}
+			
+			/*
+			if( themeName && themeName != 'default' )
+			{
+			}
+			else
+			{
+				AddCSSByUrl( '/themes/friendup12/scrollbars.css' );
+				styles.href = '/system.library/module/?module=system&command=theme&args=' + encodeURIComponent( '{"theme":"friendup12"}' ) + '&sessionid=' + Workspace.sessionId;
+			}
+			
+			function loaded() {
+				console.log( 'style loaded' )
+				delete self.setThemePromise
+				addTiming( 'setThemeStyle - completed' )
+				resolve();
+			}
+			*/
+			// Add new one
+		
+		}
+	},
+	
+	refreshTheme: function( themeName, update, themeConfig, initpass )
+	{
+		const self = Workspace
+		if ( Workspace.refreshThemePromise )
+			return Workspace.refreshThemePromise
+		
+		Workspace.refreshThemePromise = new Promise( refresh )
+		return Workspace.refreshThemePromise
+		
+		async function refresh( resolve, reject )
+		{
+			console.log( 'refreshTheme', {
+				themeName      : themeName, 
+				update         : update, 
+				themeConfig    : themeConfig, 
+				initpass       : initpass, 
+				themeRefreshed : self.themeRefreshed, 
+			})
+			
+			addTiming( 'refreshTheme' )
+			
+			// Only on force or first time
+			if( self.themeRefreshed && !update )
+			{
+				done()
+				return
+			}
+			
+			/*
+			if( !initpass )
+			{
+				document.body.classList.add( 'ThemeRefreshing' );
+				setTimeout( () => {
+					Workspace.refreshTheme( themeName, update, themeConfig, true );
+				}, 150 )
+				
+				done()
+				return
+			}
+			*/
+			
+			// Check url var
+			if( GetUrlVar( 'fullscreenapp' ) )
+			{
+				document.body.classList.add( 'FullscreenApp' );
+			}
+
+			if( Workspace.themeOverride ) 
+				themeName = Workspace.themeOverride.toLowerCase()
+
+			// Setting loading
+			Workspace.setLoading( true )
+
+			if( !themeName ) 
+				themeName = 'friendup12'
+			
+			if( themeName == 'friendup' ) 
+				themeName = 'friendup12'
+			
+			themeName = themeName.toLowerCase()
+			Workspace.themeName = themeName
+			
+			Workspace.themeRefreshed = true
+			await Workspace.refreshUserSettings()
+			addTiming( 'refreshTheme - refreshUserSettings done' )
+			
+			CheckScreenTitle();
+			
+			let h = document.head
+			// Remove old one
+			let l = h.getElementsByTagName( 'link' );
+			for( let b = 0; b < l.length; b++ )
+			{
+				const el = l[b];
+				if( el.parentNode != h ) 
+					continue;
+				
+				console.log( 'remove', el )
+				el.href = '';
+				el.parentNode.removeChild( el );
+			}
+			// Remove scrollbars
+			l = document.body.getElementsByTagName( 'link' );
+			for( let b = 0; b < l.length; b++ )
+			{
+				if( l[b].href.indexOf( '/scrollbars.css' ) > 0 )
+				{
+					l[b].href = '';
+					l[b].parentNode.removeChild( l[b] );
+				}
+			}
+			
+			// Refresh them
+			//Workspace.initWorkspaces();
+			
+			// Make sure screen dimensions are read
+			_kresize();
+			
+			// Constrain all windows
+			ConstrainWindows();
+			
+			// Update running applications
+			let taskIframes = ge( 'Tasks' ).getElementsByClassName( 'AppSandbox' );
+			for( let a = 0; a < taskIframes.length; a++ )
+			{
+				let msg = {
+					type    : 'system',
+					command : 'refreshtheme',
+					theme   : themeName
+				};
+				if( themeConfig )
+					msg.themeData = themeConfig;
+				taskIframes[a].ifr.contentWindow.postMessage( JSON.stringify( msg ), '*' );
+			}
+			
+			// New css!
+			AddCSSByUrl( '/themes/' + themeName + '/scrollbars.css' );
+			await self.setThemeStyle()
+			// Flush theme info
+			themeInfo.loaded = false;
+			addTiming( 'refreshTheme - style loaded' );
+			
+			document.body.classList.add( 'ThemeLoaded' );
+			setTimeout( function()
+			{
+				document.body.classList.remove( 'ThemeRefreshing' );
+			}, 150 );
+			
+			// We are inside (wait for wallpaper) - watchdog
+			addTiming( 'refreshTheme - check wallpaper' )
+			await waitForWallpaper()
+			addTiming( 'refreshTheme - wallpaper done' );
+			
+			console.log( 'ready!' );
+			Workspace.redrawIcons();
+			ScreenOverlay.hide()
+			// We are ready!
+			Workspace.readyToRun = true;
+			if( window.friendApp && friendApp.onWorkspaceReady )
+			{
+				friendApp.onWorkspaceReady();
+			}
+			else
+			{
+				Workspace.onReady();
+			}
+			Workspace.updateViewState( 'active' );
+			
+			done()
+			
+			function waitForWallpaper() {
+				return new Promise( loaded )
+				function loaded( resolve, reject ) {
+					let retries = 0;
+					const insideInterval = setInterval( checkAgain, 50 );
+					checkAgain()
+					
+					function checkAgain()
+					{
+						addTiming( 'checkAgain', {
+							wallLoaded   : Workspace.wallpaperLoaded,
+							outerHeight  : window.outerHeight > 480,
+							offsetHeight : document.body.offsetHeight < 480,
+						});
+					    // If we're still readjusting, wait a little
+						if( !isMobile && window.outerHeight > 480 && document.body.offsetHeight < 480 )
+						    return;
+						
+						if( parseInt( GetThemeInfo( 'ScreenTitle' ).height ) <= 0 )
+						    return;
+						
+						// If we're in VR, just immediately go in, or when wallpaper loaded or when we waited 5 secs
+						if( Workspace.mode == 'vr' || Workspace.wallpaperLoaded || retries++ > 100 )
+						{
+						    clearInterval( insideInterval );
+							
+							// Set right classes
+							if( !Workspace.initializingWorkspaces )
+							{
+								Workspace.setLoading( false );
+							}
+							
+							document.title = Friend.windowBaseString;
+							
+							// Remove the overlay when inside
+							if( Workspace.screen )
+								Workspace.screen.hideOverlay();
+						
+							// Refresh widgets
+							Workspace.refreshExtraWidgetContents();
+						
+							// Redraw now
+							if( !isMobile )
+								DeepestField.redraw();
+							
+							if( location.hash && location.hash.indexOf( 'clean' ) ) Workspace.goDialogShown = true;
+							
+							// Show about dialog
+							if( !isMobile && window.go && !Workspace.goDialogShown )
+							{
+								AboutGoServer();
+								Workspace.goDialogShown = true;
+							}
+							
+							// Update locale for download applet
+							if( ge( 'Tray' ) && ge( 'Tray' ).downloadApplet )
+							{
+								ge( 'Tray' ).downloadApplet.innerHTML = '<div class="BubbleInfo"><div>' + i18n( 'i18n_drag_files_to_download' ) + '.</div></div>';
+							}
+							// And the calendar applet
+							if( ge( 'Tray' ) && ge( 'Tray' ).calendarApplet )
+							{
+								ge( 'Tray' ).calendarApplet.innerHTML = '<div class="BubbleInfo"><div>' + i18n( 'i18n_add_calendar_event' ) + '.</div></div>';
+							}
+							
+							// New version of Friend?
+							if( Workspace.loginUsername != 'go' )
+							{
+								if( !Workspace.friendVersion || Workspace.friendVersion != Workspace.systemInfo.FriendCoreVersion )
+								{
+									Workspace.upgradeWorkspaceSettings( function(){
+										setTimeout( function()
+										{
+											let n = Notify( 
+												{ 
+													title: 'Workspace was upgraded', 
+													text: 'Your Workspace and settings were upgraded to ' + Workspace.systemInfo.FriendCoreVersion + '.', 
+													sticky: true
+												}, 
+												false, 
+												function()
+												{
+													CloseNotification( n );
+												} 
+											);
+										}, 1000 );
+									} );
+								}
+							}
+							
+							resolve()
+						}
+					}
+				}
+			}
+			
+			function done() {
+				console.log( 'refreshTHeme done' );
+				Workspace.setLoading( false )
+				delete Workspace.refreshThemePromise
+				resolve()
+			}
+		}
 	},
 	// Check for new desktop events too!
 	checkDesktopEvents: function()
@@ -4362,86 +4530,103 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Just refresh the desktop ------------------------------------------------
 	refreshDesktop: function( callback, forceRefresh )
 	{
-		const self = this;
+		const self = this
+		if ( callback )
+			throw new Error( 'refreshDesktop - callback deprecated, fix!' )
 		
-		// Need to wait
-		console.log( 'refreshDesktop', self.userSettingsLoaded );
-		if( !this.userSettingsLoaded )
-			return
+		if ( Workspace.refreshDesktopPromise )
+			return Workspace.refreshDesktopPromise
 		
-		this.desktopFirstRefresh = true;
-		// Get those dynamic classes
-		RefreshDynamicClasses( {} );
+		Workspace.refreshDesktopPromise = new Promise( refresh )
+		return Workspace.refreshDesktopPromise
 		
-		// Check some images we need to preload and preload them
-		if( !window.preloader )
-			window.preloader = [];
-		let imgOffline = GetThemeInfo( 'OfflineIcon' );
-		if( !Workspace.iconsPreloaded && this.mode != 'vr' )
-		{
-			let imgs = [];
-			imgs.push( imgOffline.backgroundImage );
-			function preloadAndRemove( n )
-			{
-				if( !n ) return;
+		async function refresh( resolve, reject ) {
 			
-				let t = false;
-				let i = new Image();
-				i.src = n;
-				let out = [];
-				for( let a = 0; a < window.preloader.length; a++ )
+			// Need to wait
+			addTiming( 'refreshDesktop' );
+			await self.refreshUserSettings()
+			
+			self.desktopFirstRefresh = true;
+			// Get those dynamic classes
+			RefreshDynamicClasses( {} );
+			
+			// Check some images we need to preload and preload them
+			if( !window.preloader )
+				window.preloader = [];
+			
+			let imgOffline = GetThemeInfo( 'OfflineIcon' );
+			console.log( 'imgOffline', imgOffline )
+			
+			if( !Workspace.iconsPreloaded && self.mode != 'vr' )
+			{
+				let imgs = [];
+				imgs.push( imgOffline.backgroundImage );
+				function preloadAndRemove( n )
 				{
-					if( window.preloader[a].src == i.src )
+					if( !n ) return;
+				
+					let t = false;
+					let i = new Image();
+					i.src = n;
+					let out = [];
+					for( let a = 0; a < window.preloader.length; a++ )
 					{
-						document.body.removeChild( window.preloader[a] );
+						if( window.preloader[a].src == i.src )
+						{
+							document.body.removeChild( window.preloader[a] );
+						}
+						else out.push( window.preloader[a] );
 					}
-					else out.push( window.preloader[a] );
+					window.preloader = out;
+					document.body.appendChild( i );
+					window.preloader.push( i );
 				}
-				window.preloader = out;
-				document.body.appendChild( i );
-				window.preloader.push( i );
-			}
-			for( let a = 0; a < imgs.length; a++ )
-			{
-				if( imgs[a] && imgs[a].length )
+				
+				for( let a = 0; a < imgs.length; a++ )
 				{
-					if( imgs[a].indexOf( 'url(' ) == 0 )
+					if( imgs[a] && imgs[a].length )
 					{
-						imgs[a] = imgs[a].split( 'url(' )[1].split( ')' );
-						imgs[a].pop(); imgs[a] = imgs[a].join( ')' );
+						if( imgs[a].indexOf( 'url(' ) == 0 )
+						{
+							imgs[a] = imgs[a].split( 'url(' )[1].split( ')' );
+							imgs[a].pop(); imgs[a] = imgs[a].join( ')' );
+						}
+						imgs[a] = imgs[a].split( '"' ).join( '' );
 					}
-					imgs[a] = imgs[a].split( '"' ).join( '' );
+					preloadAndRemove( imgs[a] );
 				}
-				preloadAndRemove( imgs[a] );
+				Workspace.iconsPreloaded = true;
 			}
-			Workspace.iconsPreloaded = true;
-		}
-		
-		// Oh yeah, update windows
-		for( let a in movableWindows )
-		{
-			if( movableWindows[a].content.redrawBackdrop )
+			
+			// Oh yeah, update windows
+			for( let a in movableWindows )
 			{
-				movableWindows[a].content.redrawBackdrop();
+				if( movableWindows[a].content.redrawBackdrop )
+				{
+					movableWindows[a].content.redrawBackdrop();
+				}
+				// Move windows!
+				if( movableWindows[ a ].windowObject.workspace > ( globalConfig.workspacecount - 1 ) )
+				{
+					movableWindows[a].windowObject.sendToWorkspace( globalConfig.workspacecount - 1 );
+				}
 			}
-			// Move windows!
-			if( movableWindows[ a ].windowObject.workspace > ( globalConfig.workspacecount - 1 ) )
-			{
-				movableWindows[a].windowObject.sendToWorkspace( globalConfig.workspacecount - 1 );
-			}
-		}
-		
-		this.getMountlist( function( data )
-		{	
+			
+			addTiming( 'getMountList' )
+			const data = await self.getMountlist()
+			addTiming( 'got mountList', data )
+			console.log( 'getMountList data', data )
+			
 			// Something went wrong - don't show an empty workspace
 			// We always have one entry, the system disk
 			if( data.length <= 1 )
 			{
-				return;
+				throw new Error( 'moutlist problems' )
 			}
 			
-			if( callback && typeof( callback ) == 'function' ) callback( data );
-
+			delete Workspace.refreshDesktopPromise
+			resolve( data )
+			
 			// make drive list behave like a desklet... copy paste som code back and forth ;)
 			if( !window.setupDriveClicks )
 			{
@@ -4462,20 +4647,18 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					}
 				}
 			}
-
-			// We haven't started with wallpaper yet. Just pass
-			if( typeof( self.wallpaperImage ) == 'undefined' )
-			{
-				return;
-			}
+			
+			console.log( 'wallpaperImage?', [ self.wallpaperImage, Workspace.wallpaperImage, Workspace.wallpaperLoaded ])
+			
 			// Recall wallpaper
-			else if( Workspace.mode != 'vr' && self.wallpaperImage != 'color' )
+			if( Workspace.mode != 'vr' && self.wallpaperImage != 'color' )
 			{
-				console.log( 'recall wallpaper' );
+				console.log( 'recall wallpaper', self.wallpaperImage );
 			    if( typeof( self.wallpaperImage ) == undefined )
 			    {
 			        return setTimeout( function(){ Workspace.refreshDesktop( callback, forceRefresh ) }, 25 );
 			    }
+			    
 				let eles = self?.screen?.div?.getElementsByClassName( 'ScreenContent' );
 				if( eles?.length )
 				{
@@ -4485,7 +4668,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					{
 						// Check if we have a loadable image!
 						let p = self.wallpaperImage.split( ':' )[0];
-						for( let a = 0; a < self.icons.length; a++ )
+						for( let a = 0; a < self.icons.length; a++ )
 						{
 							if( self.icons[a].Title == p )
 							{
@@ -4549,57 +4732,61 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							Workspace.wallpaperLoaded = true;
 							break;
 						default:
-							Workspace.wallpaperLoaded = false;
-							let src = found ? getImageUrl( self.wallpaperImage ) : '/webclient/gfx/theme/default_login_screen.jpg';
-							console.log( 'set default wallpaper', [ found, src ]);
-							let workspaceBackgroundImage = new Image();
-							workspaceBackgroundImage.onload = function()
+							console.log( 'wallpaper set default pre load' , Workspace.defaultWallPreload, Workspace.wallpaperLoadedPromise )
+							Workspace.wallpaperImageObject = Workspace.defaultWallPreload
+							await Workspace.wallpaperLoadedPromise
+							Workspace.wallpaperLoaded = true;
+							const src = Workspace.wallpaperImageObject.src
+							console.log( 'wallpaper promise done', src )
+							
+							//let src = found ? getImageUrl( self.wallpaperImage ) : '/webclient/gfx/theme/default_login_screen.jpg';
+							//console.log( 'set default wallpaper', [ found, src ]);
+							//let workspaceBackgroundImage = new Image();
+							//workspaceBackgroundImage.onload = wallLoaded
+							//addTiming( 'wallpaper start load' )
+							//workspaceBackgroundImage.src = src
+							
+							if( Workspace.prevWallpaper )
 							{
-								// Let's not fill up memory with new wallpaper images
-								if( Workspace.prevWallpaper )
+								let o = [];
+								for( let c = 0; c < Workspace.imgPreload.length; c++ )
 								{
-									let o = [];
-									for( let c = 0; c < Workspace.imgPreload.length; c++ )
-									{
-										if( Workspace.imgPreload[c].src != Workspace.prevWallpaper )
-											o.push( Workspace.imgPreload[c] );
-									}								
-									Workspace.imgPreload = o;
-								}
-								Workspace.imgPreload.push( this );
-								Workspace.prevWallpaper = this.src;
-								
-								// Set the background size on wallpaper element
-								eles[0].style.backgroundSize = 'cover';
-								
-								setupDriveClicks();
-								this.done = true;
-								
-								Workspace.wallpaperImageObject = workspaceBackgroundImage;
-								Workspace.wallpaperLoaded = src;
-								
-								// Mobile is not using multiple workspaces
-								if( !isMobile && globalConfig.workspacecount > 1 )
-								{
-									// Check series of wallpaper elements
-									Workspace.checkWorkspaceWallpapers( true );
-								}
-								else
-								{
-									// Set the wallpaper
-									eles[0].style.backgroundImage = 'url(' + this.src + ')';
-								}
-							};
+									if( Workspace.imgPreload[c].src != Workspace.prevWallpaper )
+										o.push( Workspace.imgPreload[c] );
+								}								
+								Workspace.imgPreload = o;
+							}
+							Workspace.imgPreload.push( this );
+							Workspace.prevWallpaper = src;
 							
-							workspaceBackgroundImage.src = src;
+							// Set the background size on wallpaper element
+							eles[0].style.backgroundSize = 'cover';
 							
+							setupDriveClicks();
+							this.done = true;
+							
+							Workspace.wallpaperLoaded = src;
+							
+							// Mobile is not using multiple workspaces
+							if( !isMobile && globalConfig.workspacecount > 1 )
+							{
+								// Check series of wallpaper elements
+								Workspace.checkWorkspaceWallpapers( true );
+							}
+							else
+							{
+								// Set the wallpaper
+								eles[0].style.backgroundImage = 'url(' + src + ')';
+							}
+							
+							/*
 							if( workspaceBackgroundImage.width > 0 && workspaceBackgroundImage.height > 0 && workspaceBackgroundImage.onload )
 							{
 								workspaceBackgroundImage.onload();
 							}
 							
 							Workspace.wallpaperImageObject = workspaceBackgroundImage;
-							
+							*/
 							// If this borks up in 5 seconds, bail!
 							setTimeout( function()
 							{
@@ -4642,8 +4829,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			{
 				//console.log( 'Wallpaper: What happened and which mode? ' + Workspace.mode );
 			}
-
-		}, forceRefresh );
+		}
 	},
 	// Get a door by path
 	getDoorByPath: function( path )
@@ -4732,440 +4918,569 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		dom.bubble.innerHTML = '';
 		dom.bubble.appendChild( d );
 	},
-	// Fetch mountlist from database
-	getMountlist: function( callback, forceRefresh, addDormant )
-	{
-		let t = this; // Reference to workspace
+	
+	getDosDriverTypes : async function() {
+		const self = this
+		if ( Friend.dosDrivers )
+			return Friend.dosDrivers
 		
-		// Just in case
-		doReveal();
+		await self.loadDosDriverTypes()
+		return Friend.dosDrivers
+	},
+	loadDosDriverTypes : function() {
+		const self = this
+		if ( self.loadDosDriverTypesPromise )
+			return self.loadDosDriverTypesPromise
 		
-		if( !Friend.dosDrivers )
-		{
+		self.loadDosDriverTypesPromise = new Promise( load )
+		return self.loadDosDriverTypesPromise
+		
+		function load( resolve, reject ) {
+			Friend.dosDrivers = null
 			let d = new Module( 'system' );
-			d.onExecuted = function( res, dat )
+			d.onExecuted = handleTypes
+			d.execute( 'types', { mode: 'all' } );
+			
+			function handleTypes( res, dat )
 			{
 				if( res != 'ok' )
 				{
-					doGetMountlistHere();
-					return;
+					resolve()
+					return
 				}
+				
 				let types = null;
-				try
-				{
-					let types = JSON.parse( dat );
-					Friend.dosDrivers = {};
-					for( let a = 0; a < types.length; a++ )
-					{
-						Friend.dosDrivers[ types[ a ].type ] = types[a];
-					}
+				try {
+					types = JSON.parse( dat )
+				} catch( ex ) {
+					console.log( 'loadDosDriverTypes - json ex', [ ex, dat ])
+					resolve()
+					return
 				}
-				catch( e )
+				
+				Friend.dosDrivers = {}
+				types.forEach( item => {
+					Friend.dosDrivers[ item.type ] = item
+				})
+				/*
+				for( let a = 0; a < types.length; a++ )
 				{
-					Friend.dosDrivers = null;
+					Friend.dosDrivers[ types[ a ].type ] = types[a];
 				}
-				doGetMountlistHere();
+				*/
+				
+				delete self.loadDosDriverTypesPromise
+				resolve()
+				
 			}
-			d.execute( 'types', { mode: 'all' } );
 		}
-		else
-		{
-			doGetMountlistHere();
+	},
+	loadMountList : function() {
+		const self = Workspace
+		console.log( 'loadMountList', [ self.loadMountListPromise, self.mountListData ])
+		if ( self.loadMountListPromise )
+			return self.loadMountListPromise 
+		
+		self.loadMountListPromise = new Promise( load )
+		return self.loadMountListPromise
+		
+		async function load( resolve, reject ) {
+			addTiming( 'load mountlist data' )
+			delete self.mountListData
+			const loaders = [
+				loadWorkspaceShortcuts(),
+				loadDeviceSettings(),
+				loadDeviceList(),
+			]
+			
+			const responses = await Promise.all( loaders )
+			self.mountListData = responses
+			
+			delete self.loadMountListPromise
+			console.log( 'loadMountList done', self.mountListData )
+			resolve()
 		}
 		
-		// Get the mountlist
-		function doGetMountlistHere()
-		{
-			let mo = new Module( 'system' );
-			mo.onExecuted = function( returnCode, shortcuts )
+		function loadWorkspaceShortcuts() {
+			return new Promise( loadSCuts )
+			function loadSCuts( resolve, reject )
 			{
-				let vi = new Module( 'system' );
-				vi.onExecuted = function( rco, visList )
+				let mo = new Module( 'system' )
+				//mo.forceSend = true
+				mo.onExecuted = loaded
+				mo.execute( 'workspaceshortcuts' )
+				function loaded( err, shortcuts )
 				{
-					let visStruct = null;
-					if( rco == 'ok' )
+					console.log( 'loadWorkspaceShortcuts res', err, shortcuts )
+					if ( 'ok' != err  ) {
+						resolve( [] )
+						return
+					}
+					
+					let shorts = []
+					try {
+						shorts = JSON.parse( shortcuts );
+					} catch( ex ) {
+						console.log( 'loadWorkspaceShortcuts json ex', [ ex, shortcuts ])
+					}
+					
+					resolve( shorts )
+				}
+			}
+		}
+		
+		function loadDeviceSettings() {
+			return new Promise( loadDS )
+			function loadDS( resolve, reject )
+			{
+				let vi = new Module( 'system' )
+				vi.onExecuted = loaded
+				//vi.forceSend = true;
+				vi.execute( 'devicesettings' )
+				
+				function loaded( err, visList )
+				{
+					console.log( 'loadDeviceSettings res', err, visList )
+					const visStruct = {};
+					if( err != 'ok' )
 					{
-						try
+						resolve( visStruct )
+						return
+					}
+					
+					let tmp = null
+					try {
+						tmp = JSON.parse( visList );
+					}
+					catch( ex ) {
+						console.log( 'loadDeviceSettings ex', [ ex, visList ])
+						resolve( visStruct )
+						return
+					}
+					
+					for( let z = 0; z < tmp.length; z++ )
+						visStruct[ tmp[ z ].Filesystem ] = tmp[ z ];
+						
+					resolve( visStruct )
+				}
+			}
+		}
+		
+		function loadDeviceList() {
+			return new Promise( loadDV )
+			function loadDV( resolve, reject ) {
+				let m = new Library( 'system.library' )
+				m.onExecuted = handleDeviceList
+				m.execute( 'device/list' );
+				function handleDeviceList( err, dat )
+				{
+					let rows = null
+					try {
+						rows = JSON.parse( dat )
+					} catch( ex ) {
+						console.log( 'loadDeviceList ex', [ ex, dat ])
+					}
+					
+					resolve( rows )
+				}
+			}
+		}
+	},
+	// Fetch mountlist from database
+	getMountlist: function( callback, forceRefresh, addDormant )
+	{
+		const t = Workspace; // Reference to workspace
+		console.log( 'getMountList', [ callback, forceRefresh, addDormant ])
+		if ( callback )
+			throw new Error( 'callback deprecated, fix!' )
+		
+		if ( t.getMountlistPromise )
+			return t.getMountlistPromise
+		
+		t.getMountlistPromise = new Promise( GML )
+		return t.getMountlistPromise
+		
+		async function GML( resolve, reject )
+		{
+			console.log( 'GML', [ t.loadMountListPromise, t.mountListData ])
+			//t.getDosDriverTypes()
+			// Just in case
+			doReveal();
+			
+			if ( !t.mountListData )
+				await t.loadMountList()
+			
+			setupMountList( ...t.mountListData )
+			
+			delete t.getMountlistPromise
+			resolve( t.icons )
+			t.checkDesktopEvents();
+			
+			function setupMountList( shorts = [], visStruct = {}, rows = [] )
+			{
+				addTiming( 'setupMountList' )
+				console.log( 'setupMountList', [ shorts, visStruct, rows ])
+				// New icons to list
+				const newIcons = [];
+			
+				// Add system on top (after Ram: if it exists)
+				newIcons.push( {
+					Title:	   'System',
+					Volume:    'System:',
+					Path:	   'System:',
+					Type:	   'Door',
+					Handler:   'built-in',
+					Driver:    'Dormant',
+					MetaType:  'Directory',
+					IconClass: 'SystemDisk',
+					ID:	       'system', // TODO: fix
+					Mounted:   true,
+					Visible:   globalConfig.hiddenSystem == true ? false : true,
+					Door:	   Friend.DoorSystem
+				} );
+		
+				// Did we get a new list of disks from the server?
+				// Check shortcuts and add them to the desktop
+				for( let a = 0; a < shorts.length; a++ )
+				{
+					if( !shorts[ a ] )
+					{
+						continue;
+					}
+				
+					if( shorts[ a ].substr( 0, 16 ) == 'DesktopShortcut:' )
+					{
+						let path = shorts[ a ].substr( 16, shorts[ a ].length - 16 );
+						let ind = path.indexOf( ':' );
+						let num = StrPad( path.substr( 0, ind ), 10, '0' );
+						path = path.substr( ind + 1, path.length - ( ind + 1 ) );
+						
+						
+						// Link to a repository?
+						let iconFile = '';
+						if( path.substr( -11, 11 ) == ':repository' )
 						{
-							let tmp = JSON.parse( visList );
-							visStruct = {};
-							for( let z = 0; z < tmp.length; z++ )
-								visStruct[ tmp[ z ].Filesystem ] = tmp[ z ];
+							path = path.substr( 0, path.length - 11 );
+							iconFile = '/system.library/module/?module=system&command=repoappimage&i=' + GetFilename( path ) + '&sessionid=' + Workspace.sessionId;
 						}
-						catch( e )
-						{
-							//console.log( 'Bad json in vislist..' );
-						}
+					
+						let fn = GetFilename( path );
+					
+						newIcons.push( {
+							Title: fn,
+							Filename: path,
+							Path: path,
+							IconFile: iconFile,
+							Type: path.substr( path.length - 1, 1 ) == '/' ? 'Directory' : 'File',
+							SortPriority: num,
+							Handler: 'built-in',
+							MetaType: 'Shortcut',
+							Visible: true
+						} );
 					}
 					else
 					{
-						//console.log( 'No vislist..' );
-					}
-					let m = new Library( 'system.library' )
-					m.onExecuted = function( e, dat )
-					{
-						// New icons to list
-						let newIcons = [];
-					
-						// Add system on top (after Ram: if it exists)
+						let pair = shorts[a].split( ':' );
+						// Shift camelcase
+						let literal = '';
+						for( let c = 0; c < pair[0].length; c++ )
+						{
+							if( c > 0 && pair[0].charAt(c).toUpperCase() == pair[0].charAt(c) )
+							{
+								literal += ' ';
+							}
+							literal += pair[0].charAt( c );
+						}
+			
+						// Add custom icon
 						newIcons.push( {
-							Title:	   'System',
-							Volume:    'System:',
-							Path:	   'System:',
-							Type:	   'Door',
-							Handler:   'built-in',
-							Driver:    'Dormant',
-							MetaType:  'Directory',
-							IconClass: 'SystemDisk',
-							ID:	       'system', // TODO: fix
-							Mounted:   true,
-							Visible:   globalConfig.hiddenSystem == true ? false : true,
-							Door:	   Friend.DoorSystem
+							Title: literal,
+							Filename: pair[0],
+							Type: 'Executable',
+							IconFile: '/' + pair[1],
+							Handler: 'built-in',
+							Driver: 'Shortcut',
+							MetaType: 'ExecutableShortcut',
+							SortPriority: 0,
+							ID: shorts[a].toLowerCase(),
+							Mounted: true,
+							Visible: true,
+							IconClass: literal.split( ' ' ).join( '_' ),
+							Door: 'executable'
 						} );
+					}
+				}
 				
-						// Did we get a new list of disks from the server?
-						if( returnCode == 'ok' )
+				// Add DormantDrives to the list (automount)
+				let dormantDoors = DormantMaster.getDoors();
+				for ( let d = 0; d < dormantDoors.length; d++ )
+				{
+					let dormantDoor = dormantDoors[ d ];
+					if ( dormantDoor.AutoMount )
+					{
+						newIcons.push( 
 						{
-							// Check shortcuts and add them to the desktop
-							let shorts = JSON.parse( shortcuts );
-							for( let a = 0; a < shorts.length; a++ )
-							{
-								if( !shorts[ a ] )
-								{
-									continue;
-								}
-							
-								if( shorts[ a ].substr( 0, 16 ) == 'DesktopShortcut:' )
-								{
-									let path = shorts[ a ].substr( 16, shorts[ a ].length - 16 );
-									let ind = path.indexOf( ':' );
-									let num = StrPad( path.substr( 0, ind ), 10, '0' );
-									path = path.substr( ind + 1, path.length - ( ind + 1 ) );
-								
+							Title: dormantDoor.Title,
+							Volume: dormantDoor.Volume,
+							Path: dormantDoor.Path,
+							Type: dormantDoor.Type,
+							Handler: dormantDoor.Handler,
+							Driver: dormantDoor.Drive,
+							MetaType: dormantDoor.MetaType,
+							IconClass: 'SystemDisk',
+							SortPriotity: 0,
+							ID: 'local', // TODO: fix
+							Mounted:  true,
+							Visible: true,
+							Door: dormantDoor,
+							Dormant: dormantDoor.Dormant
+						} );						
+					}
+				}
 
-									// Link to a repository?
-									let iconFile = '';
-									if( path.substr( -11, 11 ) == ':repository' )
-									{
-										path = path.substr( 0, path.length - 11 );
-										iconFile = '/system.library/module/?module=system&command=repoappimage&i=' + GetFilename( path ) + '&sessionid=' + Workspace.sessionId;
-									}
-								
-									let fn = GetFilename( path );
-								
-									newIcons.push( {
-										Title: fn,
-										Filename: path,
-										Path: path,
-										IconFile: iconFile,
-										Type: path.substr( path.length - 1, 1 ) == '/' ? 'Directory' : 'File',
-										SortPriority: num,
-										Handler: 'built-in',
-										MetaType: 'Shortcut',
-										Visible: true
-									} );
-								}
-								else
-								{
-									let pair = shorts[a].split( ':' );
-									// Shift camelcase
-									let literal = '';
-									for( let c = 0; c < pair[0].length; c++ )
-									{
-										if( c > 0 && pair[0].charAt(c).toUpperCase() == pair[0].charAt(c) )
-										{
-											literal += ' ';
-										}
-										literal += pair[0].charAt( c );
-									}
-						
-									// Add custom icon
-									newIcons.push( {
-										Title: literal,
-										Filename: pair[0],
-										Type: 'Executable',
-										IconFile: '/' + pair[1],
-										Handler: 'built-in',
-										Driver: 'Shortcut',
-										MetaType: 'ExecutableShortcut',
-										SortPriority: 0,
-										ID: shorts[a].toLowerCase(),
-										Mounted: true,
-										Visible: true,
-										IconClass: literal.split( ' ' ).join( '_' ),
-										Door: 'executable'
-									} );
-								}
-							}
-						}
-
-						// Add DormantDrives to the list (automount)
-						let dormantDoors = DormantMaster.getDoors();
-						for ( let d = 0; d < dormantDoors.length; d++ )
-						{
-							let dormantDoor = dormantDoors[ d ];
-							if ( dormantDoor.AutoMount )
-							{
-								newIcons.push( 
-								{
-									Title: dormantDoor.Title,
-									Volume: dormantDoor.Volume,
-									Path: dormantDoor.Path,
-									Type: dormantDoor.Type,
-									Handler: dormantDoor.Handler,
-									Driver: dormantDoor.Drive,
-									MetaType: dormantDoor.MetaType,
-									IconClass: 'SystemDisk',
-									SortPriotity: 0,
-									ID: 'local', // TODO: fix
-									Mounted:  true,
-									Visible: true,
-									Door: dormantDoor,
-									Dormant: dormantDoor.Dormant
-								} );						
-							}
-						}
-
-						// Redraw icons when tested for disk info
-						function testDrive( o, d )
-						{
-							if( !d ) return;
-						
-							// Check disk info
-							if( d.dosAction )
-							{
-								d.dosAction( 'info', { path: o.Volume + 'disk.info' }, function( io )
-								{
-									let res = io.split( '<!--separate-->' );
-									if( res[0] == 'ok' )
-									{
-										let response = false;
-										try
-										{
-											response = JSON.parse( res[1] );
-										}
-										catch( k ){};
-										if( !response || ( response && response.response == 'File or directory do not exist' ) ) return;
-								
-										let fl = new File( o.Volume + 'disk.info' );
-										fl.onLoad = function( data )
-										{
-											if( data.indexOf( '{' ) >= 0 )
-											{
-												try
-												{
-													let dt = JSON.parse( data );
-													if( dt && dt.DiskIcon )
-													{
-														o.IconFile = getImageUrl( o.Volume + dt.DiskIcon );
-														t.redrawIcons();
-													}
-												}
-												catch( e ){}
-											}
-										}
-										fl.load();
-									}
-								} );
-							}
-						}
-
-						// Friend disks
-						let rows;
+				// Redraw icons when tested for disk info
+				
+				// Check the friend disks
+				let foundHome   = false;
+				let foundShared = false;
+				let fixCount = 0;
+				
+				rows.forEach( r => {
+					//let r = rows[a];
+					if( r.Config.indexOf( '{' ) >= 0 )
+					{
 						try
 						{
-							rows = JSON.parse( dat );
+							r.Config = JSON.parse( r.Config );
 						}
 						catch( e )
 						{
-							rows = false;
+							console.log( r.Title + ' config did not parse.' );
 						}
+					}
+				
+					// Check if these drives are found
+					if( r.Name == 'Home' )
+					{
+						foundHome = true;
+						fixCount++;
+					}
+					else if( r.Name == 'Shared' )
+					{
+						foundShared = true;
+						fixCount++;
+					}
+				
+					// Doesn't exist, go on
+					let o = false;
 					
-						// Check the friend disks
-						let foundHome   = false;
-						let foundShared = false;
-						let fixCount = 0;
-						
-						if( rows && rows.length )
-						{
-							for ( let a = 0; a < rows.length; a++ )
-							{
-								let r = rows[a];
-								if( r.Config.indexOf( '{' ) >= 0 )
-								{
-									try
-									{
-										r.Config = JSON.parse( r.Config );
-									}
-									catch( e )
-									{
-										console.log( r.Title + ' config did not parse.' );
-									}
-								}
-							
-								// Check if these drives are found
-								if( rows[a].Name == 'Home' )
-								{
-									foundHome = true;
-									fixCount++;
-								}
-								else if( rows[a].Name == 'Shared' )
-								{
-									foundShared = true;
-									fixCount++;
-								}
-							
-								// Doesn't exist, go on
-								let o = false;
-
-								let d;
-
-								d = ( new Door() ).get( r.Name + ':' );
-								d.permissions[0] = 'r';
-								d.permissions[1] = 'w';
-								d.permissions[2] = 'e';
-								d.permissions[3] = 'd';
-
-								let nam = r.Name.split( ':' ).join( '' );
-
-								// Get the visstruct thingie
-								if( r.Visible != 'false' )
-									r.Visible = true;
-								else r.Visible = false;
-								if( visStruct && typeof( visStruct[ nam ] ) != 'undefined' )
-									r.Visible = visStruct[ nam ].Visibility == 'visible' ? true : false;
-								
-								o = {
-									Title: nam,
-									Volume: nam + ':',
-									Path: nam + ':',
-									SortPriority: 0,
-									Handler: r.FSys,
-									Type: 'Door',
-									MetaType: 'Directory',
-									ID: r.ID,
-									Mounted: true,
-									Driver: r.Type,
-									Door: d,
-									Visible: r.Visible,
-									Config: r.Config,
-									Execute: r.Execute
-								};
-
-								// We need volume information
-								d.Volume = o.Volume;
-
-								// Add new disk to list
-								newIcons.push( o );
-							}
-						}
+					let d;
 					
-						// Check new icons with old icons
-						let hasNew = false;
-						let checks = [];
-						for( let a = 0; a < newIcons.length; a++ )
-						{
-							let ni = newIcons[ a ];
-							let found = false;
-							for( let b = 0; b < t.icons.length; b++ )
-							{
-								let ti = t.icons[ b ];
-							
-								if( ti.Title == ni.Title )
-								{
-									found = true;
-								
-									// Set hasNew if the config changed
-									// TODO: Do other config tests
+					d = ( new Door() ).get( r.Name + ':' );
+					d.permissions[0] = 'r';
+					d.permissions[1] = 'w';
+					d.permissions[2] = 'e';
+					d.permissions[3] = 'd';
+
+					let nam = r.Name.split( ':' ).join( '' );
+
+					// Get the visstruct thingie
+					if( r.Visible != 'false' )
+						r.Visible = true;
+					else 
+						r.Visible = false;
 						
-									if( ti.Visible != ni.Visible )
-									{
-										hasNew = true;
-									}
-									else if( !ti.Config && ti.Config )
-									{
-										hasNew = true;
-									}
-									else if( ni.Config && ti.Config && ni.Config.visibility != ti.Config.visibility )
-									{
-										hasNew = true;
-									}
-								}
-							}
-							if( !found )
+					if( visStruct[ nam ])
+						r.Visible = visStruct[ nam ].Visibility == 'visible' ? true : false;
+					
+					o = {
+						Title: nam,
+						Volume: nam + ':',
+						Path: nam + ':',
+						SortPriority: 0,
+						Handler: r.FSys,
+						Type: 'Door',
+						MetaType: 'Directory',
+						ID: r.ID,
+						Mounted: true,
+						Driver: r.Type,
+						Door: d,
+						Visible: r.Visible,
+						Config: r.Config,
+						Execute: r.Execute
+					};
+					
+					// We need volume information
+					d.Volume = o.Volume;
+					
+					// Add new disk to list
+					newIcons.push( o );
+					
+				})
+				
+				/*
+				if( rows && rows.length )
+				{
+					for ( let a = 0; a < rows.length; a++ )
+					{
+					}
+				}
+				*/
+				
+				console.log( 'newIcons', newIcons )
+				// Check new icons with old icons
+				let hasNew = false;
+				let checks = [];
+				for( let a = 0; a < newIcons.length; a++ )
+				{
+					let ni = newIcons[ a ];
+					let found = false;
+					for( let b = 0; b < t.icons.length; b++ )
+					{
+						let ti = t.icons[ b ];
+					
+						if( ti.Title == ni.Title )
+						{
+							found = true;
+						
+							// Set hasNew if the config changed
+							// TODO: Do other config tests
+				
+							if( ti.Visible != ni.Visible )
 							{
-								checks.push( a );
+								hasNew = true;
+							}
+							else if( !ti.Config && ti.Config )
+							{
+								hasNew = true;
+							}
+							else if( ni.Config && ti.Config && ni.Config.visibility != ti.Config.visibility )
+							{
 								hasNew = true;
 							}
 						}
-					
-						// If we increased the amount of icons, it means we have new
-						if( newIcons.length != t.icons.length )
-							hasNew = true;
-
-						// Something changed!
-						if( hasNew || forceRefresh )
-						{
-							t.icons = newIcons;
-							t.redrawIcons();
-							if( checks.length )
-							{
-								for( let a = 0; a < checks.length; a++ )
-								{
-									let check = checks[ a ];
-									if( t.icons[ check ].Execute )
-									{
-										ExecuteJSXByPath( t.icons[ check ].Volume + t.icons[ check ].Execute );
-										t.icons[ check ].Execute = false;
-									}
-									testDrive( t.icons[ check ], t.icons[check ].Door );
-								}
-							}
-						}
-						else
-						{
-							if( forceRefresh ) t.redrawIcons();
-						}
-					
-						// Do the callback thing
-						if( callback && typeof( callback ) == 'function' )
-						{
-							callback( t.icons );
-						}
-
-						// Check for new events
-						t.checkDesktopEvents();
-						
-						function checkIt()
-						{
-							fixCount--;
-							if( fixCount == 0 )
-							{
-								t.redrawIcons( true );
-							}
-						}
-						if( !foundHome )
-						{
-							t.mountDrive( 'Home', checkIt );
-						}
-						if( !foundShared )
-						{
-							t.mountDrive( 'Shared', checkIt );
-						}
 					}
-					m.execute( 'device/list' );
+					if( !found )
+					{
+						checks.push( a );
+						hasNew = true;
+					}
 				}
-				//vi.forceSend = true;
-				vi.execute( 'devicesettings' );
-			}
-			//mo.forceSend = true;
-			mo.execute( 'workspaceshortcuts' );
-		}
+				
+				// If we increased the amount of icons, it means we have new
+				if( newIcons.length != t.icons.length )
+					hasNew = true;
 
-		return true;
+				// Something changed!
+				if( hasNew || forceRefresh )
+				{
+					t.icons = newIcons;
+					t.redrawIcons();
+					if( checks.length )
+					{
+						console.log( 'drive checks', [ checks, t.icons ])
+						checks.forEach( check => {
+							const tic = t.icons[ check ]
+							console.log( 'drive check', {
+								check  : check,
+								tic    : tic,
+								exec   : tic.Execute,
+								volume : tic.Volume,
+								door   : tic.Door,
+							})
+							
+							if( tic.Execute )
+							{
+								ExecuteJSXByPath( tic.Volume + tic.Execute );
+								tic.Execute = false;
+							}
+							
+							testDrive( tic, tic.Door );
+						})
+					}
+				}
+				else
+				{
+					if( forceRefresh ) 
+						t.redrawIcons();
+				}
+				
+				// Do the callback thing
+				
+				// Check for new events
+				
+				if( !foundHome )
+				{
+					t.mountDrive( 'Home', checkIt );
+				}
+				if( !foundShared )
+				{
+					t.mountDrive( 'Shared', checkIt );
+				}
+				
+				function testDrive( o, d )
+				{
+					console.log( 'drive testDrive', [ o, d, d.dosAction ])
+					if( !d ) 
+						return;
+					
+					// Check disk info
+					if( d.dosAction )
+					{
+						console.log( 'do dos action for', d )
+						d.dosAction( 'info', { path: o.Volume + 'disk.info' }, function( io )
+						{
+							console.log( 'drive dosAction info res', io )
+							let res = io.split( '<!--separate-->' );
+							if( res[0] == 'ok' )
+							{
+								let response = false;
+								try
+								{
+									response = JSON.parse( res[1] );
+								}
+								catch( k ){};
+								if( !response || ( response && response.response == 'File or directory do not exist' ) )
+									return;
+						
+								let fl = new File( o.Volume + 'disk.info' );
+								fl.onLoad = function( data )
+								{
+									console.log( 'drive fl onload', data )
+									if( data.indexOf( '{' ) >= 0 )
+									{
+										try
+										{
+											let dt = JSON.parse( data );
+											console.log( 'drive dt, data', dt )
+											if( dt && dt.DiskIcon )
+											{
+												o.IconFile = getImageUrl( o.Volume + dt.DiskIcon );
+												t.redrawIcons();
+											}
+										}
+										catch( e ){}
+									}
+								}
+								fl.load();
+							}
+						} );
+					}
+				}
+				
+				function checkIt()
+				{
+					fixCount--;
+					if( fixCount == 0 )
+					{
+						t.redrawIcons( true );
+					}
+				}
+			}
+		}
 	},
 	// Mount a drive
-	mountDrive: function( deviceName, cbk )
+	mountDrive : function( deviceName, cbk )
 	{
 		let l = new Library( 'system.library' );
 		l.onExecuted = function( e, d )
@@ -5174,80 +5489,116 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		};
 		l.execute( 'device/mount', { devname: deviceName } );
 	},
-	redrawIcons: function()
+	redrawIcons : function()
 	{
-		if( !this.screen ) return;
-
-		if( !document.body.classList.contains( 'Loaded' ) )
-		{
-			return;
-		}
-	
-		// The desktop always uses the same fixed values :)
-		let wb = this.screen.contentDiv;
-		if( wb && wb.redrawIcons )
-		{
-			wb.onselectstart = function( e ) { return cancelBubble ( e ); };
-			wb.ondragstart = function( e ) { return cancelBubble ( e ); };
-			wb.directoryview.toChange = true;
-			wb.redrawIcons( this.getIcons(), 'vertical' );
-		}
+		const self = Workspace
+		if ( self.redrawIconsPromise )
+			return self.redrawIconsPromise
 		
-		if ( RefreshDesklets ) RefreshDesklets();
+		self.redrawIconsPromise = new Promise( redraw )
+		return self.redrawIconsPromise
 		
-		// Check dormant too
-		let dormants = DormantMaster.getDoors();
-
-		// Cleanup windows of filesystems that are unmounted
-		let close = [];
-		for( let a in movableWindows )
-		{
-			let w = movableWindows[a];
-			if( w.content ) w = w.content;
+		async function redraw( resolve, reject ) {
+			await self.getDosDriverTypes()
+			console.log( 'redrawIcons', {
+				mounts : self.mountListData,
+				dos    : Friend.dosDrivers,
+				screen : this.screen,
+				wspsc  : self.screen,
+				loaded : !!document.body.classList.contains( 'Loaded' ),
+			})
 			
-			if( !w.fileInfo ) continue;
-
-			// Find volume from path
-			let vol = w.fileInfo.Path.split( ':' )[0];
+			await Workspace.getDosDriverTypes()
+			console.log( 'dosD', Friend.dosDrivers )
 			
-			if( vol != 'Mountlist:' )
+			if( !self.screen ) {
+				done()
+				return
+			}
+			
+			if( !document.body.classList.contains( 'Loaded' ) ) {
+				done()
+				return
+			}
+		
+			// The desktop always uses the same fixed values :)
+			let wb = self.screen.contentDiv;
+			console.log( 'redrawIcons wb', [ wb, wb?.redrawIcons ])
+			if( wb && wb.redrawIcons )
 			{
-				let pureVol = vol.split( ':' )[0];
-				let found = false;
-				for( let b in this.icons )
+				wb.onselectstart = function( e ) { return cancelBubble ( e ); };
+				wb.ondragstart = function( e ) { return cancelBubble ( e ); };
+				wb.directoryview.toChange = true;
+				console.log( 'wb geticons', self.getIcons())
+				wb.redrawIcons( self.getIcons(), 'vertical' );
+			}
+			
+			if ( RefreshDesklets ) 
+				RefreshDesklets()
+			
+			// Check dormant too
+			let dormants = DormantMaster.getDoors();
+			
+			console.log( 'redrawIcons things', [ dormants, movableWindows ])
+			// Cleanup windows of filesystems that are unmounted
+			let close = [];
+			for( let a in movableWindows )
+			{
+				let w = movableWindows[a];
+				if( w.content ) w = w.content;
+				
+				if( !w.fileInfo ) 
+					continue;
+
+				// Find volume from path
+				let vol = w.fileInfo.Path.split( ':' )[0];
+				
+				if( vol != 'Mountlist:' )
 				{
-					// TODO: The colon thing... :)
-					if( vol && pureVol == this.icons[b].Title.split( ':' )[0] )
+					let pureVol = vol.split( ':' )[0];
+					let found = false;
+					for( let b in this.icons )
 					{
-						found = true;
-						break;
+						// TODO: The colon thing... :)
+						if( vol && pureVol == this.icons[b].Title.split( ':' )[0] )
+						{
+							found = true;
+							break;
+						}
 					}
-				}
-				// Check dormant
-				for( let b in dormants )
-				{
-					// TODO: The colon thing... :)
-					if( vol && pureVol == dormants[b].Title.split( ':' )[0] )
+					// Check dormant
+					for( let b in dormants )
 					{
-						found = true;
-						break;
+						// TODO: The colon thing... :)
+						if( vol && pureVol == dormants[b].Title.split( ':' )[0] )
+						{
+							found = true;
+							break;
+						}
 					}
-				}
-				// Clean up!
-				if( !found )
-				{
-					let s = w;
-					if( s.content ) s = s.content;
-					close.push( w );
+					// Clean up!
+					if( !found )
+					{
+						let s = w;
+						if( s.content ) s = s.content;
+						close.push( w );
+					}
 				}
 			}
-		}
-		// Close windows that are destined for it
-		if( close.length )
-		{
-			for( let a = 0; a < close.length; a++ )
+			// Close windows that are destined for it
+			if( close.length )
 			{
-				CloseWindow( close[a] );
+				for( let a = 0; a < close.length; a++ )
+				{
+					CloseWindow( close[a] );
+				}
+			}
+			
+			done()
+			
+			function done() {
+				delete self.redrawIconsPromise
+				resolve()
 			}
 		}
 	},
@@ -9395,6 +9746,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Upgrade settings (for new versions)
 	upgradeWorkspaceSettings: function( cb )
 	{
+		console.trace( 'upgradeWorkspaceSettings', cb )
 		let a1 = new Module( 'system' );
 		a1.onExecuted = function( a1r, a1d )
 		{
@@ -10659,10 +11011,12 @@ function InitWorkspaceNetwork()
 		wsp.initWebSocket();
 	}
 
-	wsp.checkFriendNetwork();
+	//wsp.checkFriendNetwork();
 	
+	/*
 	if( window.PouchManager && !this.pouchManager )
 		this.pouchManager = new PouchManager();
+	*/
 }
 
 // Voice -----------------------------------------------------------------------

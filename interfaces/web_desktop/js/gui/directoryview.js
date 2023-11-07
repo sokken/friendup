@@ -4083,6 +4083,7 @@ FileIcon.prototype.Init = function( fileInfo, flags )
 function OpenWindowByFileinfo( oFileInfo, event, iconObject, unique, targetView )
 {
 	// Make a copy of fileinfo
+	console.log( 'OpenWindowByFileinfo', [ oFileInfo, event, iconObject, unique, targetView ])
 	let fileInfo = {};
 	for( let a in oFileInfo )
 		fileInfo[ a ] = oFileInfo[ a ];
@@ -4548,6 +4549,7 @@ function OpenWindowByFileinfo( oFileInfo, event, iconObject, unique, targetView 
 								try
 								{
 									let dw = self.directoryview;
+									console.log( 'fail dw', dw )
 									Notify( {
 										title: i18n( 'i18n_illegal_path' ),
 										text: i18n( 'i18n_illegal_path_desc' )
@@ -4625,6 +4627,7 @@ function OpenWindowByFileinfo( oFileInfo, event, iconObject, unique, targetView 
 				j.win = self;
 				j.onload = function()
 				{
+					console.log( 'j.onload', [ this.returnCode, this.responseText ] )
 					if( this.win.refreshTimeout )
 					{
 						clearTimeout( this.win.refreshTimeout );
@@ -4687,6 +4690,7 @@ function OpenWindowByFileinfo( oFileInfo, event, iconObject, unique, targetView 
 						try
 						{
 							let js = JSON.parse( this.returnData );
+							console.log( 'js', js )
 							// Erroneous path
 							if( js.message == 'Path error.' )
 							{

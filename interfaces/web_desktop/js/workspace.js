@@ -85,6 +85,7 @@ Workspace = {
 	icons: [],
 	menuMode: 'pear', // 'miga', 'fensters' (alternatives) -> other menu behaviours
 	mode: 'default',
+	themeName : 'friendup12',
 	initialized: false,
 	protocol: _protocol,
 	protocolUrl: _protocol + '://',
@@ -151,6 +152,18 @@ Workspace = {
 			this.imgPreload.push( i );
 		});
 		
+		
+		const wImg = new Image()
+		Workspace.defaultWallPreload = wImg
+		wImg.src = '/webclient/gfx/theme/default_login_screen.jpg'
+		Workspace.wallpaperLoadedPromise = new Promise( wallLoaded )
+		function wallLoaded( resolve, reject ) {
+			wImg.onload = () => {
+				//console.log( 'default background preloaded', wImg )
+				resolve()
+			}
+		}
+		
 		/*
 		for( var a = 0; a < imgs.length; a++ )
 		{
@@ -183,22 +196,25 @@ Workspace = {
 	
 	// Ready after init
 	// NB: This is where we go towards workspace_inside.js
-	postInit: function()
+	postInit: async function()
 	{
 		const self = this;
-		console.trace( 'Workspace.postinit', window.Workspace.sessionId );
 		if( self.postInitialized )
 			return;
 		
+		addTiming( 'postinit' )
 		// Everything must be ready
 		if( typeof( ge ) == 'undefined' )
 		{
+			throw new Error( 'wheres ge()=?' )
+			/*
 			if( this.initTimeout )
 				clearTimeout( this.initTimeout );
 			this.initTimeout = setTimeout ( 'Workspace.postInit()', 25 );
 			return;
+			*/
 		}
-
+		
 		// We passed!
 		self.postInitialized = true;
 		
@@ -252,7 +268,8 @@ Workspace = {
 		// Init the deepest field
 		if( !isMobile )
 			DeepestField.init();
-		else DeepestField = false;
+		else 
+			DeepestField = false;
 
 		// Key grabber
 		if( !ge( 'InputGrabber' ) )
@@ -409,16 +426,22 @@ Workspace = {
 		
 		// Start the workspace session!
 		this.initializingWorkspaces = true
-		this.initWorkspaces( workspacesCB )
+		await this.initWorkspaces()
+		addTiming( 'initWorkspaces done' )
+		await doSomeMoreThingsWhoKnows()
 		// Init security subdomains
-		SubSubDomains.initSubSubDomains();
+		//SubSubDomains.initSubSubDomains();
+		this.initializingWorkspaces = false
+		self.setLoading( false )
+		addTiming( 'postinit completed' )
 		
-		async function workspacesCB()
+		
+		async function doSomeMoreThingsWhoKnows()
 		{
 			// Recall wallpaper from settings
-			await self.refreshUserSettings()
-			console.log( 'workspacesCB - refreshUserSettings returned' );
-			Workspace.refreshDesktop( false, true );
+			//await self.refreshUserSettings()
+			console.log( 'doSomeMoreThingsWhoKnows - refreshUserSettings returned' );
+			const mountList = await Workspace.refreshDesktop( null, true );
 			
 			// Create desktop
 			self.directoryView = new DirectoryView( wbscreen.contentDiv );
@@ -509,12 +532,15 @@ Workspace = {
 					}
 				}
 			}
+			
 			self.reloadDocks();
 		}
 		// console.log( 'Test2: Done post init.' );
 	},
 	setLoading: function( isLoading )
 	{
+		const self = this
+		//console.trace( 'setLoading', [ isLoading, self.initializingWorkspaces ])
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -962,32 +988,73 @@ Workspace = {
 	doLeave: function()
 	{
 	},
-	initUserWorkspace: async function( json, callback, ev )
+	setInCache( type, data ) {
+		const app = {
+			applicationName : 'cache',
+		}
+		let cache = ApplicationStorage.load( app )
+		if ( null == cache )
+			cache = {}
+		
+		cache[ type ] = data
+		console.log( 'setInCache', {
+			type  : type,
+			data  : data,
+			cache : cache,
+		})
+		ApplicationStorage.save( cache, app )
+	},
+	getFromCache( type ) {
+		const app = {
+			applicationName : 'cache',
+		}
+		const cache = ApplicationStorage.load( app )
+		const data = cache[ type ]
+		console.log( 'getFromCache', {
+			type  : type,
+			cache : cache,
+			data  : data,
+		})
+		return cache[ type ] || null
+	},
+	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
-		console.log( 'initUserWorkspace', [ json, callback, ev ]);
+		console.log( 'initUserWorkspace', [ json, ev ]);
 		
-		await init()
-			
-		if ( null != callback )
-			callback()
+		await UWInit()
 		
-		async function init()
+		return true;
+		
+		async function UWInit()
 		{
+			const _this = Workspace
 			
+			ScreenOverlay.show();
+			await WorkspaceInside.setThemeStyle()
+			
+			loadLocale();
 			Workspace.loadSystemInfo()
-		
-			const _this = Workspace;
+			Workspace.loadUserSettings()
+			WorkspaceInside.loadMountList()
+			WorkspaceInside.loadDosDriverTypes()
+			WorkspaceInside.loadServerConfig()
+			WorkspaceInside.loadDosDriverTypes()
+			//WorkspaceInside.loadGeneralSettings() refreshUserSettings will trigger this earlier
+			WorkspaceInside.refreshUserSettings()
 			
 			// Manipulate screen overlay
 			// (this will only be shown once!)
 			// TODO: Figure out if this is the right behavior in every case
 			//       implementation circumvents relogin issue
+			/*
 			if( !Workspace.screenOverlayShown )
 			{
+				console.log( 'show screen overlay' );
 				ScreenOverlay.show();
 				Workspace.screenOverlayShown = true;
 			}
+			*/
 			
 			console.log( 'this.userWorkspaceInitialized', this.userWorkspaceInitialized )
 			if( this.userWorkspaceInitialized )
@@ -1036,7 +1103,8 @@ Workspace = {
 				// Reset some options
 				if( ev && ev.shiftKey )
 				{
-					_this.themeOverride = 'friendup12';
+					_this.themeOverride = 'friendup12'
+					console.log( 'themeOverride', _this.themeOverride )
 				}
 				
 				if( GetUrlVar( 'interface' ) )
@@ -1055,7 +1123,7 @@ Workspace = {
 				{
 					_this.noLeaveAlert = true;
 				}
-
+				
 				await SetupWorkspaceData( json );
 				
 				if( !_this.workspaceHasLoadedOnceBefore )
@@ -1086,20 +1154,20 @@ Workspace = {
 				// See if we have some theme settings
 				else
 				{
-					checkELUA();
-					checkUserSettings();
-					
+					checkELUA()
+					checkUserSettings()
+					checkInvite( json )
 				}
 				
-				await loadLocale();
 				Workspace.postInit();
 				
 				return 1;
 			}
 		}
 		
-		function loadLocale()
+		function loadLocale( cache )
 		{
+			const _this = Workspace;
 			if ( Workspace.loadLocalePromise )
 				return Workspace.loadLocalePromise
 			
@@ -1108,43 +1176,65 @@ Workspace = {
 			
 			function load( resolve, reject ) {
 				// Language
-				const _this = Workspace;
+				addTiming( 'loadLocale' );
+				const cache = _this.getFromCache( 'settings' )
+				console.log( 'loadLocale, cache?', cache )
+				if ( null != cache ) {
+					handle( cache )
+					delete self.loadLocalePromise
+					resolve()
+					return
+				}
+				
 				_this.locale = 'en';
 				let l = new Module( 'system' );
-				l.onExecuted = function( e, d )
+				l.onExecuted = ( e, d ) => {
+					if ( e != 'ok' ) {
+						Workspace.friendVersion = false
+						i18nAddPath( 'locale/en.locale' )
+						delete self.loadLocalePromise
+						resolve()
+						return
+					}
+					
+					let settings = null;
+					try
+					{
+						settings = JSON.parse( d );
+					}
+					catch( ex )
+					{
+						//console.log( 'This: ', d );
+						console.log( 'loadLocale json error', [ e, d, ex ])
+					}
+					
+					_this.setInCache( 'settigs', settings )
+					handle( settings )
+					delete self.loadLocalePromise
+					resolve()
+				}
+				
+				function handle( settings )
 				{
+					console.log( 'handle', settings )
 					// New translations
 					i18n_translations = [];
 					
-					let decoded = false;
-					try
-					{
-						decoded = JSON.parse( d );
-					}
-					catch( e )
-					{
-						//console.log( 'This: ', d );
-					}
-					
 					// Add it!
 					i18nClearLocale();
-					if( e == 'ok' )
-					{
-						if( decoded && typeof( decoded.locale ) != 'undefined' )
-							_this.locale = decoded.locale;
-						//load english first and overwrite with localised values afterwards :)
-						i18nAddPath( 'locale/en.locale', function(){
-							if( _this.locale != 'en' ) i18nAddPath( 'locale/' + _this.locale + '.locale' );
-						} );
-					}
-					else
-					{
-						i18nAddPath( 'locale/en.locale' );
-					}
+					
+					if( null != settings.locale )
+						_this.locale = settings.locale;
+						
+					//load english first and overwrite with localised values afterwards :)
+					i18nAddPath( 'locale/en.locale', function(){
+						if( _this.locale != 'en' ) 
+							i18nAddPath( 'locale/' + _this.locale + '.locale' );
+					});
 					
 					try
 					{
-						if( decoded.response == 'Failed to load user.' )
+						if( settings.response == 'Failed to load user.' )
 						{
 							_this.logout();
 						}
@@ -1152,16 +1242,16 @@ Workspace = {
 					catch( e ){};
 					
 					// Current stored Friend version
-					if( typeof( decoded.friendversion ) == 'undefined' || decoded.friendversion == 'undefined' )
+					if( null == settings.friendversion )
 					{
 						Workspace.friendVersion = false;
 					}
 					else
 					{
-						Workspace.friendVersion = decoded.friendversion;
+						Workspace.friendVersion = settings.friendversion;
 					}
 					
-					resolve()
+					addTiming( 'loadLocale complete' );
 				}
 				
 				l.execute( 'getsetting', { settings: [ 'locale', 'friendversion' ] } );
@@ -1198,74 +1288,47 @@ Workspace = {
 			            ShowEula()
 					}
 					
-					Workspace.eluaPromise = null
+					delete Workspace.eluaPromise
 					resolve()
 				}
 				m.execute( 'checkeula' );
 			}
-			
 		}
 		
-		function checkUserSettings() {
-			if ( Workspace.checkUserSettingsPromise )
-				return Workspace.checkUserSettingsPromise
-			
-			Workspace.checkUserSettingsPromise = new Promise( check )
-			return Workspace.checkUserSettingsPromise
-			
-			function check( resolve, reject ) {
-				const _this = Workspace;
-				let m = new Module( 'system' );
-				m.onExecuted = function( e, d )
-				{	
+		function checkInvite( json ) {
+			/*
 					if( json.inviteHash )
 					{
 						let inv = new Module( 'system' );
 						inv.onExecuted = function( err, dat )
 						{
 							// TODO: Make some better error handling ...
-							if( err != 'ok' ) console.log( '[ERROR] verifyinvite: ' + ( dat ? dat : err ) );
+							if( err != 'ok' ) 
+								console.log( '[ERROR] verifyinvite: ' + ( dat ? dat : err ) );
 						}
 						inv.execute( 'verifyinvite', { hash: json.inviteHash } );
 					}
+					*/
 					
-					if( e == 'ok' )
-					{
-						let s = {};
-						try
-						{
-							s = JSON.parse( d );
-						}
-						catch( e )
-						{ 
-							s = {}; 
-						};
-						if( s && s.Theme && s.Theme.length )
-						{
-							_this.refreshTheme( s.Theme.toLowerCase(), false );
-						}
-						else
-						{
-							_this.refreshTheme( false, false );
-						}
-						_this.mimeTypes = s.Mimetypes;
-					}
-					else _this.refreshTheme( false, false );
-
-					if( _this.loginPrompt )
-					{
-						_this.loginPrompt.close();
-						_this.loginPrompt = false;
-					}
-					
-					console.log( 'calling workspace init??' );
-					_this.init();
-					
-					resolve();
-					
-				}
-				m.execute( 'usersettings' );
-			}
+		}
+		
+		async function checkUserSettings() {
+			const us = await Workspace.getUserSettings()
+			console.log( 'checkUserSettings', us )
+			if ( !us )
+				return
+			
+			if ( us?.Mimetypes )
+				Workspace.mimeTypes = us.Mimetypes;
+			
+			let themeName = null
+			if( us?.Theme?.length )
+				themeName = us.Theme.toLowerCase()
+			
+			if ( themeName )
+				Workspace.refreshTheme( themeName, false );
+			else
+				Workspace.refreshTheme( false, false );
 		}
 		
 		async function SetupWorkspaceData( json )
@@ -1279,12 +1342,10 @@ Workspace = {
 			if( json.username ) 
 				_this.loginUsername = json.username;
 			
-			
 			// After a user has logged in we want to prepare the workspace for him.
 			
 			// Store user data in localstorage for later verification encrypted
 			let userdata = ApplicationStorage.load( { applicationName : 'Workspace' } );
-			window.addTiming( 'SetupWorkspaceData', [ json, userdata ]);
 			
 			if( userdata )
 			{
@@ -1294,7 +1355,6 @@ Workspace = {
 				userdata.fullName      = _this.fullName;
 
 				ApplicationStorage.save( userdata, { applicationName : 'Workspace' } );
-				window.addTiming( 'userdata stored', userdata );
 			}
 			
 			// Only renew session..
@@ -1315,6 +1375,7 @@ Workspace = {
 			
 			// Set server key
 			// TODO: Find a better place to set server publickey earlier in the process, temporary ... again time restraints makes delivery fast and sloppy ...
+			/*
 			if( !_this.encryption.keys.server )
 			{
 				_this.encryption.getServerKey( function( server )
@@ -1322,7 +1383,7 @@ Workspace = {
 					_this.encryption.keys.server = ( server ? { publickey: server } : false );
 				} );
 			}
-			
+			*/
 			// Make sure we have a public key for this user (depending on login interface)
 			// TODO: See if we actually need this (and it doesn't work properly)
 			/*if( window.friendApp )
@@ -1343,6 +1404,67 @@ Workspace = {
 		}
 		
 	},
+	
+	getUserSettings : async function() {
+		const self = this
+		console.log( 'getUserSettings', [
+			Workspace.userSettings,
+			Workspace.loadUserSettingsPromise,
+		])
+		if ( Workspace.userSettings )
+			return Workspace.userSettings
+		
+		await self.loadUserSettings()
+		return Workspace.userSettings
+	},
+	loadUserSettings : function() {
+		const self = this
+		console.log( 'loadUserSettings', Workspace.loadUserSettingsPromise );
+		if ( self.loadUserSettingsPromise )
+			return self.loadUserSettingsPromise
+		
+		self.loadUserSettingsPromise = new Promise( load )
+		return self.loadUserSettingsPromise
+		
+		function load( resolve, reject ) {
+			Workspace.userSettings = null
+			const _this = Workspace;
+			let m = new Module( 'system' );
+			m.onExecuted = handleUserSettings
+			m.execute( 'usersettings' )
+			
+			function handleUserSettings( e, d )
+			{	
+				console.log( 'handleUserSettings', [ e, d ])
+				if( _this.loginPrompt )
+				{
+					_this.loginPrompt.close();
+					_this.loginPrompt = false;
+				}
+				
+				if ( 'ok' != e ) {
+					done()
+					return;
+				}
+				
+				let us = null
+				try
+				{
+					us = JSON.parse( d );
+				}
+				catch( ex )	{ };
+				Workspace.userSettings = us
+				
+				console.log( 'loadUserSettings resolving', us )
+				done()
+			}
+			
+			function done() {
+				delete Workspace.loadUserSettingsPromise
+				resolve()
+			}
+		}
+	},
 	//set an additional URL to call on logout
 	setLogoutURL: function( logoutURL )
 	{
@@ -1362,8 +1484,6 @@ Workspace = {
 		];
 		console.log( 'loaders', loaders );
 		await Promise.all( loaders );
-		console.log( 'all loaded', window._applicationBasics );
-		
 	},
 	getterOfText : function( path ) {
 		return new Promise(( resolve, reject ) => {

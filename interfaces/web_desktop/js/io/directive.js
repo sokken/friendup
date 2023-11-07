@@ -1153,7 +1153,16 @@ function ExecuteApplicationActivation( app, win, permissions, reactivation )
 // Do it by path!
 function ExecuteJSXByPath( path, args, callback, conf, flags )
 {
-	if( !path ) return;
+	console.log( 'ExecuteJSXByPath', {
+		path     : path,
+		args     : args,
+		callback : callback,
+		conf     : conf,
+		flags    : flags,
+	})
+	
+	if( !path ) 
+		return;
 	
 	// Strip arguments
 	let ind = path.indexOf( '.jsx' );
