@@ -1547,20 +1547,37 @@ Workspace = {
 		*/
 	},
 	loadThemeCss : function() {
+		addTiming( 'loadThemeCss' )
 		const _applicationBasics = window._applicationBasics;
 		const c = new Promise(( resolve, reject ) => {
-			let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
-			c_.onLoad = function( data )
-			{
-				console.log( 'theme css', data );
+			const cache_id = 'theme_css'
+			const cache = Workspace.getFromCache( cache_id )
+			if ( null != cache ) {
+				console.log( 'from cache', cache )
+				setCss( cache )
+			}
+			else
+				loadCss( cache_id )
+			
+			function loadCss( cache_id ) {
+				let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
+				c_.onLoad = function( data )
+				{
+					Workspace.setInCache( cache_id, data )
+					setCss( data )
+				}
+				c_.load()
+			}
+			
+			function setCss( data ) {
+				addTiming( 'setCss', data );
 				if( _applicationBasics.css )
 					_applicationBasics.css += data;
 				else 
 					_applicationBasics.css = data;
-
+					
 				resolve()
 			}
-			c_.load()
 		})
 	},
 	loadAssortedJs : async function() {
