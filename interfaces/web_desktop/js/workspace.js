@@ -85,7 +85,7 @@ Workspace = {
 	icons: [],
 	menuMode: 'pear', // 'miga', 'fensters' (alternatives) -> other menu behaviours
 	mode: 'default',
-	themeName : 'friendup12',
+	theme : 'friendup12',
 	initialized: false,
 	protocol: _protocol,
 	protocolUrl: _protocol + '://',
@@ -1033,7 +1033,8 @@ Workspace = {
 			ScreenOverlay.show();
 			await WorkspaceInside.setThemeStyle()
 			
-			loadLocale();
+			loadLocale()
+			Workspace.loadThemeCss()
 			Workspace.loadSystemInfo()
 			Workspace.loadUserSettings()
 			WorkspaceInside.loadMountList()

@@ -4273,6 +4273,7 @@ var View = function( args )
 					msg[a] = packet[a];
 			}
 			
+			console.log( 'appbasics', window._applicationBasics )
 			msg.command = 'setbodycontent';
 			msg.cachedAppData = window._applicationBasics;
 			msg.dosDrivers = Friend.dosDrivers;

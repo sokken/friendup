@@ -2384,7 +2384,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return Workspace.generalSettings
 	},
 	loadGeneralSettings : function() {
-		console.trace( 'loadGeneralSettings', Workspace.generalSettingsPromise )
+		console.trace( 'loadGeneralSettings', Workspace.generalSettingsPromise, Workspace.theme, Workspace.themeName )
 		if ( Workspace.generalSettingsPromise )
 			return Workspace.generalSettingsPromise;
 		
@@ -2484,6 +2484,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			if ( uSettings ) {
 				dat = uSettings
+				console.log( 'dat', dat )
 				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 				{
 					console.log( 'set wallpaper from wallpaperdoors' );
@@ -3978,7 +3979,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	getTheme : async function() {
 		const self = Workspace
-		const theme = self.themeName
+		const theme = self.theme
 		if ( null != self.themeData[ theme ])
 			return self.themeData[ theme ]
 		
@@ -3994,7 +3995,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return self.loadThemePromise
 		
 		async function loadT( resolve, reject ) {
-			let m = new File( 'System:../themes/' + themeName + '/settings.json' );
+			let m = new File( 'System:../themes/' + Workspace.theme + '/settings.json' );
 			m.onLoad = handle
 			m.load();
 			
@@ -4015,7 +4016,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		if ( self.setThemePromise )
 			return self.setThemePromise
 		
-		if ( self.themeStyle && self.themeStyle.id != self.themeName ) {
+		if ( self.themeStyle && self.themeStyle.id != self.theme ) {
 			self.themeStyle.parentNode.removeChild( self.themeStyle )
 			delete self.themeStyle
 		}
@@ -4030,7 +4031,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				return
 			}
 			
-			const themeName = Workspace.themeName
+			const themeName = Workspace.theme
 			const cache = Workspace.getFromCache( 'themeStyles' )
 			if ( cache )
 				setStyle( themeName, cache )
@@ -4145,7 +4146,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				themeName = 'friendup12'
 			
 			themeName = themeName.toLowerCase()
-			Workspace.themeName = themeName
+			Workspace.theme = themeName
 			
 			Workspace.themeRefreshed = true
 			await Workspace.refreshUserSettings()

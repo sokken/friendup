@@ -904,6 +904,7 @@ function receiveEvent( event, queued )
 
 		// Update theme
 		case 'refreshtheme':
+			console.log( 'refreshTheme', dataPacket )
 			let themeName = dataPacket.theme;
 
 			let h = document.getElementsByTagName( 'head' );
@@ -5568,6 +5569,7 @@ function Library( libraryName )
 // Add CSS by data
 function AddCSSByData( name, data, callback )
 {
+	console.log( 'AddCSSByData', [ name, data, callback ])
 	if( !window.cssStyles ) window.cssStyles = [];
 	// Clear previous
 	if( typeof( window.cssStyles[ name ] ) != 'undefined' )
@@ -5596,6 +5598,7 @@ function AddCSSByData( name, data, callback )
 // Add CSS by url
 function AddCSSByUrl( csspath, callback )
 {
+	console.log( 'AddCSSByUrl', [ csspath, callback ])
 	if( !window.cssStyles ) window.cssStyles = [];
 	if( typeof( window.cssStyles[csspath] ) != 'undefined' )
 	{
@@ -5773,6 +5776,7 @@ function OpenLibrary( path, id, div )
 function initApplicationFrame( packet, eventOrigin, initcallback )
 {
 	// TODO: Setup correct origin
+	console.log( 'initApplicationFrame', packet )
 	eventOrigin = '*';
 	
 	if( window.frameInitialized )
@@ -5886,6 +5890,7 @@ function initApplicationFrame( packet, eventOrigin, initcallback )
 	// TODO: Move to a proper theme parser
 	function ApplyThemeConfig( themeData )
 	{
+		console.log( 'ApplyThemeConfig', themeData )
 		if( !themeData || typeof( themeData ) == 'undefined' ) return;
 		
 		if( themeData && typeof( themeData ) == 'string' )
@@ -6017,6 +6022,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// On page load
 	function onLoaded()
 	{
+		console.log( 'api onloaded', packet )
 		checkMobileBrowser();
 		
 		// We need to wait for all functions to be available
