@@ -2384,7 +2384,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return Workspace.generalSettings
 	},
 	loadGeneralSettings : function() {
-		console.trace( 'loadGeneralSettings', Workspace.generalSettingsPromise, Workspace.theme, Workspace.themeName )
+		console.log( 'loadGeneralSettings', Workspace.generalSettingsPromise, Workspace.theme, Workspace.themeName )
 		if ( Workspace.generalSettingsPromise )
 			return Workspace.generalSettingsPromise;
 		
@@ -2443,7 +2443,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// make sure systeminfo is loaded
 			
 			window.addTiming( 'refreshUserSettings' )
-			console.trace( 'refreshUserSettings' );
+			console.log( 'refreshUserSettings' );
 			const uSettings = await self.getGeneralSettings()
 			await updateFromSettings( uSettings )
 			
@@ -5506,16 +5506,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 		async function redraw( resolve, reject ) {
 			await self.getDosDriverTypes()
-			console.log( 'redrawIcons', {
-				mounts : self.mountListData,
-				dos    : Friend.dosDrivers,
-				screen : this.screen,
-				wspsc  : self.screen,
-				loaded : !!document.body.classList.contains( 'Loaded' ),
-			})
 			
 			await Workspace.getDosDriverTypes()
-			console.log( 'dosD', Friend.dosDrivers )
 			
 			if( !self.screen ) {
 				done()
@@ -5529,13 +5521,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 			// The desktop always uses the same fixed values :)
 			let wb = self.screen.contentDiv;
-			console.log( 'redrawIcons wb', [ wb, wb?.redrawIcons ])
 			if( wb && wb.redrawIcons )
 			{
 				wb.onselectstart = function( e ) { return cancelBubble ( e ); };
 				wb.ondragstart = function( e ) { return cancelBubble ( e ); };
 				wb.directoryview.toChange = true;
-				console.log( 'wb geticons', self.getIcons())
 				wb.redrawIcons( self.getIcons(), 'vertical' );
 			}
 			
@@ -9752,7 +9742,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Upgrade settings (for new versions)
 	upgradeWorkspaceSettings: function( cb )
 	{
-		console.trace( 'upgradeWorkspaceSettings', cb )
 		let a1 = new Module( 'system' );
 		a1.onExecuted = function( a1r, a1d )
 		{
@@ -10261,7 +10250,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
-		console.trace( 'Workspace.onready', this.onReadyList?.length );
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -11756,7 +11744,6 @@ async function loadApplicationBasics( callback )
 	
 	return;
 	
-	console.trace( 'loadApplicationBasics', Workspace.app_basics_loading );
 	window.addTiming( 'app bacics scripts start' )
 	// Don't do in login
 	if( Workspace.loginPrompt )

@@ -133,7 +133,7 @@ Workspace = {
 	},
 	init: function()
 	{
-		console.trace( 'W.init', this.initialized )
+		console.log( 'W.init', this.initialized )
 		
 		if( this.initialized )
 			return
@@ -540,7 +540,6 @@ Workspace = {
 	setLoading: function( isLoading )
 	{
 		const self = this
-		//console.trace( 'setLoading', [ isLoading, self.initializingWorkspaces ])
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -573,7 +572,7 @@ Workspace = {
 
 		setKeys: function( u, p )
 		{
-			console.trace( 'encryption.setKeys called' )
+			console.log( 'encryption.setKeys called' )
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
 				if( u && !Workspace.loginUsername ) Workspace.loginUsername = u;
