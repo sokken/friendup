@@ -125,7 +125,6 @@ Workspace = {
 		ScreenOverlay.init();
 		Workspace.init();
 		
-		console.log( 'Workspace.preinit - fap?', window.friendApp );
 		if( window.friendApp )
 		{
 			document.body.classList.add( 'friendapp' );
@@ -133,7 +132,6 @@ Workspace = {
 	},
 	init: function()
 	{
-		console.log( 'W.init', this.initialized )
 		
 		if( this.initialized )
 			return
@@ -159,7 +157,6 @@ Workspace = {
 		Workspace.wallpaperLoadedPromise = new Promise( wallLoaded )
 		function wallLoaded( resolve, reject ) {
 			wImg.onload = () => {
-				//console.log( 'default background preloaded', wImg )
 				resolve()
 			}
 		}
@@ -176,7 +173,6 @@ Workspace = {
 		// Wait for load
 		if( typeof( InitWindowEvents ) == 'undefined' || typeof( InitGuibaseEvents ) == 'undefined' )
 		{
-			console.log( 'wait for load' )
 			return setTimeout( 'Workspace.init()', 50 );
 		}
 		
@@ -440,7 +436,6 @@ Workspace = {
 		{
 			// Recall wallpaper from settings
 			//await self.refreshUserSettings()
-			console.log( 'doSomeMoreThingsWhoKnows - refreshUserSettings returned' );
 			const mountList = await Workspace.refreshDesktop( null, true );
 			
 			// Create desktop
@@ -535,7 +530,6 @@ Workspace = {
 			
 			self.reloadDocks();
 		}
-		// console.log( 'Test2: Done post init.' );
 	},
 	setLoading: function( isLoading )
 	{
@@ -954,17 +948,9 @@ Workspace = {
 	},
 	login: function( u, p, r, callback, ev )
 	{
-		console.log( 'Workspace.login', {
-			u  : u,
-			p  : p,
-			r  : r,
-			cb : callback,
-			ev : ev,
-		})
 		// Use authmodule login
 		if( Workspace.authModuleLogin )
 		{
-			console.log( 'Using our existing auth module.' );
 			return Workspace.authModuleLogin( callback, window );
 		}
 		// Wrap to user object
@@ -996,11 +982,6 @@ Workspace = {
 			cache = {}
 		
 		cache[ type ] = data
-		console.log( 'setInCache', {
-			type  : type,
-			data  : data,
-			cache : cache,
-		})
 		ApplicationStorage.save( cache, app )
 	},
 	getFromCache( type ) {
@@ -1009,17 +990,12 @@ Workspace = {
 		}
 		const cache = ApplicationStorage.load( app )
 		const data = cache[ type ]
-		console.log( 'getFromCache', {
-			type  : type,
-			cache : cache,
-			data  : data,
-		})
+		console.log( 'getFromCache', [ type, !!data ])
 		return cache[ type ] || null
 	},
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
-		console.log( 'initUserWorkspace', [ json, ev ]);
 		
 		await UWInit()
 		
@@ -1050,13 +1026,11 @@ Workspace = {
 			/*
 			if( !Workspace.screenOverlayShown )
 			{
-				console.log( 'show screen overlay' );
 				ScreenOverlay.show();
 				Workspace.screenOverlayShown = true;
 			}
 			*/
 			
-			console.log( 'this.userWorkspaceInitialized', this.userWorkspaceInitialized )
 			if( this.userWorkspaceInitialized )
 			{
 				await SetupWorkspaceData( json )
@@ -1066,12 +1040,10 @@ Workspace = {
 				return 1;
 			}
 			else {
-				// console.log( 'Test2: Doing the initialization.' );
 				this.userWorkspaceInitialized = true;
 				
 				/*
 				const skripts = await this.loadManySkripts();
-				console.log( 'skripts', skripts );
 				
 				let s = document.createElement( 'script' );
 				s.innerHTML = skripts;
@@ -1085,7 +1057,6 @@ Workspace = {
 					// TODO: This block is only for already initialized workspace
 				if( _this.sessionId && _this.postInitialized )
 				{
-					//console.log( 'This is the session.:', _this.sessionId );
 					if( callback && typeof( callback ) == 'function' ) 
 						callback( true );
 					
@@ -1094,7 +1065,6 @@ Workspace = {
 				
 				if( !json || !json.sessionid ) 
 				{
-					// console.log( 'Test2: Got in sessionid error.', json );
 					return false;
 				}
 				
@@ -1104,7 +1074,6 @@ Workspace = {
 				if( ev && ev.shiftKey )
 				{
 					_this.themeOverride = 'friendup12'
-					console.log( 'themeOverride', _this.themeOverride )
 				}
 				
 				if( GetUrlVar( 'interface' ) )
@@ -1178,7 +1147,6 @@ Workspace = {
 				// Language
 				addTiming( 'loadLocale' );
 				const cache = _this.getFromCache( 'settings' )
-				console.log( 'loadLocale, cache?', cache )
 				if ( null != cache ) {
 					handle( cache )
 					delete self.loadLocalePromise
@@ -1204,7 +1172,6 @@ Workspace = {
 					}
 					catch( ex )
 					{
-						//console.log( 'This: ', d );
 						console.log( 'loadLocale json error', [ e, d, ex ])
 					}
 					
@@ -1216,7 +1183,6 @@ Workspace = {
 				
 				function handle( settings )
 				{
-					console.log( 'handle', settings )
 					// New translations
 					i18n_translations = [];
 					
@@ -1270,7 +1236,6 @@ Workspace = {
 				let m = new Module( 'system' );
 				m.onExecuted = function( ee, dd )
 				{
-					console.log( 'check elua', [ ee, dd ])
 			        if( ee != 'ok' )
 			        {
 			        	if( dd )
@@ -1314,7 +1279,6 @@ Workspace = {
 		
 		async function checkUserSettings() {
 			const us = await Workspace.getUserSettings()
-			console.log( 'checkUserSettings', us )
 			if ( !us )
 				return
 			
@@ -1333,7 +1297,6 @@ Workspace = {
 		
 		async function SetupWorkspaceData( json )
 		{
-			console.log( 'SetupWorkspaceData', json );
 			const _this = Workspace;
 			// Ok, we're in
 			_this.sessionId = json.sessionid ? json.sessionid : null;
@@ -1407,10 +1370,6 @@ Workspace = {
 	
 	getUserSettings : async function() {
 		const self = this
-		console.log( 'getUserSettings', [
-			Workspace.userSettings,
-			Workspace.loadUserSettingsPromise,
-		])
 		if ( Workspace.userSettings )
 			return Workspace.userSettings
 		
@@ -1419,7 +1378,6 @@ Workspace = {
 	},
 	loadUserSettings : function() {
 		const self = this
-		console.log( 'loadUserSettings', Workspace.loadUserSettingsPromise );
 		if ( self.loadUserSettingsPromise )
 			return self.loadUserSettingsPromise
 		
@@ -1435,7 +1393,6 @@ Workspace = {
 			
 			function handleUserSettings( e, d )
 			{	
-				console.log( 'handleUserSettings', [ e, d ])
 				if( _this.loginPrompt )
 				{
 					_this.loginPrompt.close();
@@ -1455,7 +1412,6 @@ Workspace = {
 				catch( ex )	{ };
 				Workspace.userSettings = us
 				
-				console.log( 'loadUserSettings resolving', us )
 				done()
 			}
 			
@@ -1472,7 +1428,6 @@ Workspace = {
 			Workspace.logoutURL = logoutURL;
 	},
 	loadAllTheThings : async function() {
-		console.log( 'load all the things' );
 		if ( null == window._applicationBasics )
 			window._applicationBasics = {};
 		
@@ -1482,7 +1437,6 @@ Workspace = {
 			this.loadAssortedJs(),
 			this.loadManySkripts(),
 		];
-		console.log( 'loaders', loaders );
 		await Promise.all( loaders );
 	},
 	getterOfText : function( path ) {
@@ -1503,7 +1457,6 @@ Workspace = {
 		const path = '/webclient/js/apps/api.js';
 		const data = await this.getterOfText( path );
 		_applicationBasics.apiV1 = URL.createObjectURL( new Blob( [ data ], { type: 'text/javascript' } ));
-		console.log( 'apis loaded', _applicationBasics );
 			
 			
 			
@@ -1527,7 +1480,6 @@ Workspace = {
 		else 
 			_applicationBasics.css = css;
 			
-		console.log( 'scrollcss loaded' );
 		
 		/*
 		const b = new Promise(( resolve, reject ) => {
@@ -1552,7 +1504,6 @@ Workspace = {
 			const cache_id = 'theme_css'
 			const cache = Workspace.getFromCache( cache_id )
 			if ( null != cache ) {
-				console.log( 'from cache', cache )
 				setCss( cache )
 			}
 			else
@@ -1598,7 +1549,6 @@ Workspace = {
 		const data = await this.getterOfText( path )
 		window._applicationBasics.js = data
 		
-		console.log( 'assJs loaded' );
 		
 		/*
 		const d = new Promise(( resolve, reject ) => {
@@ -1667,7 +1617,6 @@ Workspace = {
 		
 		const skriptContent = await this.getterOfText( skriptsPath );
 		//const skripts = await this.loadManySkripts();
-		//console.log( 'skripts', skriptContent );
 		const s = document.createElement( 'script' );
 		s.innerHTML = skriptContent;
 		document.body.appendChild( s );

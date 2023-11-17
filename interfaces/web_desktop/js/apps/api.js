@@ -904,7 +904,6 @@ function receiveEvent( event, queued )
 
 		// Update theme
 		case 'refreshtheme':
-			console.log( 'refreshTheme', dataPacket )
 			let themeName = dataPacket.theme;
 
 			let h = document.getElementsByTagName( 'head' );
@@ -1774,7 +1773,6 @@ function receiveEvent( event, queued )
 			break;
 		// Messages for doors
 		case 'door':
-			console.log( dataPacket );
 			break;
 		case 'applicationstorage':
 			if ( dataPacket && typeof dataPacket.callbackId !== "undefined" )
@@ -4525,8 +4523,6 @@ DormantMaster = {
 		{
 			let cid = addCallback( callback );
 
-			console.log( 'Api.js - proxydoor - asking for folders.' );
-
 			Application.sendMessage( {
 				type: 'dormantmaster',
 				method: 'getDirectory',
@@ -4660,7 +4656,6 @@ ApplicationStorage = {
 
 	send : function( msg, callback )
 	{
-		console.log( 'api.ApplicationStorage.send', msg );
 		if ( callback ) {
 			let callbackId = addCallback( callback );
 			msg.callbackId = callbackId;
@@ -4759,8 +4754,6 @@ Authenticate = {
 		}
 
 		msg.type = 'authenticate';
-
-		console.log( 'api.Authenticate.send', msg );
 
 		Application.sendMessage( msg );
 	}
@@ -5000,7 +4993,6 @@ Authenticate = {
 
 		function fconnReady( res )
 		{
-			console.log( 'fconReady', res );
 			self.ready = true;
 			self.executeSendQueue();
 		}
@@ -5569,7 +5561,6 @@ function Library( libraryName )
 // Add CSS by data
 function AddCSSByData( name, data, callback )
 {
-	console.log( 'AddCSSByData', [ name, data, callback ])
 	if( !window.cssStyles ) window.cssStyles = [];
 	// Clear previous
 	if( typeof( window.cssStyles[ name ] ) != 'undefined' )
@@ -5598,7 +5589,6 @@ function AddCSSByData( name, data, callback )
 // Add CSS by url
 function AddCSSByUrl( csspath, callback )
 {
-	console.log( 'AddCSSByUrl', [ csspath, callback ])
 	if( !window.cssStyles ) window.cssStyles = [];
 	if( typeof( window.cssStyles[csspath] ) != 'undefined' )
 	{
@@ -5776,7 +5766,6 @@ function OpenLibrary( path, id, div )
 function initApplicationFrame( packet, eventOrigin, initcallback )
 {
 	// TODO: Setup correct origin
-	console.log( 'initApplicationFrame', packet )
 	eventOrigin = '*';
 	
 	if( window.frameInitialized )
@@ -5890,7 +5879,6 @@ function initApplicationFrame( packet, eventOrigin, initcallback )
 	// TODO: Move to a proper theme parser
 	function ApplyThemeConfig( themeData )
 	{
-		console.log( 'ApplyThemeConfig', themeData )
 		if( !themeData || typeof( themeData ) == 'undefined' ) return;
 		
 		if( themeData && typeof( themeData ) == 'string' )
@@ -6022,7 +6010,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// On page load
 	function onLoaded()
 	{
-		console.log( 'api onloaded', packet )
 		checkMobileBrowser();
 		
 		// We need to wait for all functions to be available
@@ -8057,7 +8044,6 @@ AssidRequest.prototype.eventDispatcher = function( e )
 	if( this.isHost && this.flags.eventOwner == 'owner' )
 		return;
 
-	console.log( 'eventDispatcher', e );
 	// Send the event through the network!
 	let hostEndpoint = 'send/'; // broadcast to all clients
 	let clientEndpoint = 'sendowner/'; // send to session owner

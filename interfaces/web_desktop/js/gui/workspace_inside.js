@@ -1,7 +1,6 @@
 // Apps on startup
 Friend.startupApps = {};
 
-console.log( 'WorkspaceInside' );
 // Added to workspace
 var WorkspaceInside = {
 	// Tray icons
@@ -357,7 +356,6 @@ var WorkspaceInside = {
 	// Invite a friend to the Workspace
 	inviteFriend: function()
 	{
-		console.log( 'inviteFriend', Workspace.serverConfig )
 		if( !Workspace.serverConfig 
 			|| !Workspace.serverConfig.invitesEnabled
 		 ) {
@@ -952,10 +950,6 @@ var WorkspaceInside = {
 		async function init( resolve, reject ) {
 			done()
 			return;
-			
-			console.log( 'initWorkspaces.init, globalConfig', {
-				globalConfig : globalConfig,
-			})
 			
 			function done() {
 				delete self.initWorkspacesPromise
@@ -1781,8 +1775,6 @@ var WorkspaceInside = {
 		{
 			if ( e == 'ok' && parseInt( d ) == 1 )
 			{
-				console.log('init friend network');
-
 				// connect to FriendNetwork
 				if( Workspace.sessionId && window.FriendNetwork )
 				{
@@ -2118,7 +2110,6 @@ var WorkspaceInside = {
 		{
 		    if( e == 'ok' )
 		    {
-		        console.log( 'We have an announcement!', d );
 		        try
 		        {
 		            let annList = JSON.parse( d );
@@ -2195,10 +2186,6 @@ var WorkspaceInside = {
 			f.onExecuted = function( e, d )
 			{
 				let str = JSON.stringify(e);
-				console.log( 'loadSystemInfo res', {
-					e   : e,
-					str : str,
-				})
 				Workspace.systemInfo = e
 				delete Workspace.loadSystemInfoPromise
 				resolve()
@@ -2212,7 +2199,6 @@ var WorkspaceInside = {
 	// TODO: Move to a proper theme parser
 	applyThemeConfig: function()
 	{
-		console.log( 'applyThemeConfig' );
 		if( !this.themeData )
 			return;
 		
@@ -2248,7 +2234,6 @@ var WorkspaceInside = {
 		
 		let str = '';
 		
-		console.log( 'themeData', this.themeData );
 		for( let a in this.themeData )
 		{
 			if( !this.themeData[a] ) continue;
@@ -2339,7 +2324,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 		}
 		this.themeStyleElement.innerHTML = str;
-		console.log( 'applyThemeConfig done' );
 	},
 	// NB: Start of workspace_inside.js ----------------------------------------
 	loadServerConfig : function() {
@@ -2368,7 +2352,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					return
 				}
 				
-				console.log( 'serverConfig loaded', Workspace.serverConfig )
 				resolve()
 			}
 			b.execute( 'sampleconfig' )
@@ -2376,7 +2359,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	getGeneralSettings : async function() {
 		const self = this
-		console.log( 'getGeneralSettings', Workspace.generalSettings )
 		if ( Workspace.generalSettings )
 			return Workspace.generalSettings
 		
@@ -2384,7 +2366,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return Workspace.generalSettings
 	},
 	loadGeneralSettings : function() {
-		console.log( 'loadGeneralSettings', Workspace.generalSettingsPromise, Workspace.theme, Workspace.themeName )
 		if ( Workspace.generalSettingsPromise )
 			return Workspace.generalSettingsPromise;
 		
@@ -2421,14 +2402,12 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				if ( res )
 					Workspace.generalSettings = res
 				
-				console.log( 'loadGeneralSettings done', res )
 				resolve()
 			}
 		}
 	},
 	refreshUserSettings: async function( callback )
 	{
-		console.log( 'refreshUserSettings', !!Workspace.refreshUserSettingsPromise )
 		const self = this;
 		if ( callback )
 			throw new Error( 'callback deprecated, fix!' );
@@ -2443,18 +2422,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// make sure systeminfo is loaded
 			
 			window.addTiming( 'refreshUserSettings' )
-			console.log( 'refreshUserSettings' );
 			const uSettings = await self.getGeneralSettings()
 			await updateFromSettings( uSettings )
 			
-			console.log( 'refreshUserSettings done' )
 			delete Workspace.refreshUserSettingsPromise
 			resolve()
 		}
 		
 		async function updateFromSettings( uSettings )
 		{
-			console.log( 'updateFromSettings', uSettings );
 			
 			// Make sure we have loaded
 			addTiming( 'checkScreenSize' )
@@ -2471,14 +2447,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					check()
 					
 					function check() {
-						console.log( 'check', {
-							contentDiv : !!Workspace.screen?.contentDiv,
-							offset     : !!Workspace.screen?.contentDiv?.offsetHeight,
-						})
-						
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
-								console.log( 'thingie size yep', checkTimer )
 								window.clearInterval( checkTimer )
 								resolve()
 							}
@@ -2489,10 +2459,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			if ( uSettings ) {
 				dat = uSettings
-				console.log( 'dat', dat )
 				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 				{
-					console.log( 'set wallpaper from wallpaperdoors' );
 					if( dat.wallpaperdoors.substr(0,5) == 'color' )
 					{
 						Workspace.wallpaperImage = 'color';
@@ -2536,7 +2504,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				Workspace.applyThemeConfig();
 				
-				console.log( 'after applytheme, also mobile check', [ isMobile ]);
 				// Fallback
 				if( !isMobile )
 				{
@@ -2552,7 +2519,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				if( !Workspace.wallpaperImage || Workspace.wallpaperImage == '""' || Workspace.wallpaperImage === '' )
 				{
-					console.log( 'set wallpaperImage default login screen' )
 					Workspace.wallpaperImage = '/webclient/gfx/theme/default_login_screen.jpg';
 					Workspace.wallpaperImageDecoded = false;
 				}
@@ -2646,7 +2612,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// Make sure iOS has the correct information
 				if( window.friendApp && window.webkit && window.friendApp.setBackgroundColor )
 				{
-					console.log( 'mobile app color things' );
 					let col = '#34495E';
 					switch( Workspace.themeData.colorSchemeText )
 					{
@@ -2662,17 +2627,14 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// If we haven't refreshed, do it now
 				if( !Workspace.desktopFirstRefresh )
 				{
-					console.log( 'first refresh' );
 					Workspace.refreshDesktop();
 				}
 				
-				console.log( 'after refresh, is startupseqregister=?', Workspace.startupSequenceRegistered );
 				// Do the startup sequence in sequence (only once)
 				if( !Workspace.startupSequenceRegistered )
 				{	
 					Workspace.startupSequenceRegistered = true;
 					
-					console.log( 'do startup sequence i guess' );
 					// Reload the docks here
 					try {
 						Workspace.reloadDocks();
@@ -2683,7 +2645,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					// In single tasking mode, we just skip
 					if( Workspace.isSingleTask )
 					{
-						console.log( 'singletask' );
 						// Oh! We wanted to start an application!
 						if( GetUrlVar( 'app' ) )
 						{
@@ -2692,10 +2653,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 								args = false;
 
 							const urlApp = GetUrlVar( 'app' );
-							console.log( 'exec app', {
-								urlApp  : urlApp,
-								urlArgs : args,
-							});
 							ExecuteApplication( urlApp, args );
 						}
 						ScreenOverlay.hide();
@@ -2709,7 +2666,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					Workspace.onReadyList.push( function()
 					{
 						let seq = dat.startupsequence;
-						console.log( 'onreadylist item', seq );
 						if( typeof( seq ) != 'object' )
 						{
 							try
@@ -2724,7 +2680,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						
 						if( seq.length )
 						{
-							console.log( 'startupseq', seq );
 							if( ScreenOverlay.debug )
 								ScreenOverlay.setTitle( i18n( 'i18n_starting_your_session' ) );
 							let l = {
@@ -4005,11 +3960,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			m.load();
 			
 			function handle( err, td ) {
-				console.log( 'handleTheme', {
-					err : err,
-					td  : td,
-				})
-				
 				delete Workspace.loadThemePromise
 				resolve()
 			}
@@ -4102,14 +4052,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 		async function refresh( resolve, reject )
 		{
-			console.log( 'refreshTheme', {
-				themeName      : themeName, 
-				update         : update, 
-				themeConfig    : themeConfig, 
-				initpass       : initpass, 
-				themeRefreshed : self.themeRefreshed, 
-			})
-			
 			addTiming( 'refreshTheme' )
 			
 			// Only on force or first time
@@ -4168,7 +4110,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				if( el.parentNode != h ) 
 					continue;
 				
-				console.log( 'remove', el )
 				el.href = '';
 				el.parentNode.removeChild( el );
 			}
@@ -4224,7 +4165,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			await waitForWallpaper()
 			addTiming( 'refreshTheme - wallpaper done' );
 			
-			console.log( 'ready!' );
 			Workspace.redrawIcons();
 			ScreenOverlay.hide()
 			// We are ready!
@@ -4338,7 +4278,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			
 			function done() {
-				console.log( 'refreshTHeme done' );
 				Workspace.setLoading( false )
 				delete Workspace.refreshThemePromise
 				resolve()
@@ -4561,7 +4500,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				window.preloader = [];
 			
 			let imgOffline = GetThemeInfo( 'OfflineIcon' );
-			console.log( 'imgOffline', imgOffline )
 			
 			if( !Workspace.iconsPreloaded && self.mode != 'vr' )
 			{
@@ -4621,7 +4559,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			addTiming( 'getMountList' )
 			const data = await self.getMountlist()
 			addTiming( 'got mountList', data )
-			console.log( 'getMountList data', data )
 			
 			// Something went wrong - don't show an empty workspace
 			// We always have one entry, the system disk
@@ -4654,12 +4591,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				}
 			}
 			
-			console.log( 'wallpaperImage?', [ self.wallpaperImage, Workspace.wallpaperImage, Workspace.wallpaperLoaded ])
-			
 			// Recall wallpaper
 			if( Workspace.mode != 'vr' && self.wallpaperImage != 'color' )
 			{
-				console.log( 'recall wallpaper', self.wallpaperImage );
 			    if( typeof( self.wallpaperImage ) == undefined )
 			    {
 			        return setTimeout( function(){ Workspace.refreshDesktop( callback, forceRefresh ) }, 25 );
@@ -4738,20 +4672,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							Workspace.wallpaperLoaded = true;
 							break;
 						default:
-							console.log( 'wallpaper set default pre load' , Workspace.defaultWallPreload, Workspace.wallpaperLoadedPromise )
 							Workspace.wallpaperImageObject = Workspace.defaultWallPreload
 							await Workspace.wallpaperLoadedPromise
 							Workspace.wallpaperLoaded = true;
-							const src = Workspace.wallpaperImageObject.src
-							console.log( 'wallpaper promise done', src )
-							
-							//let src = found ? getImageUrl( self.wallpaperImage ) : '/webclient/gfx/theme/default_login_screen.jpg';
-							//console.log( 'set default wallpaper', [ found, src ]);
-							//let workspaceBackgroundImage = new Image();
-							//workspaceBackgroundImage.onload = wallLoaded
-							//addTiming( 'wallpaper start load' )
-							//workspaceBackgroundImage.src = src
-							
+							const src = Workspace.wallpaperImageObject.src							
 							if( Workspace.prevWallpaper )
 							{
 								let o = [];
@@ -4983,7 +4907,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	loadMountList : function() {
 		const self = Workspace
-		console.log( 'loadMountList', [ self.loadMountListPromise, self.mountListData ])
 		if ( self.loadMountListPromise )
 			return self.loadMountListPromise 
 		
@@ -5003,7 +4926,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			self.mountListData = responses
 			
 			delete self.loadMountListPromise
-			console.log( 'loadMountList done', self.mountListData )
 			resolve()
 		}
 		
@@ -5017,7 +4939,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				mo.execute( 'workspaceshortcuts' )
 				function loaded( err, shortcuts )
 				{
-					console.log( 'loadWorkspaceShortcuts res', err, shortcuts )
 					if ( 'ok' != err  ) {
 						resolve( [] )
 						return
@@ -5046,7 +4967,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				function loaded( err, visList )
 				{
-					console.log( 'loadDeviceSettings res', err, visList )
 					const visStruct = {};
 					if( err != 'ok' )
 					{
@@ -5096,7 +5016,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	getMountlist: function( callback, forceRefresh, addDormant )
 	{
 		const t = Workspace; // Reference to workspace
-		console.log( 'getMountList', [ callback, forceRefresh, addDormant ])
 		if ( callback )
 			throw new Error( 'callback deprecated, fix!' )
 		
@@ -5108,7 +5027,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 		async function GML( resolve, reject )
 		{
-			console.log( 'GML', [ t.loadMountListPromise, t.mountListData ])
 			//t.getDosDriverTypes()
 			// Just in case
 			doReveal();
@@ -5125,7 +5043,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			function setupMountList( shorts = [], visStruct = {}, rows = [] )
 			{
 				addTiming( 'setupMountList' )
-				console.log( 'setupMountList', [ shorts, visStruct, rows ])
 				// New icons to list
 				const newIcons = [];
 			
@@ -5333,7 +5250,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				}
 				*/
 				
-				console.log( 'newIcons', newIcons )
 				// Check new icons with old icons
 				let hasNew = false;
 				let checks = [];
@@ -5384,17 +5300,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					t.redrawIcons();
 					if( checks.length )
 					{
-						console.log( 'drive checks', [ checks, t.icons ])
 						checks.forEach( check => {
 							const tic = t.icons[ check ]
-							console.log( 'drive check', {
-								check  : check,
-								tic    : tic,
-								exec   : tic.Execute,
-								volume : tic.Volume,
-								door   : tic.Door,
-							})
-							
 							if( tic.Execute )
 							{
 								ExecuteJSXByPath( tic.Volume + tic.Execute );
@@ -5426,17 +5333,14 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				function testDrive( o, d )
 				{
-					console.log( 'drive testDrive', [ o, d, d.dosAction ])
 					if( !d ) 
 						return;
 					
 					// Check disk info
 					if( d.dosAction )
 					{
-						console.log( 'do dos action for', d )
 						d.dosAction( 'info', { path: o.Volume + 'disk.info' }, function( io )
 						{
-							console.log( 'drive dosAction info res', io )
 							let res = io.split( '<!--separate-->' );
 							if( res[0] == 'ok' )
 							{
@@ -5452,13 +5356,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 								let fl = new File( o.Volume + 'disk.info' );
 								fl.onLoad = function( data )
 								{
-									console.log( 'drive fl onload', data )
 									if( data.indexOf( '{' ) >= 0 )
 									{
 										try
 										{
 											let dt = JSON.parse( data );
-											console.log( 'drive dt, data', dt )
 											if( dt && dt.DiskIcon )
 											{
 												o.IconFile = getImageUrl( o.Volume + dt.DiskIcon );
@@ -5535,7 +5437,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// Check dormant too
 			let dormants = DormantMaster.getDoors();
 			
-			console.log( 'redrawIcons things', [ dormants, movableWindows ])
 			// Cleanup windows of filesystems that are unmounted
 			let close = [];
 			for( let a in movableWindows )
@@ -7422,7 +7323,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 								}
 							}
 						
-							console.log( 'UPLOAD COMPLETED ' + ee, dd );
 							Notify( { title: i18n( 'i18n_upload_completed' ), text: i18n( 'i18n_upload_completed_description' ) } );
 							if( typeof Workspace.uploadWindow.close == 'function' ) Workspace.uploadWindow.close();
 							Workspace.refreshWindowByPath( uppath );
@@ -10270,7 +10170,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 
 		if( window.friendApp?.exit != null )
 		{
-			console.log( 'check mobile app things', friendApp );
 			// if this is mobile app we must register it
 			// if its already registered FC will not do it again
 			let version = null;
@@ -11385,24 +11284,12 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 		return;
 	}
 	
-	console.log( 'receiveLive', {
-		viewId : viewId,
-		json   : jsonEvent,
-		event  : event,
-	} );
-	
 	const appName = 'FriendChat';
 	
 	// find friendchat app
 	let chat = null;
 	
-	console.log( 'all apps', Workspace.applications );
-	
 	Workspace.applications.some( app => {
-		console.log( 'looking for chat', {
-			app  : app,
-			name : app.applicationName,
-		} );
 		if ( app.applicationName != appName )
 			return false;
 		
@@ -11794,7 +11681,6 @@ async function loadApplicationBasics( callback )
 		let c_ = new File( '/system.library/module/?module=system&command=theme&args=%7B%22theme%22%3A%22friendup12%22%7D&sessionid=' + Workspace.sessionId );
 		c_.onLoad = function( data )
 		{
-			console.log( 'theme css', data );
 			data = '';
 			if( _applicationBasics.css )
 				_applicationBasics.css += data;

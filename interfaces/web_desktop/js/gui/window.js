@@ -4150,7 +4150,6 @@ var View = function( args )
 	// Set content (securely!) in a sandbox, callback when completed
 	this.setContentIframed = function( content, domain, packet, callback )
 	{
-		console.log( 'setContentIframed', [ content, domain, packet, !!callback ]);
 		if( !domain )
 		{
 			domain = document.location.href + '';
@@ -4273,7 +4272,6 @@ var View = function( args )
 					msg[a] = packet[a];
 			}
 			
-			console.log( 'appbasics', window._applicationBasics )
 			msg.command = 'setbodycontent';
 			msg.cachedAppData = window._applicationBasics;
 			msg.dosDrivers = Friend.dosDrivers;

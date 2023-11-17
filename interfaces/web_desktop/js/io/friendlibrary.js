@@ -117,8 +117,6 @@ var FriendLibrary = function ( library, encryption )
 					var encrypted = fcrypt.encryptRSA( json, Workspace.encryption.keys.server.publickey );
 					
 					j.addVar( 'encryptedblob', encrypted );
-					
-					console.log( 'data', { vars: this.vars, data: ( data ? data : encrypted ) } );
 				}
 			}
 		}
@@ -168,10 +166,8 @@ var FriendLibrary = function ( library, encryption )
 					
 					if( json )
 					{
-						console.log( 'json', json );
 						return t.onExecuted( json );
 					} else {
-						console.log( 'not json', rc )
 						t.onExecuted( rc, d )
 					}
 					

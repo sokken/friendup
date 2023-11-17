@@ -224,7 +224,6 @@ cAjax = function()
 					}
 					catch( e )
 					{
-						console.trace( 'caught json thing', jax, jax.rawData );
 						if( !jax.rawData )
 						{
 							console.log( '[cAjax] Can not understand server response: ', jax.rawData );

@@ -1298,7 +1298,6 @@ function CreateDesklet ( pobj, width, height, pos, px, py )
 
 function RefreshDesklets()
 {
-	console.log( 'RefreshDesklets', __desklets )
 	
 	for ( var a = 0; a < __desklets.length; a++ )
 	{
