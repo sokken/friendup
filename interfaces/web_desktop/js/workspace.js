@@ -996,6 +996,12 @@ Workspace = {
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
+		if( Workspace.loginPrompt )
+		{
+			Workspace.loginPrompt.close();
+			Workspace.loginPrompt = false;
+		}
+		
 		
 		await UWInit()
 		
@@ -1175,7 +1181,7 @@ Workspace = {
 						console.log( 'loadLocale json error', [ e, d, ex ])
 					}
 					
-					_this.setInCache( 'settigs', settings )
+					_this.setInCache( 'settings', settings )
 					handle( settings )
 					delete self.loadLocalePromise
 					resolve()
@@ -1393,12 +1399,6 @@ Workspace = {
 			
 			function handleUserSettings( e, d )
 			{	
-				if( _this.loginPrompt )
-				{
-					_this.loginPrompt.close();
-					_this.loginPrompt = false;
-				}
-				
 				if ( 'ok' != e ) {
 					done()
 					return;
