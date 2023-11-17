@@ -1160,7 +1160,7 @@ Workspace = {
 					checkInvite( json )
 				}
 				
-				Workspace.postInit();
+				Workspace.postInit()
 				
 				return 1;
 			}

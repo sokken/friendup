@@ -2467,14 +2467,19 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						return
 					}
 					
-					let checkTimer = setTimeout( check, 50 )
+					let checkTimer = setInterval( check, 50 )
 					check()
 					
 					function check() {
+						console.log( 'check', {
+							contentDiv : !!Workspace.screen?.contentDiv,
+							offset     : !!Workspace.screen?.contentDiv?.offsetHeight,
+						})
+						
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
 								console.log( 'thingie size yep', checkTimer )
-								window.clearTimeout( checkTimer )
+								window.clearInterval( checkTimer )
 								resolve()
 							}
 						}
