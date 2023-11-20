@@ -4171,6 +4171,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			Workspace.readyToRun = true;
 			if( window.friendApp && friendApp.onWorkspaceReady )
 			{
+				console.log( 'call app.onWorkspaceReady' )
 				friendApp.onWorkspaceReady();
 			}
 			else
@@ -10150,7 +10151,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
-		console.trace( 'onReady', window.friendApp )
+		console.trace( 'onReady', [ window.friendApp, Workspace.sessionid, this.onReadyList ])
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -10164,7 +10165,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			this.onReadyList = [];
 		}
-
+		
 		//
 		//if we dont have a sessionid we will need to wait a bit here...
 		//
