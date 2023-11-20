@@ -10210,11 +10210,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	
 	registerUMA : async function() {
 		const fap = window.friendApp;
-		console.log( 'resgisterUMA', [ fap, Workspace.sessionid, Workspace.uma_registered ]);
+		console.log( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
 		if ( Workspace.uma_registered )
 			return
 		
-		if ( null == fap || !Workspace.sessionid )
+		if ( null == fap || !Workspace.sessionId )
 			return
 		
 		if ( null == fap.get_app_token )
@@ -10239,9 +10239,12 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if( e != 'ok' )
 			{
 				console.log( 'Failed to create uma.' );
+				return
 			}
-			else
-				Workspace.uma_registered = true
+			
+			Workspace.uma_registered = true
+			console.log( 'registerUMA success', d )
+			
 		}
 	},
 	
