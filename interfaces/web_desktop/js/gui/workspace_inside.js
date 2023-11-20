@@ -10150,6 +10150,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
+		console.trace( 'onReady', window.friendApp )
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -10168,8 +10169,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		//if we dont have a sessionid we will need to wait a bit here...
 		//
 
-		if( window.friendApp?.exit != null )
+		if( window.friendApp && Workspace.sessionid )
 		{
+			Workspace.registerUMA();
+			/*
 			// if this is mobile app we must register it
 			// if its already registered FC will not do it again
 			let version = null;
@@ -10197,30 +10200,50 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 
 			//console.log('onReady called a bunch of friendApp functions with our sessionid ' + Workspace.sessionId );
 
-			if( appToken != null )	// old applications which do not have appToken will skip this part
-			{
-				let l = new Library( 'system.library' );
-				l.forceSend = true;
-				l.onExecuted = function( e, d )
-				{
-					if( e != 'ok' )
-					{
-						console.log( 'Failed to create uma.' );
-					}
-				}
-				const uma_args = { 
-					sessionid: Workspace.sessionId, 
-					apptoken: appToken, 
-					deviceid: deviceID, 
-					appversion: version, 
-					platform: platform 
-				};
-				console.log( 'mobile app createuma args', uma_args )
-				l.execute( 'mobile/createuma', uma_args )
-			}
+			if( appToken == null )	// old applications which do not have appToken will skip this part
+				return
+			*/
 		}
 		return true;
 	},
+	
+	registerUMA : async function() {
+		const fap = window.friendApp;
+		console.log( 'resgisterUMA', [ fap, Workspace.sessionid, Workspace.uma_registered ]);
+		if ( Workspace.uma_registered )
+			return
+		
+		if ( null == fap || !Workspace.sessionid )
+			return
+		
+		if ( null == fap.get_app_token )
+			return
+		
+		const uma_args = { 
+			sessionid  : Workspace.sessionId, 
+			apptoken   : fap.get_app_token(), 
+			deviceid   : fap.get_deviceid(),
+			appversion : fap.get_version(),
+			platform   : fap.get_platform(),
+		};
+		console.log( 'mobile app createuma args', uma_args );
+		
+		let l = new Library( 'system.library' );
+		l.forceSend = true;
+		l.onExecuted = handle
+		l.execute( 'mobile/createuma', uma_args )
+		
+		function handle( e, d )
+		{
+			if( e != 'ok' )
+			{
+				console.log( 'Failed to create uma.' );
+			}
+			else
+				Workspace.uma_registered = true
+		}
+	},
+	
 	Tasklist: function( e )
 	{
 		if( this.taskw )
