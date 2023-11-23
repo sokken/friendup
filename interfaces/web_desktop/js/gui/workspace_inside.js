@@ -11426,7 +11426,7 @@ Workspace.receivePushV2 = function( noties ) {
 		pushies.forEach( registerRead )
 		
 		function pushToApp( msg ) {
-			const app = null
+			let app = null
 			Workspace.applications.some( appObj => {
 				if ( appObj.applicationName != msg.app )
 					return false
@@ -11436,6 +11436,11 @@ Workspace.receivePushV2 = function( noties ) {
 			})
 			
 			console.log( 'push to app', [ msg, app ]);
+			if ( null == app ) {
+				console.log( 'oopsiewoopsie', [ msg, Workspce.applications ])
+				return
+			}
+			
 			app.contentWindow.postMessage({ 
 				data     : msg.data,
 				type     : 'system',
