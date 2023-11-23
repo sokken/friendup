@@ -11390,8 +11390,14 @@ Workspace.receivePushV2 = function( noties ) {
 	}
 	
 	function startAppsMaybe( appList ) {
-		return new Promise(( resovle, reject ) => {
-			console.log( 'start apps mybe', appList )
+		return new Promise(( resolve, reject ) => {
+			console.log( 'start apps mybe', {
+				appList  : appList,
+				running  : Workspace.applications,
+				starting : Workspace.startupApps,
+				exeq     : _executionQueue,
+			})
+			
 			resolve()
 		});
 	}
