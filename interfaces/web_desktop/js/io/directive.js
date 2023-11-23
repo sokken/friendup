@@ -17,35 +17,35 @@ var _executionQueue = {};
 //       with a function that parses flags and adds args to flags list!
 //       Mucho importante!
 
-function RemoveFromExecutionQueue( app )
+function RemoveFromExecutionQueue( app, ...cb_args )
 {
-	try
-	{
-		var out = {};
-		for( var a in _executionQueue )
-			if( a != app )
-				out[ a ] = true;
-		_executionQueue = out;
+	if ( null == _executionQueue )
+		return
+	
+	if ( null == _executionQueue[ app ] )
+		return
+	
+	if ( true !== _executionQueue[ app ]) {
+		const exec = _executionQueue[ app ]
+		console.log( 'removefromexeq', exec )
+		exec.callbacks.forEach( cb => cb( ...cb_args ))
+		exec.resolve( cb_args[ 0 ])
 	}
-	// Something went wrong, flush
-	catch( e )
-	{
-		console.log( 'Problem!' );
-		mobileDebug( 'Something failed with execution queue.', true );
-		_executionQueue = {};
-	}
+	
+	delete _executionQueue[ app ]
 }
 
 // Load a javascript application into a sandbox
 function ExecuteApplication( app, args, callback, retries, flags )
 {
-	/*console.log( 'ExecuteApplication', [
+	console.log( 'ExecuteApplication', [
 		app,
 		args,
 		callback,
 		retries,
 		flags,
-	]);*/
+		_executionQueue,
+	]);
 	
 	// Just nothing.
 	if( !app ) {
@@ -93,18 +93,35 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	// You need to wait with opening apps until they are loaded by app name
 	if( _executionQueue[ appName ] )
 	{
+		const exec = _executionQueue[ appName ]
+		if ( callback )
+			exec.callbacks.push( callback )
+		
+		return _executionQueue[ appName ].promise;
+		/*
 		console.log( 'ExecuteApplication - app found in execution queue', {
 			app   : app,
 			queue : _executionQueue,
 		});
 		if( callback )
 			callback( false, { response: false, message: 'Already run.', data: 'executed' } );
-		return;
+			*/
 	}
 
 	// Register that we are executing
-	_executionQueue[ appName ] = true;
-
+	_executionQueue[ appName ] = {
+		callbacks : [],
+	}
+	const exec = _executionQueue[ appName ]
+	exec.promise = new Promise(( resolve, reject ) => {
+		exec.resolve = resolve
+		exec.reject = reject
+	})
+	if ( callback )
+		exec.callbacks.push( callback )
+	
+	console.log( 'exec', exec )
+	
 	if( isMobile )
 	{
 		Workspace.goToMobileDesktop();
@@ -115,7 +132,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	}
 	
 	if( args )
-	{ 
+	{
 		Workspace.lastLaunchedAppArgs = args; 
 	}
 
@@ -172,11 +189,13 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					_WindowToFront( app.windows[ z ]._window.parentNode );
 					
 					// Clean blocker
-					RemoveFromExecutionQueue( appName );
+					RemoveFromExecutionQueue( appName, false, { response: false, message: 'Already run.', data: 'executed' } );
 					
 					// Tell that we didn't launch
+					/*
 					if( callback )
 						callback( false, { response: false, message: 'Already run.', data: 'executed' } );
+						*/
 					return;
 				}
 			}
@@ -259,8 +278,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			//console.log( 'ExecuteApplication - active', app );
 			ActivateApplication( app, conf );
 			// Remove blocker
-			RemoveFromExecutionQueue( appName );
-			if( callback ) callback( false );
+			RemoveFromExecutionQueue( appName, false );
+			//if( callback ) callback( false );
 			
 			return false;
 		}
@@ -320,8 +339,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
+					return //callback( { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_signed' ) );
 			}
@@ -330,8 +349,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
+					return //callback( { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_validated' ) );
 			}
@@ -340,8 +359,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_found' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_found' ) } );
+					return //callback( { error: 1, errorMessage: i18n( 'application_not_found' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_found' ) );
 			}
@@ -358,7 +377,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			KillApplication( appName );
 			
 			// Remove blocker
-			RemoveFromExecutionQueue( appName );
+			RemoveFromExecutionQueue( appName, false );
 			return false;
 		}
 
@@ -371,14 +390,14 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: 'Can not run v0 applications.' } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: 'Can not run v0 applications.' } );
+					return //callback( { error: 1, errorMessage: 'Can not run v0 applications.' } );
 				}
 				Ac2Alert( 'Can not run v0 applications.' );
-				if( callback ) callback( false );
+				//if( callback ) callback( false );
 				
 				// Remove blocker
-				RemoveFromExecutionQueue( appName );
+				RemoveFromExecutionQueue( appName, false );
 				return false;
 			}
 
@@ -507,7 +526,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ifr.quit = function( level )
 			{
 				// Clean blocker
-				RemoveFromExecutionQueue( appName );
+				RemoveFromExecutionQueue( appName, 0 );
 				
 				// Check vr
 				if( window.FriendVR )
@@ -748,10 +767,10 @@ function ExecuteApplication( app, args, callback, retries, flags )
 		}
 		else
 		{
-			if( callback ) callback( "\n", { response: 'Executable has run.' } );
+			//if( callback ) callback( "\n", { response: 'Executable has run.' } );
 			
 			// Clean blocker
-			RemoveFromExecutionQueue( appName );
+			RemoveFromExecutionQueue( appName, "\n", { response: 'Executable has run.' } );
 		}
 	}
 	var eo = { application: app, args: args };
