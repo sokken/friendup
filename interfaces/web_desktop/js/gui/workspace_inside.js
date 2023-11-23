@@ -11390,16 +11390,22 @@ Workspace.receivePushV2 = function( noties ) {
 	}
 	
 	function startAppsMaybe( appList ) {
-		return new Promise(( resolve, reject ) => {
+		return new Promise( yepStart )
+		async function yepStart( resolve, reject ) {
 			console.log( 'start apps mybe', {
 				appList  : appList,
 				running  : Workspace.applications,
 				starting : Workspace.startupApps,
 				exeq     : _executionQueue,
 			})
+			const waiters = appList.map( app => {
+				return ExecuteApplication( app )
+			})
+			console.log( 'app waiters', waiters )
+			await Promise.all( waiters )
 			
 			resolve()
-		});
+		}
 	}
 	
 	function sendToApps( pushies ) {
