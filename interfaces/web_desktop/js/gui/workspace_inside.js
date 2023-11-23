@@ -11372,7 +11372,8 @@ Workspace.receivePushV2 = function( noties ) {
 			if ( app )
 				apps[ app ] = true
 			
-			pushieMap[ mId ] = push;
+			push.app = app
+			pushieMap[ mId ] = push
 		})
 		
 		const mids = Object.keys( pushieMap )
@@ -11395,13 +11396,15 @@ Workspace.receivePushV2 = function( noties ) {
 			console.log( 'start apps mybe', {
 				appList  : appList,
 				running  : Workspace.applications,
+				appl     : Workspace.applications.length,
+				amap     : Object.keys( Workspace.applications ),
 				starting : Workspace.startupApps,
 				exeq     : _executionQueue,
 			})
 			const run = appList.filter( appName => {
 				return !Workspace.applications.some( appObj => appObj.applicationName == appName )
 			})
-			console.log( 'execute these', run )
+			console.log( 'start these', run )
 			if ( !run || !run.length ) {
 				resolve()
 				return
@@ -11419,6 +11422,27 @@ Workspace.receivePushV2 = function( noties ) {
 	
 	function sendToApps( pushies ) {
 		console.log( 'sendToApps', pushies )
+		pushies.forEach( pushToApp )
+		
+		
+		function pushToApp( msg ) {
+			const app = Workspace.applications[ msg.app ]
+			console.log( 'push to app', [ msg, app ]);
+			app.contentWindow.postMessage({ 
+				data     : msg,
+				type     : 'system',
+				method   : 'pushnotification',
+				callback : false,
+			}, '*' );
+			/*
+			app.contentWindow.postMessage( JSON.stringify( { 
+				type    : 'system',
+				method  : 'pushnotification',
+				callback: false,
+				data    : msg
+			} ), '*' );
+			*/
+		}
 	}
 }
 
@@ -11538,8 +11562,8 @@ Workspace.receivePush = function( jsonMsg, ready )
 						l.onExecuted = function(){};
 						l.execute( 'mobile/updatenotification', { 
 							notifid: msg.notifid, 
-							action: 1,
-							pawel: 1
+							action : 1,
+							pawel  : 1
 						} );
 					}
 					else
@@ -11556,10 +11580,10 @@ Workspace.receivePush = function( jsonMsg, ready )
 				let app = Workspace.applications[a];
 				console.log( 'push to app', [ msg, app ]);
 				app.contentWindow.postMessage( JSON.stringify( { 
-					type: 'system',
-					method: 'pushnotification',
+					type    : 'system',
+					method  : 'pushnotification',
 					callback: false,
-					data: msg
+					data    : msg
 				} ), '*' );
 				
 				if( !ready && Workspace.onReady ) Workspace.onReady();
@@ -11578,8 +11602,8 @@ Workspace.receivePush = function( jsonMsg, ready )
 				l.onExecuted = function(){};
 				l.execute( 'mobile/updatenotification', { 
 					notifid: msg.notifid, 
-					action: 1,
-					pawel: 2
+					action : 1,
+					pawel  : 2
 				} );
 			}
 		}
