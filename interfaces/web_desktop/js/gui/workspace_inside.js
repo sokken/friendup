@@ -11346,10 +11346,11 @@ Workspace.receivePushV2 = function( noties ) {
 	console.log( 'receivePushV2', noties );
 	if ( null == Workspace.collectPushiesTimeout ) {
 		Workspace.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
+		Workspace.pushiesCollected = noties;
+	} else {
 		Workspace.pushiesCollected.push( ...noties );
 		collatePushies();
-	} else
-		Workspace.pushiesCollected = noties;
+	}
 	
 	return
 	//self.onReady();
