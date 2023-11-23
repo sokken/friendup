@@ -11425,24 +11425,26 @@ Workspace.receivePushV2 = function( noties ) {
 		pushies.forEach( pushToApp )
 		pushies.forEach( registerRead )
 		
-		function pushToApp( msg ) {
+		function pushToApp( event ) {
 			let app = null
 			Workspace.applications.some( appObj => {
-				if ( appObj.applicationName != msg.app )
+				if ( appObj.applicationName != event.app )
 					return false
 				
 				app = appObj
 				return true
 			})
 			
-			console.log( 'push to app', [ msg, app ]);
+			console.log( 'push to app', [ event, app ]);
 			if ( null == app ) {
-				console.log( 'oopsiewoopsie', [ msg, Workspce.applications ])
+				console.log( 'oopsiewoopsie', [ event, Workspce.applications ])
 				return
 			}
 			
+			const msg = event.data
+			msg.clicked = true
 			app.contentWindow.postMessage({ 
-				data     : msg.data,
+				data     : msg,
 				type     : 'system',
 				method   : 'pushnotification',
 				callback : false,
