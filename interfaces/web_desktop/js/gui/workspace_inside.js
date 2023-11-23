@@ -11341,11 +11341,63 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 
 Workspace.pushTrashcan = {};
 
-Workspace.receivePushV2 = function( jsonMsg, ready ) {
+Workspace.receivePushV2 = function( noties ) {
 	const self = this;
-	console.log( 'receivePushV2', [ jsonMsg, ready ]);
+	console.log( 'receivePushV2', noties );
+	if ( null == Workspace.collectPushiesTimeout ) {
+		Workspace.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
+		Workspace.pushiesCollected.push( ...noties );
+		collatePushies();
+	} else
+		Workspace.pushiesCollected = noties;
 	
-	self.onReady();
+	return
+	//self.onReady();
+	
+	async function collatePushies() {
+		clearTimeout( Workspace.collectPushiesTimeout );
+		delete Workspace.collectPushiesTimeout;
+		
+		const pushieMap = {}
+		let apps = {}
+		Wokspace.pushiesCollected.forEach( push => {
+			const mId = push.messageId
+			const isTapped = push.tapped
+			const app = push.data?.application
+			
+			if ( pushieMap[ mId ]?.tapped )
+				return
+			
+			if ( app )
+				apps[ app ] = true
+			
+			pushieMap[ mId ] = push;
+		})
+		
+		const mids = Object.keys( pushieMap )
+		const pushies = mids.map( mId => pushieMap[ mId ])
+		apps = Object.keys( apps )
+		console.log( 'collate:', {
+			collected : Workspace.pushiesCollected,
+			pushies   : pushies,
+			apps      : apps,
+		})
+		delete Workspace.pushiesCollected;
+		
+		await startAppsMaybe( apps )
+		sendToApps( pushies )
+	}
+	
+	function startAppsMaybe( appList ) {
+		return new Promise(( resovle, reject ) => {
+			console.log( 'start apps mybe', appList )
+			resolve()
+		});
+	}
+	
+	function sendToApps( pushies ) {
+		console.log( 'sendToApps', pushies )
+	}
 }
 
 // Receive push notification (when a user clicks native push notification on phone)
@@ -11387,6 +11439,7 @@ Workspace.receivePush = function( jsonMsg, ready )
 	{
 		// Do nothing for now...
 	}
+	
 	if( !msg ) 
 	{
 		if( !ready && this.onReady ) this.onReady();
@@ -11411,11 +11464,13 @@ Workspace.receivePush = function( jsonMsg, ready )
 	let messageRead = trash = false;
 	
 	// Display message
-	if( !msg.clicked && ( msg.title||msg.text ) )
+	if( !msg.clicked && ( msg.title || msg.text ))
 	{
 		// Revert to push notifications on the OS side
 		Notify( { title: msg.title, text: msg.text }, null, handleClick );
-		if( !ready && this.onReady ) this.onReady();
+		if( !ready && this.onReady ) 
+			this.onReady();
+		
 		return 'ok';
 	}
 	// "Click"
