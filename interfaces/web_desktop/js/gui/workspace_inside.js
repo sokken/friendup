@@ -11398,7 +11398,16 @@ Workspace.receivePushV2 = function( noties ) {
 				starting : Workspace.startupApps,
 				exeq     : _executionQueue,
 			})
-			const waiters = appList.map( app => {
+			const run = appList.filter( appName => {
+				return !Workspace.applications.some( appObj => appObj.applicationName == appName )
+			})
+			console.log( 'execute these', run )
+			if ( !run || !run.length ) {
+				resolve()
+				return
+			}
+			
+			const waiters = run.map( app => {
 				return ExecuteApplication( app )
 			})
 			console.log( 'app waiters', waiters )
