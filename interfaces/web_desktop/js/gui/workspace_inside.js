@@ -11344,11 +11344,11 @@ Workspace.pushTrashcan = {};
 Workspace.receivePushV2 = function( noties ) {
 	const self = this;
 	console.log( 'receivePushV2', noties );
-	if ( null == Workspace.collectPushiesTimeout ) {
-		Workspace.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
-		Workspace.pushiesCollected = noties;
+	if ( null == self.collectPushiesTimeout ) {
+		self.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
+		self.pushiesCollected = noties;
 	} else {
-		Workspace.pushiesCollected.push( ...noties );
+		self.pushiesCollected.push( ...noties );
 		collatePushies();
 	}
 	
@@ -11356,12 +11356,12 @@ Workspace.receivePushV2 = function( noties ) {
 	//self.onReady();
 	
 	async function collatePushies() {
-		clearTimeout( Workspace.collectPushiesTimeout );
-		delete Workspace.collectPushiesTimeout;
+		clearTimeout( self.collectPushiesTimeout );
+		delete self.collectPushiesTimeout;
 		
 		const pushieMap = {}
 		let apps = {}
-		Wokspace.pushiesCollected.forEach( push => {
+		self.pushiesCollected.forEach( push => {
 			const mId = push.messageId
 			const isTapped = push.tapped
 			const app = push.data?.application
@@ -11379,11 +11379,11 @@ Workspace.receivePushV2 = function( noties ) {
 		const pushies = mids.map( mId => pushieMap[ mId ])
 		apps = Object.keys( apps )
 		console.log( 'collate:', {
-			collected : Workspace.pushiesCollected,
+			collected : self.pushiesCollected,
 			pushies   : pushies,
 			apps      : apps,
 		})
-		delete Workspace.pushiesCollected;
+		delete self.pushiesCollected;
 		
 		await startAppsMaybe( apps )
 		sendToApps( pushies )
