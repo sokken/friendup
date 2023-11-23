@@ -11423,13 +11423,21 @@ Workspace.receivePushV2 = function( noties ) {
 	function sendToApps( pushies ) {
 		console.log( 'sendToApps', pushies )
 		pushies.forEach( pushToApp )
-		
+		pushies.forEach( registerRead )
 		
 		function pushToApp( msg ) {
-			const app = Workspace.applications[ msg.app ]
+			const app = null
+			Workspace.applications.some( appObj => {
+				if ( appObj.applicationName != msg.app )
+					return false
+				
+				app = appObj
+				return true
+			})
+			
 			console.log( 'push to app', [ msg, app ]);
 			app.contentWindow.postMessage({ 
-				data     : msg,
+				data     : msg.data,
 				type     : 'system',
 				method   : 'pushnotification',
 				callback : false,
@@ -11442,6 +11450,21 @@ Workspace.receivePushV2 = function( noties ) {
 				data    : msg
 			} ), '*' );
 			*/
+		}
+		
+		function registerRead( msg ) {
+			console.log( 'registerRead', msg )
+			let l = new Library( 'system.library' );
+			l.onExecuted = regRes
+			l.execute( 'mobile/updatenotification', { 
+				notifid : msg.data.notifid, 
+				action  : 1,
+				pawel   : 4
+			})
+			
+			function regRes( e, r ) {
+				console.log( 'regRes', [ e, r ])
+			}
 		}
 	}
 }
