@@ -819,7 +819,7 @@ Workspace = {
 	{
 		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
 		if ( Workspace.loginPrompt ) {
-			//Workspace.loginPrompt
+			Workspace.loginPrompt.activate();
 			return
 		}
 		
@@ -1005,7 +1005,9 @@ Workspace = {
 		console.log( 'initUserWorkspace', [ json, not_a_callback, ev ])
 		if( Workspace.loginPrompt )
 		{
+			console.log( 'found loginpromp, close', Workspace.loginPrompt, this.loginPrompt )
 			Workspace.loginPrompt.close();
+			CloseView( Workspace.loginPrompt );
 			Workspace.loginPrompt = false;
 		}
 		
