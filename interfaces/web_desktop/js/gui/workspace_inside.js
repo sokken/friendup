@@ -4172,6 +4172,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if( window.friendApp && friendApp.onWorkspaceReady )
 			{
 				console.log( 'call app.onWorkspaceReady' )
+				addTiming( 'sending onWorkspaceReady' )
 				friendApp.onWorkspaceReady();
 			}
 			else
