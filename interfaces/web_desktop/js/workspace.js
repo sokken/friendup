@@ -1007,10 +1007,8 @@ Workspace = {
 		{
 			console.log( 'found loginpromp, close', Workspace.loginPrompt, this.loginPrompt )
 			Workspace.loginPrompt.close();
-			CloseView( Workspace.loginPrompt );
 			Workspace.loginPrompt = false;
 		}
-		
 		
 		await UWInit()
 		
