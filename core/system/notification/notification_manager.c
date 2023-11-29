@@ -1497,11 +1497,88 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		{
 			if( isImage == TRUE )
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"collapse_key\":\"no.doorman.andy\",\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"title\":\"Doorman\","
+						"\"body\":\"the thing goes here\""
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"collapse_key\":\"no.doorman.andy\","
+						"\"priority\":\"high\""
+					"}}", 
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT 
+				);
 			}
 			else
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"title\":\"Doorman\","
+						"\"body\":\"the thing goes here\""
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"collapse_key\":\"no.doorman.andy\","
+						"\"priority\":\"high\""
+					"}}", 
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT
+				 );
 			}
 		}
 		else	// IOS
