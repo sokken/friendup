@@ -817,6 +817,7 @@ Workspace = {
 	},
 	showLoginPrompt: function()
 	{
+		console.log( 'showLoginPrompt', Workspace.loginPrompt )
 		// No loginprompt when we are inside
 		if( document.body.classList.contains( 'Inside' ) )
 			return;
@@ -996,6 +997,7 @@ Workspace = {
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
+		console.log( 'initUserWorkspace', [ json, not_a_callback, ev ])
 		if( Workspace.loginPrompt )
 		{
 			Workspace.loginPrompt.close();
