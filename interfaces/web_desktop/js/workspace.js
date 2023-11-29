@@ -819,7 +819,7 @@ Workspace = {
 	{
 		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
 		if ( Workspace.loginPrompt ) {
-			Workspace.loginPrompt.show()
+			//Workspace.loginPrompt
 			return
 		}
 		
