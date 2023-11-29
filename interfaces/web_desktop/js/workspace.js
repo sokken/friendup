@@ -817,7 +817,12 @@ Workspace = {
 	},
 	showLoginPrompt: function()
 	{
-		console.log( 'showLoginPrompt', Workspace.loginPrompt )
+		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
+		if ( Workspace.loginPrompt ) {
+			Workspace.loginPrompt.show()
+			return
+		}
+		
 		// No loginprompt when we are inside
 		if( document.body.classList.contains( 'Inside' ) )
 			return;
