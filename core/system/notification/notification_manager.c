@@ -1501,8 +1501,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 				len = snprintf( msg, msgSize, "{"
 					"\"registration_ids\":[%s],"
 					"\"notification\":{"
-						"\"title\":\"Doorman\","
-						"\"body\":\"the thing goes here\""
+						"\"title\":\"%s\","
+						"\"body\":\"%s\""
 					"},"
 					"\"data\":{"
 						"\"t\":\"notify\","
@@ -1525,6 +1525,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"priority\":\"high\""
 					"}}", 
 					tokens, 
+					notif->n_Application,
+					notif->n_Title, 
 					DEFAULT_BADGE_NUMBER, 
 					notif->n_Application, 
 					notif->n_Title, 
@@ -1544,8 +1546,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 				len = snprintf( msg, msgSize, "{"
 					"\"registration_ids\":[%s],"
 					"\"notification\":{"
-						"\"title\":\"Doorman\","
-						"\"body\":\"the thing goes here\""
+						"\"title\":\"%s\","
+						"\"body\":\"%s\""
 					"},"
 					"\"data\":{"
 						"\"t\":\"notify\","
@@ -1567,6 +1569,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"priority\":\"high\""
 					"}}", 
 					tokens, 
+					notif->n_Application,
+					notif->n_Title, 
 					DEFAULT_BADGE_NUMBER, 
 					notif->n_Application, 
 					notif->n_Title, 
