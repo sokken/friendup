@@ -10019,10 +10019,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	updateViewState: function( newState )
 	{
 		let self = this;
-		console.log( 'updateViewState', {
-			newState     : newState,
-			currentState : self.currentViewState,
-		});
 		// Check for forced websocket renewal (sleepover)
 		if( newState == 'active' )
 		{
