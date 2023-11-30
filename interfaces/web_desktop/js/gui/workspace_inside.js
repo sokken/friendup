@@ -5172,7 +5172,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				rows.forEach( r => {
 					//let r = rows[a];
-					if( r.Config.indexOf( '{' ) >= 0 )
+					if( r.Config?.indexOf( '{' ) >= 0 )
 					{
 						try
 						{
