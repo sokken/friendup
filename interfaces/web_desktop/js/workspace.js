@@ -1052,9 +1052,13 @@ Workspace = {
 				Workspace.screenOverlayShown = true;
 			}
 			*/
-			console.log( 'UWInit()', Workspace.userWorkspaceInitialized )
+			console.log( 'UWInit()', {
+				thiss     : _this.userWorkspaceInitialized,
+				Workspace : Workspace.userWorkspaceInitialized,
+				wWspc     : window.Workspace.userWorkspaceInitialized,
+			})
 			
-			if( this.userWorkspaceInitialized )
+			if( _this.userWorkspaceInitialized )
 			{
 				await SetupWorkspaceData( json )
 				document.body.classList.remove( 'Login' );
@@ -1063,7 +1067,7 @@ Workspace = {
 				return 1;
 			}
 			else {
-				this.userWorkspaceInitialized = true;
+				_this.userWorkspaceInitialized = true;
 				
 				/*
 				const skripts = await this.loadManySkripts();
