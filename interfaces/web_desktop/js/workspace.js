@@ -1016,7 +1016,7 @@ Workspace = {
 			Workspace.loginPrompt = false;
 		}
 		
-		if ( Worksapce.userWorkspaceInitialized && window.ScreenOverlay ) {
+		if ( Workspace.userWorkspaceInitialized && window.ScreenOverlay ) {
 			window.ScreenOverlay.hide();
 		}
 		
