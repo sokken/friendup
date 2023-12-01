@@ -1027,7 +1027,9 @@ Workspace = {
 		{
 			const _this = Workspace
 			
-			//ScreenOverlay.show();
+			if ( null == _this.userWorkspaceInitialized )
+				ScreenOverlay.show();
+			
 			await WorkspaceInside.setThemeStyle()
 			
 			loadLocale()
