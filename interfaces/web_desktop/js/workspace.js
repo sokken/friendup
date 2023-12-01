@@ -1011,7 +1011,6 @@ Workspace = {
 		
 		if( Workspace.loginPrompt )
 		{
-			console.log( 'found loginpromp, close', Workspace.loginPrompt, this.loginPrompt )
 			Workspace.loginPrompt.close();
 			Workspace.loginPrompt = false;
 		}
@@ -1028,7 +1027,7 @@ Workspace = {
 		{
 			const _this = Workspace
 			
-			ScreenOverlay.show();
+			//ScreenOverlay.show();
 			await WorkspaceInside.setThemeStyle()
 			
 			loadLocale()
@@ -1053,6 +1052,7 @@ Workspace = {
 				Workspace.screenOverlayShown = true;
 			}
 			*/
+			console.log( 'UWInit()', Workspace.userWorkspaceInitialized )
 			
 			if( this.userWorkspaceInitialized )
 			{
