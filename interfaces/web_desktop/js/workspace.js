@@ -1002,12 +1002,22 @@ Workspace = {
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
-		console.log( 'initUserWorkspace', [ json, not_a_callback, ev ])
+		console.log( 'initUserWorkspace', { 
+			ev   : ev, 
+			json : json, 
+			not_all_callback : not_a_callback, 
+			userWorkspaceInitialized : Workspace.userWorkspaceInitialized, 
+		})
+		
 		if( Workspace.loginPrompt )
 		{
 			console.log( 'found loginpromp, close', Workspace.loginPrompt, this.loginPrompt )
 			Workspace.loginPrompt.close();
 			Workspace.loginPrompt = false;
+		}
+		
+		if ( Worksapce.userWorkspaceInitialized && window.ScreenOverlay ) {
+			window.ScreenOverlay.hide();
 		}
 		
 		await UWInit()
