@@ -10151,7 +10151,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	// Execute when everything is ready
 	onReady: function()
 	{
-		console.trace( 'onReady', [ window.friendApp, Workspace.sessionid, this.onReadyList ])
+		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
 		if( this.onReadyList.length )
 		{
 			// Don't  run it twice
@@ -10170,7 +10170,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		//if we dont have a sessionid we will need to wait a bit here...
 		//
 
-		if( window.friendApp && Workspace.sessionid )
+		if( window.friendApp && Workspace.sessionId )
 		{
 			Workspace.registerUMA();
 			/*
@@ -10210,7 +10210,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	
 	registerUMA : async function() {
 		const fap = window.friendApp;
-		console.log( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
+		console.trace( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
 		if ( Workspace.uma_registered )
 			return
 		
