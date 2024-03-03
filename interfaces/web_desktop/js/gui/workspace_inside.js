@@ -11371,6 +11371,7 @@ Workspace.receivePushV2 = function( noties ) {
 					return
 				}
 			}
+			console.log( 'process push', push )
 			
 			const mId = push.messageId || push.msgId
 			if ( !mId ) {
@@ -11381,13 +11382,17 @@ Workspace.receivePushV2 = function( noties ) {
 			push.messageId = mId
 			
 			const isTapped = push.tapped
-			const app = push.data?.application
+			const app = push.data?.application || push.application
 			
 			if ( pushieMap[ mId ]?.tapped )
 				return
 			
 			if ( app )
 				apps[ app ] = true
+			else {
+				console.log( 'no app for', push )
+				return
+			}
 			
 			push.app = app
 			pushieMap[ mId ] = push
