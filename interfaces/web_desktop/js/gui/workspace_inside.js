@@ -11416,6 +11416,7 @@ Workspace.receivePushV2 = function( noties ) {
 			console.log( 'app waiters', waiters )
 			await Promise.all( waiters )
 			
+			console.log( 'done starting', waiters )
 			resolve()
 		}
 	}
@@ -11437,7 +11438,7 @@ Workspace.receivePushV2 = function( noties ) {
 			
 			console.log( 'push to app', [ event, app ]);
 			if ( null == app ) {
-				console.log( 'oopsiewoopsie', [ event, Workspce.applications ])
+				console.log( 'oopsiewoopsie', [ event, Workspace.applications ])
 				return
 			}
 			

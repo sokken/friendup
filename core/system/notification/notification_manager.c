@@ -1589,15 +1589,118 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		{
 			if( isImage == TRUE )
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"},\"apns\":{\"payload\":{\"aps\":{\"mutable-content\":1}},\"fcm_options\":{\"image\":\"%s\"}}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT, notif->n_Content );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"mutable_content\":true,"
+						"\"content_available\":true"
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"title\":\"%s\","
+						"\"content\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"priority\":\"high\""
+					"},"
+					"\"apns\":{"
+						"\"payload\":{"
+							"\"aps\":{"
+								"\"mutable-content\":1"
+							"}"
+						"}"
+					"}"
+					",\"fcm_options\":{"
+						"\"image\":\"%s\""
+					"}}",
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT, 
+					notif->n_Content
+				);
 			}
 			else
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"},\"apns\":{\"payload\":{\"aps\":{\"mutable-content\":1}}}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"mutable_content\":true,"
+						"\"content_available\":true"
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"title\":\"%s\","
+						"\"content\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"priority\":\"high\""
+					"},"
+					"\"apns\":{"
+						"\"payload\":{"
+							"\"aps\":{"
+								"\"mutable-content\":1"
+							"}"
+						"}"
+					"}}",
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID, 
+					notif->n_ID, 
+					notif->n_OriginalCreateT 
+				);
 				//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
 			}
 		}
 		
+		DEBUG("[NotificationManager send noitie]: %s\n", msg );
 		FQEntry *en = (FQEntry *)FCalloc( 1, sizeof( FQEntry ) );
 		if( en != NULL )
 		{
