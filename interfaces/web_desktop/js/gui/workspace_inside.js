@@ -11362,7 +11362,18 @@ Workspace.receivePushV2 = function( noties ) {
 		const pushieMap = {}
 		let apps = {}
 		self.pushiesCollected.forEach( push => {
-			const mId = push.messageId
+			if ( typeof( push ) === 'string' ) {
+				try {
+					push = JSON.parse( push )
+				} catch( jex ) {
+					console.log( 'JSON parse ex', [ jex, push ])
+					return
+				}
+			}
+			
+			const mId = push.messageId || push.msgId
+			push.messageId = mId
+			
 			const isTapped = push.tapped
 			const app = push.data?.application
 			
@@ -11423,8 +11434,8 @@ Workspace.receivePushV2 = function( noties ) {
 	
 	function sendToApps( pushies ) {
 		console.log( 'sendToApps', pushies )
-		pushies.forEach( pushToApp )
-		pushies.forEach( registerRead )
+		let sent = pushies.filter( pushToApp )
+		sent.forEach( registerRead )
 		
 		function pushToApp( event ) {
 			let app = null
@@ -11439,7 +11450,7 @@ Workspace.receivePushV2 = function( noties ) {
 			console.log( 'push to app', [ event, app ]);
 			if ( null == app ) {
 				console.log( 'oopsiewoopsie', [ event, Workspace.applications ])
-				return
+				return false
 			}
 			
 			const msg = event.data
@@ -11458,6 +11469,8 @@ Workspace.receivePushV2 = function( noties ) {
 				data    : msg
 			} ), '*' );
 			*/
+			
+			return true // so filter can pass it on
 		}
 		
 		function registerRead( msg ) {
