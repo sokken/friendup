@@ -11363,6 +11363,7 @@ Workspace.receivePushV2 = function( noties ) {
 		let apps = {}
 		self.pushiesCollected.forEach( push => {
 			if ( typeof( push ) === 'string' ) {
+				console.log( 'receivePushV2 - parse:', push )
 				try {
 					push = JSON.parse( push )
 				} catch( jex ) {
@@ -11372,6 +11373,11 @@ Workspace.receivePushV2 = function( noties ) {
 			}
 			
 			const mId = push.messageId || push.msgId
+			if ( !mId ) {
+				console.log( 'receivePushV2 - no msg id for', push )
+				return
+			}
+			
 			push.messageId = mId
 			
 			const isTapped = push.tapped
@@ -11388,6 +11394,9 @@ Workspace.receivePushV2 = function( noties ) {
 		})
 		
 		const mids = Object.keys( pushieMap )
+		if ( !mids.length )
+			return
+		
 		const pushies = mids.map( mId => pushieMap[ mId ])
 		apps = Object.keys( apps )
 		console.log( 'collate:', {
