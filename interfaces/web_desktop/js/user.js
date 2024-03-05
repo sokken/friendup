@@ -130,6 +130,7 @@ Friend.User = {
     // Send the actual login call
     SendLoginCall: function( info, callback )
     {	
+    	console.log( 'SendLoginCall', [ info, callback, this.lastLogin ])
     	// Already logging in
     	this.State = 'login';
     	
@@ -192,6 +193,7 @@ Friend.User = {
 		m.addVar( 'deviceid', GetDeviceId() );
 		m.onExecuted = function( json, serveranswer )
 		{
+			console.log( 'SendLoginCall response', [ json, serveranswer ])
 			Friend.User.lastLogin = null;
 			// We got a real error
 			if( json == null )
@@ -259,7 +261,9 @@ Friend.User = {
 	// When session times out, use log in again...
 	ReLogin: function( callback )
 	{
-    	if( this.lastLogin ) return false;
+		console.log( 'ReLogin', this.lastLogin )
+    	if( this.lastLogin ) 
+    		return false;
     	
     	this.State = 'login';
     	
@@ -304,6 +308,7 @@ Friend.User = {
 		// Reset cajax http connections (because we lost connection)
 		_cajax_http_connections = 0;
 		
+		console.log( 'ReLogin info', info )
 		if( info.username || info.sessionid )
 		{
 			this.SendLoginCall( info, callback, 'relogin' );
@@ -506,9 +511,14 @@ Friend.User = {
 	// Check if the server is alive
 	CheckServerConnection: function( useAjax )
 	{
-		if( Workspace && Workspace.loginPrompt ) return;
-		if( typeof( Library ) == 'undefined' ) return;
-		if( typeof( MD5 ) == 'undefined' ) return;
+		console.log( 'CheckServerConnection', Workspace?.loginPrompt )
+		if( Workspace && Workspace.loginPrompt ) 
+			return;
+		if( typeof( Library ) == 'undefined' ) 
+			return;
+		if( typeof( MD5 ) == 'undefined' ) 
+			return;
+		
 		let exf = function()
 		{
 			Friend.User.serverCheck = null;
@@ -578,6 +588,7 @@ Friend.User = {
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
 	{
+		console.log( 'SetUserConnectionState', [ mode, force ])
 		if( mode == 'offline' )
 		{
 			if( this.State != 'offline' )
