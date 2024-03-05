@@ -511,7 +511,10 @@ Friend.User = {
 	// Check if the server is alive
 	CheckServerConnection: function( useAjax )
 	{
-		console.log( 'CheckServerConnection', Workspace?.loginPrompt )
+		console.log( 'CheckServerConnection', {
+			loginP : Workspace?.loginPrompt,
+			state  : Friend.User.State,
+		})
 		if( Workspace && Workspace.loginPrompt ) 
 			return;
 		if( typeof( Library ) == 'undefined' ) 
@@ -533,6 +536,7 @@ Friend.User = {
 				{
 					// Dont need this now
 					clearTimeout( checkTimeo );
+					console.log( 'serverCheck result', [ q, s ])
 					
 					// Check missing session
 					let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
@@ -574,6 +578,7 @@ Friend.User = {
 				}
 				catch( e )
 				{
+					console.log( 'servercheck catch ex', e )
 					Friend.User.SetUserConnectionState( 'offline' );
 				}
 			}
