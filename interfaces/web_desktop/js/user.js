@@ -531,6 +531,7 @@ Friend.User = {
 				{
 					Friend.User.SetUserConnectionState( 'offline' );
 				}, 1500 );
+				
 				let serverCheck = new Library( 'system' );
 				serverCheck.onExecuted = function( q, s )
 				{
