@@ -380,7 +380,7 @@ Workspace = {
 					ex.appendChild( t );
 					ex.time = t;
 				}
-				if( !Friend.User.ServerIsThere )
+				if( !Friend.User.serverAvaiable )
 				{
 					if( !ex.offline )
 					{

@@ -221,7 +221,7 @@ Friend.Network.Power =
 	watchDog: function()
 	{
 		var self = Friend.Network.Power;
-		var connected = Friend.User.ServerIsThere;
+		var connected = Friend.User.serverAvaiable;
 		if ( self.connected != connected )
 		{
 			self.connected = connected;

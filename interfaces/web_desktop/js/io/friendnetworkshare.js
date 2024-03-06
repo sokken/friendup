@@ -141,7 +141,7 @@ FriendNetworkShare =
 	watchDog: function()
 	{
 		var self = FriendNetworkShare;
-		var connected = Friend.User.ServerIsThere;
+		var connected = Friend.User.serverAvaiable;
 		if ( self.connected != connected )
 		{
 			self.connected = connected;

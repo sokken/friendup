@@ -556,7 +556,7 @@ Friend.User = {
 			console.log( 'serverCheck result', [ q, s ])
 			Friend.User.serverAvaiable = true
 			
-			// Check missing session  
+			// Check missing session
 			let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
 			if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
 				missSess = true;

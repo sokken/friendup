@@ -43,7 +43,7 @@ function AddToCajaxQueue( ele )
 	ele.queued = true;
 	
 	// Don't add to queue if we are offline
-	if( !Friend.User || !Friend.User.ServerIsThere )
+	if( !Friend.User || !Friend.User.serverAvaiable )
 	{
 		if( ele.onload )
 		{
