@@ -20,7 +20,7 @@ Friend.User = {
     
     // Vars --------------------------------------------------------------------
     State: 'online', 			// online, offline, login
-    ServerIsThere: true,
+    serverAvaiable: true,
     Username: '',               // Holds the user's username
     AccessToken: null,          // Holds the user's access token
     ConnectionAttempts: 0,         // How many relogin attempts were made
@@ -502,7 +502,7 @@ Friend.User = {
 	// Initialize this object
 	Init: function()
 	{
-		this.ServerIsThere = true;
+		this.serverAvaiable = true;
 	},
 	CheckServerNow: function()
 	{
@@ -511,85 +511,94 @@ Friend.User = {
 	// Check if the server is alive
 	CheckServerConnection: function( useAjax )
 	{
+		const self = this
 		console.log( 'CheckServerConnection', {
 			loginP : Workspace?.loginPrompt,
 			state  : Friend.User.State,
+			check  : Friend.User.serverCheck,
 		})
-		if( Workspace && Workspace.loginPrompt ) 
-			return;
-		if( typeof( Library ) == 'undefined' ) 
-			return;
-		if( typeof( MD5 ) == 'undefined' ) 
-			return;
 		
-		let exf = function()
+		if ( Friend.User.serverCheck ) {
+			Friend.User.serverReCheck = true
+			return
+		}
+		
+		if( Workspace && Workspace.loginPrompt ) 
+			return
+		
+		if( typeof( Library ) == 'undefined' ) 
+			return
+		if( typeof( MD5 ) == 'undefined' ) 
+			return
+		
+		Friend.User.serverReCheck = false
+		if( Friend.User.serverAvaiable )
 		{
-			Friend.User.serverCheck = null;
-			if( Friend.User.State != 'offline' )
-			{
-				let checkTimeo = setTimeout( function()
-				{
-					Friend.User.SetUserConnectionState( 'offline' );
-				}, 1500 );
+			Friend.User.ReLogin();
+			return
+		}
+		
+		let checkTimeo = setTimeout( function()
+		{
+			console.log( 'server check timeout' )
+			Friend.User.serverAvaiable = false
+			Friend.User.SetUserConnectionState( 'offline' );
+			if ( Friend.User.serverReCheck )
+				self.CheckServerConnection()
 				
-				let serverCheck = new Library( 'system' );
-				serverCheck.onExecuted = function( q, s )
-				{
-					// Dont need this now
-					clearTimeout( checkTimeo );
-					console.log( 'serverCheck result', [ q, s ])
-					
-					// Check missing session
-					let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
-					if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
-						missSess = true;
-					if( !missSess && q == null && s == null )
-						missSess = true;
+		}, 1500 );
+		
+		let serverCheck = new Library( 'system' );
+		serverCheck.onExecuted = function( q, s )
+		{
+			// Dont need this now
+			clearTimeout( checkTimeo );
+			console.log( 'serverCheck result', [ q, s ])
+			Friend.User.serverAvaiable = true
 			
-					if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
-					{
-						if( missSess )
-						{
-							Friend.User.ReLogin();
-						}
-						Friend.User.SetUserConnectionState( 'offline' );
-					}
-					else
-					{
-						if( !Friend.User.ServerIsThere )
-						{
-							Friend.User.SetUserConnectionState( 'online', true );
-						}
-						Friend.User.ConnectionAttempts = 0;
-					}
-				};
-				if( !useAjax )
-					serverCheck.forceHTTP = true;
-				serverCheck.forceSend = true;
-			
-				try
+			// Check missing session  
+			let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
+			if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
+				missSess = true;
+			if( !missSess && q == null && s == null )
+				missSess = true;
+	
+			if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
+			{
+				if( missSess )
 				{
-					// Cancel previous call if it's still in pipe
-					if( Friend.User.serverCheck && Friend.User.serverCheck.currentRequest )
-					{
-						Friend.User.serverCheck.currentRequest.destroy();
-					}
-					serverCheck.execute( 'validate' );
-					Friend.User.serverCheck = serverCheck;
+					Friend.User.ReLogin();
 				}
-				catch( e )
-				{
-					console.log( 'servercheck catch ex', e )
-					Friend.User.SetUserConnectionState( 'offline' );
-				}
+				Friend.User.SetUserConnectionState( 'offline' );
 			}
 			else
 			{
-				Friend.User.ReLogin();
+				if( !Friend.User.serverAvaiable )
+				{
+					Friend.User.SetUserConnectionState( 'online', true );
+				}
+				Friend.User.ConnectionAttempts = 0;
 			}
 		};
-		// Check now!
-		exf();
+		
+		serverCheck.forceHTTP = true;
+		serverCheck.forceSend = true;
+	
+		try
+		{
+			// Cancel previous call if it's still in pipe
+			if( Friend.User.serverCheck && Friend.User.serverCheck.currentRequest )
+			{
+				Friend.User.serverCheck.currentRequest.destroy();
+			}
+			serverCheck.execute( 'validate' );
+			Friend.User.serverCheck = serverCheck;
+		}
+		catch( e )
+		{
+			console.log( 'servercheck catch ex', e )
+			Friend.User.SetUserConnectionState( 'offline' );
+		}
 	},
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
@@ -637,7 +646,7 @@ Friend.User = {
 					DoorCache.dirListing = {};
 				}
 			}
-			this.ServerIsThere = false;
+			this.serverAvaiable = false;
 			this.State = 'offline';
 		}
 		else if( mode == 'online' )
@@ -651,7 +660,7 @@ Friend.User = {
 			
 			if( this.State != 'online' || force || !Workspace.conn )
 			{
-				this.ServerIsThere = true;
+				this.serverAvaiable = true;
 				this.State = 'online';
 				document.body.classList.remove( 'Offline' );
 				if( Workspace.screen )
