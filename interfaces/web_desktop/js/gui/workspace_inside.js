@@ -5170,6 +5170,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				let foundShared = false;
 				let fixCount = 0;
 				
+				if ( !rows )
+					rows = []
+				
 				rows.forEach( r => {
 					//let r = rows[a];
 					if( r.Config?.indexOf && r.Config?.indexOf( '{' ) >= 0 )
