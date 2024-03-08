@@ -264,7 +264,15 @@ Friend.User = {
 	// When session times out, use log in again...
 	ReLogin: function( callback )
 	{
-		console.log( 'ReLogin', this.lastLogin )
+		console.log( 'ReLogin', {
+			callback  : callback,
+			lastLogin : this.lastLogin,
+			usern     : Workspace.username,
+			lusern    : Workspace.loginUsername,
+			sssid     : Workspace.sessionid,
+			SSSID     : Workspace.sessionId,
+		})
+		
     	if( this.lastLogin ) 
     		return false;
     	
