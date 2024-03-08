@@ -30,6 +30,7 @@ Friend.User = {
     // Log into Friend Core
     Login: function( username, password, remember, callback, event, flags )
     {
+    	console.log( 'User.Login', [ username, password, remember, callback, event, flags ])
     	this.State = 'login';
     	if( !event ) 
     		event = window.event;
@@ -93,12 +94,14 @@ Friend.User = {
     // Login using a session id
     LoginWithSessionId: function( sessionid, callback, event )
     {
-    	if( this.State == 'online' ) return;
+    	console.log( 'LoginWithSessionId', sessionid, callback, event, this.State )
+    	if( this.State == 'online' ) 
+    		return;
+    	
     	this.State = 'login';
     	
-    	if( !event ) event = window.event;
-    	
-    	let self = this;
+    	if( !event ) 
+    		event = window.event;
 		
 		// Close conn here - new login regenerates sessionid
 		if( Workspace.conn )
@@ -323,6 +326,7 @@ Friend.User = {
     // Log out
     Logout: function( cbk )
     {
+    	console.log( 'User.Logout' )
     	if( !cbk ) cbk = false;
     	
     	// FIXME: Remove this - it is not used anymore
@@ -509,7 +513,7 @@ Friend.User = {
 		this.CheckServerConnection();
 	},
 	// Check if the server is alive
-	CheckServerConnection: function( useAjax )
+	CheckServerConnection: function()
 	{
 		const self = this
 		console.log( 'CheckServerConnection', {
@@ -518,44 +522,67 @@ Friend.User = {
 			check  : Friend.User.serverCheck,
 		})
 		
-		if ( Friend.User.serverCheck ) {
-			Friend.User.serverReCheck = true
+		
+		if( Workspace?.loginPrompt ) 
+			return
+		
+		if ( Friend.User.serverCheckInterval ) {
 			return
 		}
-		
-		if( Workspace && Workspace.loginPrompt ) 
-			return
 		
 		if( typeof( Library ) == 'undefined' ) 
 			return
 		if( typeof( MD5 ) == 'undefined' ) 
 			return
 		
-		Friend.User.serverReCheck = false
+		/*
 		if( Friend.User.serverAvaiable )
 		{
 			Friend.User.ReLogin();
 			return
 		}
+		*/
 		
-		let checkTimeo = setTimeout( function()
+		Friend.User.serverCheckInterval = setInterval(() =>
 		{
-			console.log( 'server check timeout' )
+			console.log( 'send server check' )
+			Friend.User.serverCheckTimeout = setTimeout( checkTimeout, 1500 )
+			sendCheck()
+		}, 2500 );
+		
+		function checkTimeout() {
+			Friend.User.serverCheckTimeout = null
+			if ( Friend.User.serverCheck?.currentRequest )
+				Friend.User.serverCheck.currentRequest.destroy()
+			
 			Friend.User.serverAvaiable = false
 			Friend.User.SetUserConnectionState( 'offline' );
-			if ( Friend.User.serverReCheck )
-				self.CheckServerConnection()
-				
-		}, 1500 );
+		}
 		
-		let serverCheck = new Library( 'system' );
-		serverCheck.onExecuted = function( q, s )
+		function sendCheck() {
+			let serverCheck = new Library( 'system' );
+			Friend.User.serverCheck = serverCheck
+			
+			serverCheck.forceHTTP = true;
+			serverCheck.forceSend = true;
+			serverCheck.onExecuted = handleCheckResponse
+			serverCheck.execute( 'validate' );
+		}
+		
+		function handleCheckResponse( q, s )
 		{
-			// Dont need this now
-			clearTimeout( checkTimeo );
-			console.log( 'serverCheck result', [ q, s ])
+			if ( null != Friend.User.serverCheckTimeout )
+				clearTimeout( Friend.User.serverCheckTimeout )
+			
+			if ( null != Friend.User.serverCheckInterval )
+				clearInterval( Friend.User.serverCheckInterval )
+			
+			Friend.User.serverCheckTimeout = null
+			Friend.User.serverCheckInterval = null
+			Friend.User.serverCheck = null
 			Friend.User.serverAvaiable = true
 			
+			console.log( 'serverCheck result', [ q, s ])
 			// Check missing session
 			let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
 			if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
@@ -581,9 +608,8 @@ Friend.User = {
 			}
 		};
 		
-		serverCheck.forceHTTP = true;
-		serverCheck.forceSend = true;
 	
+	/*
 		try
 		{
 			// Cancel previous call if it's still in pipe
@@ -591,7 +617,7 @@ Friend.User = {
 			{
 				Friend.User.serverCheck.currentRequest.destroy();
 			}
-			serverCheck.execute( 'validate' );
+			
 			Friend.User.serverCheck = serverCheck;
 		}
 		catch( e )
@@ -599,99 +625,98 @@ Friend.User = {
 			console.log( 'servercheck catch ex', e )
 			Friend.User.SetUserConnectionState( 'offline' );
 		}
+		*/
 	},
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
 	{
-		console.log( 'SetUserConnectionState', [ mode, force ])
+		console.log( 'SetUserConnectionState', {
+			mode      : mode,
+			force     : force,
+			currState : this.State,
+		})
+		
+		if ( mode == this.State )
+			return
+		
 		if( mode == 'offline' )
 		{
-			if( this.State != 'offline' )
+			this.State = 'offline';
+			Workspace.workspaceIsDisconnected = true;
+			document.body.classList.add( 'Offline' );
+			if( Workspace.screen )
+				Workspace.screen.displayOfflineMessage();
+			Workspace.workspaceIsDisconnected = true;
+			if( Workspace.nudgeWorkspacesWidget )
+				Workspace.nudgeWorkspacesWidget();
+			
+			Friend.User.CheckServerConnection()
+			
+			// Try to close the websocket
+			if( Workspace.conn && Workspace.conn.ws )
 			{
-				Workspace.workspaceIsDisconnected = true;
-				document.body.classList.add( 'Offline' );
-				if( Workspace.screen )
-					Workspace.screen.displayOfflineMessage();
-				Workspace.workspaceIsDisconnected = true;
-				if( Workspace.nudgeWorkspacesWidget )
-					Workspace.nudgeWorkspacesWidget();
-				
-				if( this.checkInterval )
-					clearInterval( this.checkInterval );
-				this.checkInterval = setInterval( 'Friend.User.CheckServerConnection()', 2500 );
-				
-				// Try to close the websocket
+				try
+				{
+					Workspace.conn.ws.close();
+				}
+				catch( e )
+				{
+					console.log( 'Could not close conn.' );
+				}
 				if( Workspace.conn && Workspace.conn.ws )
 				{
-					try
-					{
-						Workspace.conn.ws.close();
-					}
-					catch( e )
-					{
-						console.log( 'Could not close conn.' );
-					}
-					if( Workspace.conn && Workspace.conn.ws )
-					{
-						delete Workspace.conn.ws;
-						Workspace.conn.ws = null;
-					}
-					delete Workspace.conn;
-					Workspace.conn = null;
+					delete Workspace.conn.ws;
+					Workspace.conn.ws = null;
 				}
-			
-				// Remove dirlisting cache!
-				if( window.DoorCache )
-				{
-					DoorCache.dirListing = {};
-				}
+				delete Workspace.conn;
+				Workspace.conn = null;
 			}
-			this.serverAvaiable = false;
-			this.State = 'offline';
-		}
-		else if( mode == 'online' )
-		{
-			// We're online again
-			if( this.checkInterval )
+		
+			// Remove dirlisting cache!
+			if( window.DoorCache )
 			{
-				clearInterval( this.checkInterval );
-				this.checkInterval = null;
+				DoorCache.dirListing = {};
 			}
 			
-			if( this.State != 'online' || force || !Workspace.conn )
-			{
-				this.serverAvaiable = true;
-				this.State = 'online';
-				document.body.classList.remove( 'Offline' );
-				if( Workspace.screen )
-					Workspace.screen.hideOfflineMessage();
-				
-				Workspace.workspaceIsDisconnected = false;
-				if( Workspace.nudgeWorkspacesWidget )
-					Workspace.nudgeWorkspacesWidget();
-				
-				// Just remove this by force
-				document.body.classList.remove( 'Busy' );
-				// Just refresh it
-				if( Workspace.refreshDesktop )
-					Workspace.refreshDesktop();
-				
-				// Try to reboot the websocket
-				if( !Workspace.conn && Workspace.initWebSocket )
-				{
-					Workspace.initWebSocket();
-				}
-				else
-				{
-					//console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
-				}
-				// Clear execution queue
-				_executionQueue = {};
-			}
+			return
 		}
-		else
+		
+		if( mode == 'online' || force || !Workspace.conn )
 		{
-			this.State = mode;
+			this.serverAvaiable = true;
+			this.State = 'online';
+			document.body.classList.remove( 'Offline' );
+			if( Workspace.screen )
+				Workspace.screen.hideOfflineMessage();
+			
+			Workspace.workspaceIsDisconnected = false;
+			if( Workspace.nudgeWorkspacesWidget )
+				Workspace.nudgeWorkspacesWidget();
+			
+			// Just remove this by force
+			document.body.classList.remove( 'Busy' );
+			// Just refresh it
+			if( Workspace.refreshDesktop )
+				Workspace.refreshDesktop();
+			
+			// Try to reboot the websocket
+			if( !Workspace.conn && Workspace.initWebSocket )
+			{
+				Workspace.initWebSocket();
+			}
+			else
+			{
+				//console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
+			}
+			
+			// Clear execution queue
+			_executionQueue = {};
+			
+			return
 		}
+		
+		console.log( 'SetUserConnectionState mode ????', mode )
+		this.State = mode;
+		
 	}
 };
