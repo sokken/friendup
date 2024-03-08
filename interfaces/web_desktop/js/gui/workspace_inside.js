@@ -959,7 +959,7 @@ var WorkspaceInside = {
 			if( self.mode == 'vr' || isMobile || Workspace.isSingleTask ) 
 			{
 				self.initializingWorkspaces = false;
-				Workspace.setLoading( false );
+				//Workspace.setLoading( false );
 				done()
 				return
 			}
@@ -1139,10 +1139,6 @@ var WorkspaceInside = {
 			}
 			// Refresh our dynamic classes now..
 			RefreshDynamicClasses();
-			
-			// Try to show workspace
-			Workspace.setLoading( false )
-			
 			done()
 			
 		}
@@ -4083,9 +4079,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if( Workspace.themeOverride ) 
 				themeName = Workspace.themeOverride.toLowerCase()
 
-			// Setting loading
-			Workspace.setLoading( true )
-
 			if( !themeName ) 
 				themeName = 'friendup12'
 			
@@ -4169,11 +4162,12 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			ScreenOverlay.hide()
 			// We are ready!
 			Workspace.readyToRun = true;
+			Workspace.setLoading( false )
 			if( window.friendApp && friendApp.onWorkspaceReady )
 			{
 				console.log( 'call app.onWorkspaceReady' )
 				addTiming( 'sending onWorkspaceReady' )
-				friendApp.onWorkspaceReady();
+				friendApp.onWorkspaceReady()
 			}
 			else
 			{
@@ -4209,11 +4203,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						{
 						    clearInterval( insideInterval );
 							
-							// Set right classes
-							if( !Workspace.initializingWorkspaces )
-							{
-								Workspace.setLoading( false );
-							}
 							
 							document.title = Friend.windowBaseString;
 							
@@ -4280,7 +4269,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			
 			function done() {
-				Workspace.setLoading( false )
 				delete Workspace.refreshThemePromise
 				resolve()
 			}

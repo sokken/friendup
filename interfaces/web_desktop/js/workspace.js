@@ -428,7 +428,7 @@ Workspace = {
 		// Init security subdomains
 		//SubSubDomains.initSubSubDomains();
 		this.initializingWorkspaces = false
-		self.setLoading( false )
+		//self.setLoading( false )
 		addTiming( 'postinit completed' )
 		
 		
@@ -534,6 +534,10 @@ Workspace = {
 	setLoading: function( isLoading )
 	{
 		const self = this
+		console.log( 'Workspace.setLoading', {
+			isLoading   : isLoading,
+			initWrkSpcs : this.initializingWorkspaces,
+		})
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -999,6 +1003,14 @@ Workspace = {
 		console.log( 'getFromCache', [ type, !!data ])
 		return cache[ type ] || null
 	},
+	sendLoginRequest : function( loginReq ) {
+		console.log( 'Workspace.sendLoginRequest', loginReq )
+		loginReq.send()
+		if ( !window.friendApp )
+			return
+		
+		
+	}
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
@@ -1126,7 +1138,6 @@ Workspace = {
 				
 				if( !_this.workspaceHasLoadedOnceBefore )
 				{
-					Workspace.setLoading( true );
 					_this.workspaceHasLoadedOnceBefore = true;
 				}
 				
