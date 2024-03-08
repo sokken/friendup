@@ -1010,7 +1010,7 @@ Workspace = {
 			return
 		
 		// hides login for mobile devices
-		Workspace.loginPrompt.content.parentNode.style.opacity = 0;
+		Workspace.loginPrompt.content.parentNode.style.opacity = 0
 		Workspace.setLoading( true )
 		
 	},
@@ -1026,6 +1026,7 @@ Workspace = {
 		
 		if( Workspace.loginPrompt )
 		{
+			Workspace.loginPrompt.content.parentNode.style.opacity = 0
 			Workspace.loginPrompt.close();
 			Workspace.loginPrompt = false;
 		}
