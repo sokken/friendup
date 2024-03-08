@@ -1332,6 +1332,7 @@ Workspace = {
 			_this.sessionId = json.sessionid ? json.sessionid : null;
 			_this.userId    = json.userid;
 			_this.fullName  = json.fullname;
+			_this.fc_token  = json.token
 			if( json.username ) 
 				_this.loginUsername = json.username;
 			

@@ -556,7 +556,6 @@ Friend.User = {
 		
 		Friend.User.serverCheckInterval = setInterval(() =>
 		{
-			console.log( 'send server check' )
 			Friend.User.serverCheckTimeout = setTimeout( checkTimeout, 1500 )
 			sendCheck()
 		}, 2500 );
@@ -572,6 +571,7 @@ Friend.User = {
 		}
 		
 		function sendCheck() {
+			console.log( 'send server check' )
 			let serverCheck = new Library( 'system' );
 			Friend.User.serverCheck = serverCheck
 			
@@ -609,19 +609,19 @@ Friend.User = {
 			{
 				if( missSess )
 				{
-					Friend.User.ReLogin();
+					if ( window.friendApp )
+						window.friendApp.logout()
+					else
+						Friend.User.ReLogin()
 				}
 				Friend.User.SetUserConnectionState( 'offline' );
 			}
 			else
 			{
-				if( !Friend.User.serverAvaiable )
-				{
-					Friend.User.SetUserConnectionState( 'online', true );
-				}
+				Friend.User.SetUserConnectionState( 'online', true );
 				Friend.User.ConnectionAttempts = 0;
 			}
-		};
+		}; 
 		
 	
 	/*
