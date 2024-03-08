@@ -1010,7 +1010,7 @@ Workspace = {
 			return
 		
 		
-	}
+	},
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
