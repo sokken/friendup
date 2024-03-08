@@ -1327,6 +1327,7 @@ Workspace = {
 		async function SetupWorkspaceData( json )
 		{
 			const _this = Workspace;
+			console.log( 'SetupWorkspaceData', json )
 			// Ok, we're in
 			_this.sessionId = json.sessionid ? json.sessionid : null;
 			_this.userId    = json.userid;

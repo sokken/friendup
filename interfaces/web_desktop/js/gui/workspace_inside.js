@@ -9642,6 +9642,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	flushSession: function()
 	{
+		console.trace( 'flushSession' )
 		Workspace.sessionId = '';
 	},
 	// Upgrade settings (for new versions)

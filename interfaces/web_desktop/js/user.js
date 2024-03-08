@@ -269,6 +269,7 @@ Friend.User = {
 			lastLogin : this.lastLogin,
 			usern     : Workspace.username,
 			lusern    : Workspace.loginUsername,
+			lpwww     : Workspace.loginPassword,
 			sssid     : Workspace.sessionid,
 			SSSID     : Workspace.sessionId,
 		})
@@ -509,6 +510,7 @@ Friend.User = {
 	FlushSession: function()
 	{
 		// Clear Workspace session
+		console.trace( 'flushSession' )
 		Workspace.sessionId = '';
 	},
 	// Initialize this object
