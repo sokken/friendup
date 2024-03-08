@@ -133,7 +133,7 @@ Friend.User = {
     // Send the actual login call
     SendLoginCall: function( info, callback )
     {	
-    	console.log( 'SendLoginCall', [ info, callback, this.lastLogin ])
+    	console.trace( 'SendLoginCall', [ info, callback, this.lastLogin ])
     	// Already logging in
     	this.State = 'login';
     	
@@ -519,6 +519,7 @@ Friend.User = {
 		console.log( 'CheckServerConnection', {
 			loginP : Workspace?.loginPrompt,
 			state  : Friend.User.State,
+			checkInterval : Friend.User.serverCheckInterval,
 			check  : Friend.User.serverCheck,
 		})
 		
@@ -551,6 +552,7 @@ Friend.User = {
 		}, 2500 );
 		
 		function checkTimeout() {
+			console.log( 'serverCheck timeout')
 			Friend.User.serverCheckTimeout = null
 			if ( Friend.User.serverCheck?.currentRequest )
 				Friend.User.serverCheck.currentRequest.destroy()
