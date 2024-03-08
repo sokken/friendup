@@ -270,8 +270,8 @@ Friend.User = {
     	
     	this.State = 'login';
     	
-    	
-    	if( !event ) event = window.event;
+    	if( !event ) 
+    		event = window.event;
     	
     	let self = this;
     	let info = {};
@@ -573,6 +573,10 @@ Friend.User = {
 		
 		function handleCheckResponse( q, s )
 		{
+			console.log( 'serverCheck result', [ q, s ])
+			if ( null == q && null == s )
+				return
+			
 			if ( null != Friend.User.serverCheckTimeout )
 				clearTimeout( Friend.User.serverCheckTimeout )
 			
@@ -584,7 +588,6 @@ Friend.User = {
 			Friend.User.serverCheck = null
 			Friend.User.serverAvaiable = true
 			
-			console.log( 'serverCheck result', [ q, s ])
 			// Check missing session
 			let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
 			if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
