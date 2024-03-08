@@ -1009,6 +1009,9 @@ Workspace = {
 		if ( !window.friendApp )
 			return
 		
+		// hides login for mobile devices
+		Workspace.loginPrompt.content.parentNode.style.opacity = 0;
+		Workspace.setLoading( true )
 		
 	},
 	initUserWorkspace: async function( json, not_a_callback, ev )
