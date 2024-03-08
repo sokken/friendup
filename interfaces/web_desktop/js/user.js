@@ -607,6 +607,7 @@ Friend.User = {
 	
 			if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
 			{
+				console.log( 'servercheck - bad response' )
 				if( missSess )
 				{
 					if ( window.friendApp )
@@ -618,6 +619,7 @@ Friend.User = {
 			}
 			else
 			{
+				console.log( 'servercheck - good response' )
 				Friend.User.SetUserConnectionState( 'online', true );
 				Friend.User.ConnectionAttempts = 0;
 			}
