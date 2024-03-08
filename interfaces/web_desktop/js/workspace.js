@@ -1024,6 +1024,7 @@ Workspace = {
 			userWorkspaceInitialized : Workspace.userWorkspaceInitialized, 
 		})
 		
+		Workspace.setLoading( true )
 		if( Workspace.loginPrompt )
 		{
 			Workspace.loginPrompt.content.parentNode.style.opacity = 0
