@@ -1522,7 +1522,16 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"},"
 					"\"android\":{"
 						"\"collapse_key\":\"no.doorman.andy\","
-						"\"priority\":\"high\""
+						"\"priority\":\"high\","
+						"\"notification\":{"
+							"\"default_vibrate_timings\":false,"
+							"\"vibrate_timings\":["
+								"\"0.0s\","
+								"\"0.4s\","
+								"\"0.2s\","
+								"\"0.4s\""
+							"]"
+						"}"
 					"}}", 
 					tokens, 
 					notif->n_Title, 
