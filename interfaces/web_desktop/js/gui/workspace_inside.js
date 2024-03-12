@@ -2075,12 +2075,13 @@ var WorkspaceInside = {
 				appMenu.appendChild( app )
 			})
 			
-			const logout document.createElement( 'div' )
+			const logout = document.createElement( 'div' )
 			logout.className = 'app_menu_item logout'
 			logout.onclick = e => {
 				console.log( 'logout', this.logout )
 				this.logout()
 			}
+			appMenu.appendChild( logout )
 			
 			Workspace.appMenu = appMenu;
 			Workspace.screen.contentDiv.parentNode.appendChild( appMenu );
