@@ -2722,6 +2722,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							}
 						}
 						
+						console.log( 'startupsequence', seq )
 						if( seq.length )
 						{
 							if( ScreenOverlay.debug )

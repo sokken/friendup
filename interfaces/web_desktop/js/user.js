@@ -384,7 +384,8 @@ Friend.User = {
 				return Workspace.deleteUMAPromise
 			
 			Workspace.deleteUMAPromise = new Promise(( resolve, reject ) => {
-				let ud = new cAjax();
+				console.log( 'deleteUMA' )
+				let ud = new cAjax()
 				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
 				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
 				ud.onload = ( lmdata ) => {
@@ -404,6 +405,7 @@ Friend.User = {
 				return Workspace.logoutUserPromise
 			
 			Workspace.logoutUserPromise = new Promise(( resolve, reject ) => {
+				console.log( 'callLogoutUser' )
 				let m = new cAjax();
             	m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
             	m.forceHTTP = true;
