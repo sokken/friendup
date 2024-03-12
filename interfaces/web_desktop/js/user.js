@@ -361,7 +361,7 @@ Friend.User = {
 			afterSaveWinSto()
 		}
 		
-		function afterSaveWinSto()
+		async function afterSaveWinSto()
 		{
 			console.log( 'afterSaveWinSto', Workspace.logoutURL )
 			if( Workspace.logoutURL )
