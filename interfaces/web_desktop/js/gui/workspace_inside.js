@@ -2078,7 +2078,7 @@ var WorkspaceInside = {
 			const logout = document.createElement( 'div' )
 			logout.className = 'app_menu_item logout'
 			const logoutIcon = document.createElement( 'i' )
-			logoutIcon.className = 'fa fa-fw fa-logout'
+			logoutIcon.className = 'fa fa-fw fa-sign-out'
 			logout.appendChild( logoutIcon )
 			logout.onclick = e => {
 				console.log( 'logout', this.logout )
@@ -2127,8 +2127,16 @@ var WorkspaceInside = {
 		//_ActivateWindow( app.windows[ z ]._window.parentNode );
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
-		console.log( 'switchToApp - apps', Workspace.applications )
+		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )
+		console.log( 'switchToApp - apps', Workspace.applications, app )
+		if ( !app ) {
+			await ExecuteApplication( appName )
+			console.log( 'app executed' )
+		}
 		
+		
+		
+		// now switch to app
 		
 	},
 	// Server announcements
