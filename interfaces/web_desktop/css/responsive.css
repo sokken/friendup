@@ -279,8 +279,8 @@ html body .Screen .MobileAppMenu:after
 }
 
 .MobileAppMenu .app_menu_item {
-	width  : 3em;
-	height : 3em;
+	width  : 2.5em;
+	height : 2.5em;
 	background-size : contain;
 }
 
