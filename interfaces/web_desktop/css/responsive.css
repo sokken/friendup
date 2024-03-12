@@ -298,6 +298,12 @@ html body .Screen .MobileAppMenu:after
 	justify-content: center;
 }
 
+.MobileAppMenu .logout .i {
+	color     : white;
+	font-size : 2em;
+}
+
+
 
 /* Mobile menu -------------------------------------------------------------- */
 
@@ -1042,6 +1048,7 @@ body[mobile=mobile] .File .Title
 html body[mobile=mobile] #DoorsScreen > .ScreenContent, 
 html body[mobile=mobile]:not(.HasMenu).ViewMaximized #Screens > div.Screen > .ScreenContent
 {
+	top : 0px !important;
 	height: calc(100% - 3em) !important;
 	min-height: calc(100% - 3em) !important;
 }

@@ -1855,7 +1855,7 @@ var WorkspaceInside = {
 	{
 		if( this.mode == 'vr' ) return;
 
-		let self = this;
+		const self = this;
 
 		if( Workspace.isSingleTask ) return;
 		
@@ -2071,7 +2071,7 @@ var WorkspaceInside = {
 			[ 'FriendChat', 'DoormanOffice' ].forEach( appName => {
 				const app = document.createElement( 'div' )
 				app.className = 'app_menu_item switch_to_' + appName
-				app.onclick = e => switchToApp( appName )
+				app.onclick = e => this.switchToApp( appName )
 				appMenu.appendChild( app )
 			})
 			
@@ -2082,7 +2082,7 @@ var WorkspaceInside = {
 			logout.appendChild( logoutIcon )
 			logout.onclick = e => {
 				console.log( 'logout', this.logout )
-				this.logout()
+				//this.logout()
 			}
 			appMenu.appendChild( logout )
 			
