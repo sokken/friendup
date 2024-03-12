@@ -5910,7 +5910,6 @@ Friend.GUI.reorganizeResponsiveMinimized = function()
 			continue;
 		}
 		
-		continue
 		console.log( 'add onworksapce to', a )
 		c.classList.add( 'OnWorkspace' );
 		

@@ -390,7 +390,7 @@ Friend.User = {
 				let ud = new cAjax();
 				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
 				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
-				id.onload = ( lmdata ) => {
+				ud.onload = ( lmdata ) => {
 					console.log( 'deleteUMA returned', lmdata )
 					delete Workspace.deleteUMAPromise
 					resolve()
