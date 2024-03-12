@@ -2068,10 +2068,30 @@ var WorkspaceInside = {
 			// App menu toggle
 			let appMenu = document.createElement( 'div' );
 			appMenu.className = 'MobileAppMenu';
+			[ 'FriendChat', 'Doorman' ].forEach( appName => {
+				const app = document.createElement( 'div' )
+				app.className = 'app_menu_item switch_to_' + appName
+				app.onclick = e => switchToApp( appName )
+				appMenu.appendChild( app )
+			})
+			
+			const logout document.createElement( 'div' )
+			logout.className = 'app_menu_item logout'
+			logout.onclick = e => {
+				console.log( 'logout', this.logout )
+				this.logout()
+			}
+			
 			Workspace.appMenu = appMenu;
 			Workspace.screen.contentDiv.parentNode.appendChild( appMenu );
-			appMenu.onclick = function()
+			appMenu.onclick = function( e )
 			{
+				console.log( 'appMenu.onclick' )
+				//e.preventDefault()
+				//e.stopPropagation()
+				return
+				
+				/*
 				// Turn off openlock
 				if( Workspace.mainDock )
 					Workspace.mainDock.openLock = false;
@@ -2093,9 +2113,19 @@ var WorkspaceInside = {
 					if( !Workspace.isSingleTask && Workspace.mainDock )
 						Workspace.mainDock.openDesklet();
 				}
+				*/
 			}
 		}
 	},
+	switchToApp : async function( appName ) {
+		const self = this
+		console.log( 'switchToApp', self.appMenu )
+		//_ActivateWindow( app.windows[ z ]._window.parentNode );
+		//_WindowToFront( app.windows[ z ]._window.parentNode );
+		//ActivateApplication( app, conf );
+		console.log( 'switchToApp - apps', Workspace.applications )
+		
+	}
 	// Server announcements
 	getAnnouncements: function()
 	{

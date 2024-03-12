@@ -273,6 +273,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			//
 		}
 	
+		console.log( 'ExeApp conf', conf )
 		//console.log( 'ExecuteApplication.onExecuted', [ r, conf ]);
 		if( r == 'activate' )
 		{
