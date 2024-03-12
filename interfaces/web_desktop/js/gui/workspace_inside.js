@@ -2123,7 +2123,7 @@ var WorkspaceInside = {
 	},
 	switchToApp : async function( appName ) {
 		const self = this
-		console.log( 'switchToApp', self.appMenu )
+		console.log( 'switchToApp', movableWindows )
 		//_ActivateWindow( app.windows[ z ]._window.parentNode );
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
@@ -2138,14 +2138,11 @@ var WorkspaceInside = {
 		
 		// now switch to app
 		console.log( 'switch nao', app, app.windows )
-		const vIds = Object.keys( app.windows )
-		vIds.forEach( vId => {
-			const w = app.windows[ vId ]
-			console.log( 'activate etc', vId, w )
-			_ActivateWindow( w._window.parentNode )
-			_WindowToFront( w._window.parentNode )
-		})
-		
+		//const vIds = Object.keys( app.windows )
+		const w = app.windows[ 0 ]
+		console.log( 'activate etc', w )
+		_ActivateWindow( w._window.parentNode )
+		_WindowToFront( w._window.parentNode )
 	},
 	// Server announcements
 	getAnnouncements: function()
