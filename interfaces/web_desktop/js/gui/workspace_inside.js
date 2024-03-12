@@ -2123,7 +2123,7 @@ var WorkspaceInside = {
 	},
 	switchToApp : async function( appName ) {
 		const self = this
-		console.log( 'switchToApp', movableWindows )
+		console.log( 'switchToApp', appName )
 		//_ActivateWindow( app.windows[ z ]._window.parentNode );
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
@@ -2805,7 +2805,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									{
 										//
 										console.log( 'lfunc', Workspace.applications, cmd )
-										Workspace.switchToApp( 'FriendChat' )
+										const appName = cmd.split( 'launch ' )
+										if ( appName )
+											Workspace.switchToApp( appName )
 									}
 									// We are done. Empty startup apps!
 									Friend.startupApps = {};
