@@ -1912,7 +1912,7 @@ function apiWrapper( event, force )
 							app.windows = []
 						}
 						
-						//app.windows[ viewId ] = v;
+						app.windows[ viewId ] = v;
 						app.windows.push( v )
 						app.viewIds[ viewId ] = v
 						
