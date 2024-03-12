@@ -2723,6 +2723,18 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						}
 						
 						console.log( 'startupsequence', seq )
+						seq = seq.filter( cmd => {
+							const split = cmd.split( 'launch ' )
+							console.log( 'cmd', cmd, split )
+							if ( !split[ 1 ] ) // application name
+								return true // pass the cmd on
+							
+							ExecuteApplication( split[ 1 ] )
+							return false // remove cmd from seq
+							
+						})
+						console.log( 'seq after filter', seq )
+						
 						if( seq.length )
 						{
 							if( ScreenOverlay.debug )
@@ -2765,7 +2777,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 													if( ScreenOverlay.debug )
 														slot = ScreenOverlay.addStatus( i18n( 'i18n_processing' ), cmd );											
 													ScreenOverlay.addDebug( 'Executing ' + cmd );
-													
+													console.log( 'executing command' )
 													Workspace.shell.execute( cmd, function( res )
 													{
 														if( ScreenOverlay.debug )
