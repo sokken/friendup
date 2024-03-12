@@ -2126,7 +2126,7 @@ var WorkspaceInside = {
 		//ActivateApplication( app, conf );
 		console.log( 'switchToApp - apps', Workspace.applications )
 		
-	}
+	},
 	// Server announcements
 	getAnnouncements: function()
 	{
