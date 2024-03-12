@@ -5844,6 +5844,7 @@ Friend.GUI.view.cleanWindowArray = function( ele )
 // Reorganize view window positions on responsive browser
 Friend.GUI.reorganizeResponsiveMinimized = function()
 {
+	return
 	console.log( 'reqorgoforgoorgMini', {
 		isMobile       : isMobile,
 		movableWindows : movableWindows,

@@ -2082,7 +2082,7 @@ var WorkspaceInside = {
 			logout.appendChild( logoutIcon )
 			logout.onclick = e => {
 				console.log( 'logout', this.logout )
-				//this.logout()
+				this.logout()
 			}
 			appMenu.appendChild( logout )
 			

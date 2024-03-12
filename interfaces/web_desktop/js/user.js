@@ -335,8 +335,9 @@ Friend.User = {
     // Log out
     Logout: function( cbk )
     {
-    	console.log( 'User.Logout' )
-    	if( !cbk ) cbk = false;
+    	console.log( 'User.Logout', cbk )
+    	if( !cbk ) 
+    		cbk = false;
     	
     	// FIXME: Remove this - it is not used anymore
 		window.localStorage.removeItem( 'WorkspaceUsername' );
@@ -346,18 +347,17 @@ Friend.User = {
 	    Workspace.loginPassword = null;
 
 		let keys = parent.ApplicationStorage.load( { applicationName : 'Workspace' } );
-
 		if( keys )
 		{
 			keys.username = '';
-
 			parent.ApplicationStorage.save( keys, { applicationName : 'Workspace' } );
 		}
 
 		let dologt = null;
-
+		console.log( 'pre SaveWindowStorage')
 		SaveWindowStorage( function()
 		{
+			console.log( 'post SaveWindowStorage' )
 			if( dologt != null )
 				clearTimeout( dologt );
 			
@@ -445,14 +445,17 @@ Friend.User = {
 		// Could be there will be no connection..
 		function doLogout()
 		{
-			if( typeof friendApp != 'undefined' && typeof friendApp.exit == 'function')
+			console.trace( 'doLogout' )
+			if( window.friendApp )
 			{
 				friendApp.exit();
 				return;
 			}
+			
 			Workspace.sessionId = '';
 			document.location.href = window.location.href.split( '?' )[0].split( '#' )[0]; //document.location.reload();
 		}
+		
 		if( !cbk )
 		{
 			dologt = setTimeout( doLogout, 750 );
