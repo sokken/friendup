@@ -2722,19 +2722,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							}
 						}
 						
-						console.log( 'startupsequence', seq )
-						seq = seq.filter( cmd => {
-							const split = cmd.split( 'launch ' )
-							console.log( 'cmd', cmd, split )
-							if ( !split[ 1 ] ) // application name
-								return true // pass the cmd on
-							
-							ExecuteApplication( split[ 1 ] )
-							return false // remove cmd from seq
-							
-						})
-						console.log( 'seq after filter', seq )
-						
 						if( seq.length )
 						{
 							if( ScreenOverlay.debug )
@@ -2785,9 +2772,13 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 															ScreenOverlay.editStatus( slot, res ? 'Ok' : 'Error' );
 															ScreenOverlay.addDebug( 'Done ' + cmd );
 														}
-														l.func();
+														
 														if( Workspace.mainDock && !Workspace.isSingleTask )
 															Workspace.mainDock.closeDesklet();
+														
+														console.log( 'shell exec done i guess' )
+														l.func( cmd );
+														
 													} );
 												}
 												// Just skip
@@ -2810,9 +2801,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									
 									PollTray();
 									PollTaskbar();
-									l.func = function()
+									l.func = function( cmd )
 									{
 										//
+										console.log( 'lfunc', Workspace.applications, cmd )
+										Workspace.switchToApp( 'FriendChat' )
 									}
 									// We are done. Empty startup apps!
 									Friend.startupApps = {};
