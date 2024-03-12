@@ -2130,11 +2130,10 @@ var WorkspaceInside = {
 		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )
 		console.log( 'switchToApp - apps', Workspace.applications, app )
 		if ( !app ) {
+			console.log( 'not found, start app', appName )
 			await ExecuteApplication( appName )
-			console.log( 'app executed' )
+			console.log( 'app executed', appName )
 		}
-		
-		
 		
 		// now switch to app
 		

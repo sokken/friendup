@@ -298,7 +298,7 @@ html body .Screen .MobileAppMenu:after
 	justify-content: center;
 }
 
-.MobileAppMenu .logout .i {
+.MobileAppMenu .logout i {
 	color     : white;
 	font-size : 2em;
 }
