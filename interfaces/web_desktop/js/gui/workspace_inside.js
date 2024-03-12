@@ -2124,6 +2124,9 @@ var WorkspaceInside = {
 	switchToApp : async function( appName ) {
 		const self = this
 		console.log( 'switchToApp', appName )
+		if ( !appName )
+			return
+		
 		//_ActivateWindow( app.windows[ z ]._window.parentNode );
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
@@ -2805,7 +2808,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									{
 										//
 										console.log( 'lfunc', Workspace.applications, cmd )
-										const appName = cmd.split( 'launch ' )
+										const appName = cmd.split( 'launch ' )[ 1 ]
 										if ( appName )
 											Workspace.switchToApp( appName )
 									}
