@@ -2127,15 +2127,20 @@ var WorkspaceInside = {
 		//_ActivateWindow( app.windows[ z ]._window.parentNode );
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
-		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )
+		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
 		console.log( 'switchToApp - apps', Workspace.applications, app )
 		if ( !app ) {
 			console.log( 'not found, start app', appName )
-			await ExecuteApplication( appName )
-			console.log( 'app executed', appName )
+			app = await ExecuteApplication( appName )
+			console.log( 'app executed', appName, app )
 		}
 		
 		// now switch to app
+		app.windows?.forEach( w => {
+			console.log( 'activate etc', w )
+			_ActivateWindow( w._window.parentNode )
+			_WindowToFront( w._window.parentNode )
+		})
 		
 	},
 	// Server announcements

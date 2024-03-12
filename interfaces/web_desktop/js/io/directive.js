@@ -27,7 +27,7 @@ function RemoveFromExecutionQueue( app, ...cb_args )
 	
 	if ( true !== _executionQueue[ app ]) {
 		const exec = _executionQueue[ app ]
-		console.log( 'removefromexeq', exec )
+		console.log( 'removefromexeq', exec, cb_args )
 		exec.callbacks.forEach( cb => cb( ...cb_args ))
 		exec.resolve( cb_args[ 0 ])
 	}
@@ -125,8 +125,10 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	if( isMobile )
 	{
 		Workspace.goToMobileDesktop();
+		/*
 		if( Workspace.widget )
 			Workspace.widget.slideUp();
+		*/
 		if( Workspace.mainDock )
 			Workspace.mainDock.closeDesklet();
 	}
