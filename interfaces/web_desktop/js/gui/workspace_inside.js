@@ -2128,14 +2128,16 @@ var WorkspaceInside = {
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
 		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
-		console.log( 'switchToApp - apps', Workspace.applications, app )
+		console.log( 'switchToApp - app?', Workspace.applications, app )
 		if ( !app ) {
 			console.log( 'not found, start app', appName )
-			app = await ExecuteApplication( appName )
-			console.log( 'app executed', appName, app )
+			let res = await ExecuteApplication( appName )
+			app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
+			console.log( 'app executed', appName, res, app )
 		}
 		
 		// now switch to app
+		console.log( 'switch nao', app, app.windows )
 		app.windows?.forEach( w => {
 			console.log( 'activate etc', w )
 			_ActivateWindow( w._window.parentNode )
