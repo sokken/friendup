@@ -354,98 +354,92 @@ Friend.User = {
 		}
 
 		let dologt = null;
-		console.log( 'pre SaveWindowStorage')
-		SaveWindowStorage( function()
+		console.log( 'pre SaveWindowStorage', window.friendApp )
+		if ( !window.friendApp ) {
+			SaveWindowStorage( afterSaveWinSto )
+		} else {
+			afterSaveWinSto()
+		}
+		
+		function afterSaveWinSto()
 		{
-			console.log( 'post SaveWindowStorage' )
-			if( dologt != null )
-				clearTimeout( dologt );
-			
-			if( !cbk )
+			console.log( 'afterSaveWinSto', Workspace.logoutURL )
+			if( Workspace.logoutURL )
 			{
-				// Do external logout and then our internal one.
-				if( Workspace.logoutURL )
-				{
-					Workspace.externalLogout();
-					return;
-				}
+				Workspace.externalLogout();
+				return;
 			}
-
-			if( typeof friendApp != 'undefined' && typeof friendApp.get_app_token == 'function' )
-			{
+			
+			duma = deleteUMA()
+			lou  = callLogoutUser()
+			await Promise.all([ 
+				duma, 
+				lou 
+			])
+			cleanupWSS()
+			exitWorkspace()
+			if ( cbk )
+				cbk()
+		}
+		
+		function deleteUMA() {
+			if ( Workspace.deleteUMAPromise )
+				return Workspace.deleteUMAPromise
+			
+			Workspace.deleteUMAPromise = new Promise(( resolve, reject ) => {
 				let ud = new cAjax();
 				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
 				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
+				id.onload = ( lmdata ) => {
+					console.log( 'deleteUMA returned', lmdata )
+					delete Workspace.deleteUMAPromise
+					resolve()
+				}
 				//
 				ud.forceHTTP = true;
-				ud.onload = function( lmdata )
-                        	{
-                                	console.log('DeleteUma finished: ' + lmdata );
-					let m = new cAjax();
-                                	m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
-                                	m.forceHTTP = true;
-                                	m.send();
-
-                                	if( !cbk )
-                                	{
-                                        	setTimeout( doLogout, 500 );
-                                	}
-                                	else
-                                	{
-                                        	if( Workspace.conn )
-                                        	{
-                                                	try
-                                                	{
-                                                	        Workspace.conn.ws.close();
-                                               		}
-                                                	catch( e )
-                                                	{
-                                                        	console.log( 'Could not close conn.' );
-                                                	}
-                                                	delete Workspace.conn;
-                                                	Workspace.conn = null;
-                                        	}
-                                        	Workspace.sessionId = '';
-                                        	cbk();
-                                	}
-                        	};
 				ud.send();
-			}
-			else
-			{
-				let m = new cAjax();
-				m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
-				m.forceHTTP = true;
-				m.send();
+			})
+			return Workspace.deleteUMAPromise
+		}
+		
+		function callLogoutUser() {
+			if ( Workspace.logoutUserPromise )
+				return Workspace.logoutUserPromise
 			
-				if( !cbk )
+			Workspace.logoutUserPromise = new Promise(( resolve, reject ) => {
+				let m = new cAjax();
+            	m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
+            	m.forceHTTP = true;
+            	m.onload = ( thing, thang ) => {
+            		console.log( 'callLogoutUser res', [ thing, thang ])
+            		delete Workspace.logoutUserPromise
+            	}
+            	m.send()
+			})
+			return Workspace.logoutUserPromise
+		}
+		
+		function cleanupWSS() {
+			console.log( 'cleanupWSS' )
+			if( Workspace.conn )
+			{
+				try
 				{
-					setTimeout( doLogout, 500 );
+					Workspace.conn.ws.close();
 				}
-				else
+				catch( e )
 				{
-					if( Workspace.conn )
-					{
-						try
-						{
-							Workspace.conn.ws.close();
-						}
-						catch( e )
-						{
-							console.log( 'Could not close conn.' );
-						}
-						delete Workspace.conn;
-						Workspace.conn = null;
-					}
-					Workspace.sessionId = '';
-					cbk();
+					console.log( 'Could not close conn.' );
 				}
+				delete Workspace.conn;
+				Workspace.conn = null;
 			}
-		} );
-		// Could be there will be no connection..
-		function doLogout()
+			Workspace.sessionId = '';
+		}
+		
+		function exitWorkspace()
 		{
-			console.trace( 'doLogout' )
+			console.trace( 'exitWorkspace' )
 			if( window.friendApp )
 			{
 				friendApp.exit();
@@ -456,10 +450,12 @@ Friend.User = {
 			document.location.href = window.location.href.split( '?' )[0].split( '#' )[0]; //document.location.reload();
 		}
 		
+		/*
 		if( !cbk )
 		{
-			dologt = setTimeout( doLogout, 750 );
+			dologt = setTimeout( exitWorkspace, 750 );
 		}
+		*/
 		return true;
     },
     // Remember keys

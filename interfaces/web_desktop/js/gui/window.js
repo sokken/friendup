@@ -5844,7 +5844,7 @@ Friend.GUI.view.cleanWindowArray = function( ele )
 // Reorganize view window positions on responsive browser
 Friend.GUI.reorganizeResponsiveMinimized = function()
 {
-	return
+	
 	console.log( 'reqorgoforgoorgMini', {
 		isMobile       : isMobile,
 		movableWindows : movableWindows,
@@ -5910,6 +5910,7 @@ Friend.GUI.reorganizeResponsiveMinimized = function()
 			continue;
 		}
 		
+		continue
 		console.log( 'add onworksapce to', a )
 		c.classList.add( 'OnWorkspace' );
 		
