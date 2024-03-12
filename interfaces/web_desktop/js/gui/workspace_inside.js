@@ -2068,7 +2068,7 @@ var WorkspaceInside = {
 			// App menu toggle
 			let appMenu = document.createElement( 'div' );
 			appMenu.className = 'MobileAppMenu';
-			[ 'FriendChat', 'Doorman' ].forEach( appName => {
+			[ 'FriendChat', 'DoormanOffice' ].forEach( appName => {
 				const app = document.createElement( 'div' )
 				app.className = 'app_menu_item switch_to_' + appName
 				app.onclick = e => switchToApp( appName )
@@ -2077,6 +2077,9 @@ var WorkspaceInside = {
 			
 			const logout = document.createElement( 'div' )
 			logout.className = 'app_menu_item logout'
+			const logoutIcon = document.createElement( 'i' )
+			logoutIcon.className = 'fa fa-fw fa-logout'
+			logout.appendChild( logoutIcon )
 			logout.onclick = e => {
 				console.log( 'logout', this.logout )
 				this.logout()
@@ -2125,6 +2128,7 @@ var WorkspaceInside = {
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
 		console.log( 'switchToApp - apps', Workspace.applications )
+		
 		
 	},
 	// Server announcements

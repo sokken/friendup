@@ -273,12 +273,15 @@ html body .Screen .MobileAppMenu:after
 .MobileAppMenu {
 	display: flex;
 	flex-direction: row;
-	align-content: center;
+	align-items: center;
+	justify-content: space-around;
+	background-color: #333;
 }
 
 .MobileAppMenu .app_menu_item {
 	width  : 3em;
 	height : 3em;
+	background-size : contain;
 }
 
 .MobileAppMenu .switch_to_FriendChat {
@@ -290,7 +293,9 @@ html body .Screen .MobileAppMenu:after
 }
 
 .MobileAppMenu .logout {
-	background-color: red;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 
