@@ -439,7 +439,7 @@ Friend.User = {
 			console.trace( 'exitWorkspace' )
 			if( window.friendApp )
 			{
-				friendApp.exit();
+				friendApp.logout();
 				return;
 			}
 			
