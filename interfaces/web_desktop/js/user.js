@@ -370,12 +370,9 @@ Friend.User = {
 				return;
 			}
 			
-			duma = deleteUMA()
-			lou  = callLogoutUser()
-			await Promise.all([ 
-				duma, 
-				lou 
-			])
+			await deleteUMA()
+			console.log( 'IMA DOME')
+			callLogoutUser()
 			cleanupWSS()
 			exitWorkspace()
 			if ( cbk )
