@@ -2138,8 +2138,10 @@ var WorkspaceInside = {
 		
 		// now switch to app
 		console.log( 'switch nao', app, app.windows )
-		app.windows?.forEach( w => {
-			console.log( 'activate etc', w )
+		const vIds = Object.keys( app.windows )
+		vIds.forEach( vId => {
+			const w = app.windows[ vId ]
+			console.log( 'activate etc', vId, w )
 			_ActivateWindow( w._window.parentNode )
 			_WindowToFront( w._window.parentNode )
 		})
