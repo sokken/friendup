@@ -2091,6 +2091,7 @@ var WorkspaceInside = {
 			appMenu.onclick = function( e )
 			{
 				console.log( 'appMenu.onclick' )
+				window.showTimings()
 				//e.preventDefault()
 				//e.stopPropagation()
 				return
@@ -2123,6 +2124,7 @@ var WorkspaceInside = {
 	},
 	switchToApp : async function( appName ) {
 		const self = this
+		window.addTiming( 'switchToApp', appName )
 		console.log( 'switchToApp', appName )
 		if ( !appName )
 			return
@@ -2807,7 +2809,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									l.func = function( cmd )
 									{
 										//
-										console.log( 'lfunc', Workspace.applications, cmd )
+										console.log( 'startup sequence done, lfunc', Workspace.applications, cmd )
+										window.addTiming( 'lfunc', cmd )
 										const appName = cmd.split( 'launch ' )[ 1 ]
 										if ( appName )
 											Workspace.switchToApp( appName )
@@ -2821,6 +2824,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						else
 						{
 							// Hide overlay
+							window.addTiming( 'no startup sequence' )
 							ScreenOverlay.hide();
 							PollTray();
 							PollTaskbar();
@@ -11395,6 +11399,7 @@ Workspace.pushTrashcan = {};
 Workspace.receivePushV2 = function( noties ) {
 	const self = this;
 	console.log( 'receivePushV2', noties );
+	window.addTiming( 'receivePushV2, noties:', noties?.length )
 	if ( null == self.collectPushiesTimeout ) {
 		self.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
 		self.pushiesCollected = noties;

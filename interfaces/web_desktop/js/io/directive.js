@@ -54,7 +54,6 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	}
 	
 	window.addTiming( 'ExecuteAppliction', app )
-	window.showTimings()
 	// If we don't have any cached basics, wait a bit
 	if( !window._applicationBasics?.js )
 	{
