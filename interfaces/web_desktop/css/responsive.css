@@ -354,7 +354,7 @@ html body .Screen .MobileAppMenu:after
 
 [mobile] #WorkspaceMenu
 {
-	display: none !important;
+	display : block !important;
 	position: absolute;
 	right: auto;
 	top: 0;
@@ -1048,9 +1048,9 @@ body[mobile=mobile] .File .Title
 html body[mobile=mobile] #DoorsScreen > .ScreenContent, 
 html body[mobile=mobile]:not(.HasMenu).ViewMaximized #Screens > div.Screen > .ScreenContent
 {
-	top : 0px !important;
-	height: calc(100% - 3em) !important;
-	min-height: calc(100% - 3em) !important;
+	top : 2.5em !important;
+	height: calc(100% - 5.5em) !important;
+	min-height: calc(100% - 5.5em) !important;
 }
 
 /* Subscreens */
