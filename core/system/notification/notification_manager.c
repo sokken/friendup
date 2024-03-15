@@ -1492,7 +1492,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		
 		// original message
 		//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\": {},\"data\":{\"t\":\"notify\",\"channel\":\"%s\",\"content\":\"%s\",\"title\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, notif->n_Channel, notif->n_Content, notif->n_Title, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
-	
+		
+		isImage = FALSE;
 		if( type == MOBILE_APP_TYPE_ANDROID )
 		{
 			if( isImage == TRUE )
@@ -1555,10 +1556,10 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 			{
 				len = snprintf( msg, msgSize, "{"
 					"\"registration_ids\":[%s],"
-					"\"notification\":{"
+/*					"\"notification\":{"
 						"\"title\":\"%s\","
 						"\"body\":\"%s\""
-					"},"
+					"},"*/
 					"\"data\":{"
 						"\"t\":\"notify\","
 						"\"badge\":%d,"
@@ -1576,9 +1577,10 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"},"
 					"\"android\":{"
 						"\"collapse_key\":\"no.doorman.andy\","
-						"\"priority\":\"high\","
+						"\"priority\":\"HIGH\","
 						"\"notification\":{"
 							"\"channel_id\":\"test_channel\","
+							"\"channelId\":\"test_channel\","
 							"\"notification_priority\":\"PRIORITY_DEFAULT\","
 							"\"sound\":\"default\","
 							"\"default_vibrate_timings\":false,"
@@ -1591,8 +1593,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"}"
 					"}}", 
 					tokens, 
-					notif->n_Title, 
-					notif->n_Content, 
+					//notif->n_Title, 
+					//notif->n_Content, 
 					DEFAULT_BADGE_NUMBER, 
 					notif->n_Application, 
 					notif->n_Title, 
