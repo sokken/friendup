@@ -1556,10 +1556,10 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 			{
 				len = snprintf( msg, msgSize, "{"
 					"\"registration_ids\":[%s],"
-/*					"\"notification\":{"
+					"\"notification\":{"
 						"\"title\":\"%s\","
 						"\"body\":\"%s\""
-					"},"*/
+					"},"
 					"\"data\":{"
 						"\"t\":\"notify\","
 						"\"badge\":%d,"
@@ -1593,8 +1593,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"}"
 					"}}", 
 					tokens, 
-					//notif->n_Title, 
-					//notif->n_Content, 
+					notif->n_Title, 
+					notif->n_Content, 
 					DEFAULT_BADGE_NUMBER, 
 					notif->n_Application, 
 					notif->n_Title, 
