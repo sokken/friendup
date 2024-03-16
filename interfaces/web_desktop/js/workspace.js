@@ -79,7 +79,7 @@ window.showTimings = function( timings ) {
 Workspace = {
 	setSessionId : function( sId ) {
 		const self = this
-		self.sessionId = s_id
+		self.sessionId = sId
 		console.trace( 'Workspace.setSessionId', sId, this.sessionId, self.sessionId, Workspace.sessionId )
 	},
 	receivePush: function()
