@@ -9694,7 +9694,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	flushSession: function()
 	{
 		console.trace( 'flushSession' )
-		Workspace.sessionId = '';
+		Workspace.setSessionId( '' )
+		//Workspace.sessionId = '';
 	},
 	// Upgrade settings (for new versions)
 	upgradeWorkspaceSettings: function( cb )

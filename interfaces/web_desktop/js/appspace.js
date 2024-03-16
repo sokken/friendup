@@ -200,21 +200,23 @@ Workspace = {
 					s.onload = function()
 					{
 						// Register no Workspace object
-						if( !si && o && o.sessionid ) Workspace.sessionId = o.sessionid;
-						if( ( au || si ) && authType && authValue ) Workspace[authType] = authValue;
+						if( !si && o && o.sessionid ) 
+							Workspace.setSessionId( o.sessionid )
+						
+						if( ( au || si ) && authType && authValue ) 
+							Workspace[authType] = authValue;
 
 						// Ping every 10 seconds
 						if( !window.pingInt ) window.pingInt = setInterval( Workspace.pingAccount, 10000 );
 						Workspace.pingAccount();
 
 						// Setup default Doors screen
-						var wbscreen = new Screen( {
-								title: 'Friend Workspace v1.2.5',
-								id:	'DoorsScreen',
-								extra: Workspace.fullName,
-								taskbar: false
-							}
-						);
+						var wbscreen = new Screen({
+								title   : 'Friend Workspace v1.2.5',
+								id      : 'DoorsScreen',
+								extra   : Workspace.fullName,
+								taskbar : false,
+						});
 
 						// Touch start show menu!
 						wbscreen.contentDiv.addEventListener( 'click', function( e )

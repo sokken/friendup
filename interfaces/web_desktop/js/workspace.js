@@ -77,6 +77,11 @@ window.showTimings = function( timings ) {
 }
 
 Workspace = {
+	setSessionId : function( sId ) {
+		const self = this
+		self.sessionId = s_id
+		console.trace( 'Workspace.setSessionId', sId, this.sessionId, self.sessionId, Workspace.sessionId )
+	},
 	receivePush: function()
 	{
 		return false;
@@ -1022,7 +1027,10 @@ Workspace = {
 			json : json, 
 			not_all_callback : not_a_callback, 
 			userWorkspaceInitialized : Workspace.userWorkspaceInitialized, 
+			isLoggedIn : Workspace.isLoggedIn
 		})
+		
+		Workspace.isLoggedIn = true
 		
 		Workspace.setLoading( true )
 		if( Workspace.loginPrompt )
@@ -1345,7 +1353,8 @@ Workspace = {
 			const _this = Workspace;
 			console.log( 'SetupWorkspaceData', json )
 			// Ok, we're in
-			_this.sessionId = json.sessionid ? json.sessionid : null;
+			Workspace.setSessionId( json.sessionid )
+			//_this.sessionId = json.sessionid ? json.sessionid : null;
 			_this.userId    = json.userid;
 			_this.fullName  = json.fullname;
 			_this.fc_token  = json.token

@@ -150,7 +150,8 @@ Friend.User = {
 		
 		if( info.username && info.password )
 		{
-			Workspace.sessionId = '';
+			//Workspace.setSessionId( '' );
+			//Workspace.sessionId = '';
 			
 			if( window.Workspace && !Workspace.originalLogin )
 			{
@@ -209,16 +210,18 @@ Friend.User = {
 				
 				if( json.username || json.loginid )
 				{
-					Workspace.sessionId = json.sessionid;
+					//Workspace.sessionId = json.sessionid;
+					Workspace.setSessionId( json.sessionid )
+					Workspace.loginUserId = json.userid;
+					Workspace.loginid     = json.loginid;
+					Workspace.userLevel   = json.level;
+					Workspace.fullName    = json.fullname;
 					if( json.username )
 						Workspace.loginUsername = json.username;
-					Workspace.loginUserId = json.userid;
-					Workspace.loginid = json.loginid;
-					Workspace.userLevel = json.level;
-					Workspace.fullName = json.fullname;
 					
 					// If we have inviteHash, verify and add relationship between the inviter and the invitee.
-					if( info.inviteHash ) json.inviteHash = info.inviteHash;
+					if( info.inviteHash ) 
+						json.inviteHash = info.inviteHash;
 					
 					// We are now online!
 					Friend.User.SetUserConnectionState( 'online' );
@@ -274,36 +277,19 @@ Friend.User = {
 			SSSID     : Workspace.sessionId,
 		})
 		
+		// thing
     	if( this.lastLogin ) 
     		return false;
     	
+    	// also thing
     	this.State = 'login';
     	
+    	// yep, thing
     	if( !event ) 
     		event = window.event;
     	
-    	let self = this;
-    	let info = {};
-    	
-    	if( Workspace.loginUsername && Workspace.loginPassword )
-    	{
-    		//console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
-    		
-    		info.username = Workspace.loginUsername;
-    		let enc = Workspace.encryption;
-    		info.password = enc.decrypt( Workspace.loginPassword, enc.getKeys().privatekey );
-    		
-    		//console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
-    		
-    		info.hashedPassword = false;
-    	}
-    	else if( Workspace.sessionId )
-    	{
-    		info.sessionid = Workspace.sessionId;
-    	}
-		
-		// Close conn here - new login regenerates sessionid
-		if( Workspace.conn )
+    	// clean up websocket maybe
+    	if( Workspace.conn )
 		{
 			try
 			{
@@ -316,26 +302,65 @@ Friend.User = {
 			delete Workspace.conn;
 			Workspace.conn = null;
 		}
-		
-		// Reset cajax http connections (because we lost connection)
-		_cajax_http_connections = 0;
-		
-		console.log( 'ReLogin info', info )
-		if( info.username || info.sessionid )
-		{
-			this.SendLoginCall( info, callback, 'relogin' );
+    	
+    	// better late than never, couldve used const tho
+    	let self = this
+    	
+    	// bag for the login info we might find
+    	let info = {}
+    	
+    	// encrypted password
+    	if( Workspace.loginUsername && Workspace.loginPassword )
+    	{
+    		//console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
+    		
+    		info.username = Workspace.loginUsername;
+    		let enc = Workspace.encryption;
+    		info.password = enc.decrypt( Workspace.loginPassword, enc.getKeys().privatekey );
+    		
+    		//console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
+    		
+    		info.hashedPassword = false;
+    		re_login( info )
+    		return
+    	}
+    	
+    	// stored session
+    	if( Workspace.sessionId )
+    	{
+    		info.sessionid = Workspace.sessionId;
+    		re_login( info )
+    		return
+    	}
+    	
+    	// nothing useful was found, so..
+    	if ( window.friendApp?.restore_session ) {
+    		// fall back on credentials in mobile app
+			window.friendApp.restore_session()
 		}
-		else
-		{
+		else {
+			// give up and force user to login in again
+			// probs dosent work super well btw
 			Workspace.showLoginPrompt();
 		}
 		
-		return 0;
+		// yeet login info at server
+		function re_login( info ) {
+			_cajax_http_connections = 0;
+			console.log( 'ReLogin info', info )
+			if( info.username || info.sessionid )
+			{
+				self.SendLoginCall( info, callback, 'relogin' );
+			}
+		}
+		
     },
     // Log out
     Logout: function( cbk )
     {
     	console.log( 'User.Logout', cbk )
+    	Workspace.isLoggedIn = false;
+    	
     	if( !cbk ) 
     		cbk = false;
     	
@@ -433,19 +458,19 @@ Friend.User = {
 				delete Workspace.conn;
 				Workspace.conn = null;
 			}
-			Workspace.sessionId = '';
 		}
 		
 		function exitWorkspace()
 		{
 			console.trace( 'exitWorkspace' )
+			Workspace.setSessionId( '' )
+			//Workspace.sessionId = '';
 			if( window.friendApp )
 			{
 				friendApp.logout();
 				return;
 			}
 			
-			Workspace.sessionId = '';
 			document.location.href = window.location.href.split( '?' )[0].split( '#' )[0]; //document.location.reload();
 		}
 		
@@ -481,8 +506,10 @@ Friend.User = {
 	// Renews session ids for cajax and executes ajax queue!
 	RenewAllSessionIds: function( session )
 	{
-		if( session )
-			Workspace.sessionId = session;
+		if( session ) {
+			Workspace.setSessionId( session )
+			//Workspace.sessionId = session;
+		}
 		
 		// Reset this in this case
 		_cajax_http_connections = 0;
@@ -509,7 +536,8 @@ Friend.User = {
 	{
 		// Clear Workspace session
 		console.trace( 'flushSession' )
-		Workspace.sessionId = '';
+		Workspace.setSessionId( '' )
+		//Workspace.sessionId = '';
 	},
 	// Initialize this object
 	Init: function()
