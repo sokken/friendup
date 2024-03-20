@@ -631,11 +631,11 @@ Friend.User = {
 			if( !missSess && q == null && s == null )
 				missSess = true;
 			
-			console.log( 'serverCheck also result:', [
+			console.log( 'serverCheck also result:', {
 				missSess : missSess,
 				q : q,
 				s : s,
-			])
+			})
 			
 			if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
 			{
