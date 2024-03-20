@@ -1579,17 +1579,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"collapse_key\":\"no.doorman.andy\","
 						"\"priority\":\"HIGH\","
 						"\"notification\":{"
-							"\"channel_id\":\"test_channel\","
-							"\"channelId\":\"test_channel\","
-							"\"notification_priority\":\"PRIORITY_DEFAULT\","
+							"\"channel_id\":\"notie_test_channel\","
 							"\"sound\":\"default\","
-							"\"default_vibrate_timings\":false,"
-							"\"vibrate_timings\":["
-								"\"0.0s\","
-								"\"0.4s\","
-								"\"0.2s\","
-								"\"0.4s\""
-							"]"
 						"}"
 					"}}", 
 					tokens, 

@@ -630,14 +630,20 @@ Friend.User = {
 				missSess = true;
 			if( !missSess && q == null && s == null )
 				missSess = true;
-	
+			
+			console.log( 'serverCheck also result:', [
+				missSess : missSess,
+				q : q,
+				s : s,
+			])
+			
 			if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
 			{
 				console.log( 'servercheck - bad response' )
 				if( missSess )
 				{
 					if ( window.friendApp )
-						window.friendApp.logout()
+						window.friendApp.restore_session()
 					else
 						Friend.User.ReLogin()
 				}
@@ -673,11 +679,13 @@ Friend.User = {
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
 	{
+		/*
 		console.log( 'SetUserConnectionState', {
 			mode      : mode,
 			force     : force,
 			currState : this.State,
 		})
+		*/
 		
 		if ( mode == this.State )
 			return
