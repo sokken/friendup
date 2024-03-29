@@ -1559,7 +1559,7 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"\"notification\":{"
 						"\"title\":\"%s\","
 						"\"body\":\"%s\","
-						"\"channel_id\":\"notie_test_channel\""
+						"\"android_channel_id\":\"notie_test_channel\""
 						"},"
 					"\"collapse_key\":\"no.doorman.andy.test\","
 					"\"data\":{"
