@@ -1558,8 +1558,10 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"\"registration_ids\":[%s],"
 					"\"notification\":{"
 						"\"title\":\"%s\","
-						"\"body\":\"%s\""
-					"},"
+						"\"body\":\"%s\","
+						"\"channel_id\":\"notie_test_channel\""
+						"},"
+					"\"collapse_key\":\"no.doorman.andy.test\","
 					"\"data\":{"
 						"\"t\":\"notify\","
 						"\"badge\":%d,"
@@ -1574,15 +1576,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"notifid\":%lu,"
 						"\"source\":\"notification\","
 						"\"createtime\":%lu"
-					"},"
-					"\"android\":{"
-						"\"collapse_key\":\"no.doorman.andy\","
-						"\"priority\":\"HIGH\","
-						"\"notification\":{"
-							"\"channel_id\":\"notie_test_channel\","
-							"\"sound\":\"default\","
 						"}"
-					"}}", 
+					"}",
 					tokens, 
 					notif->n_Title, 
 					notif->n_Content, 
