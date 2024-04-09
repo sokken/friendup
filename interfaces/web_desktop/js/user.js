@@ -694,7 +694,7 @@ Friend.User = {
 		{
 			this.State = 'offline';
 			Workspace.workspaceIsDisconnected = true;
-			document.body.classList.add( 'Offline' );
+			//document.body.classList.add( 'Offline' );
 			if( Workspace.screen )
 				Workspace.screen.displayOfflineMessage();
 			Workspace.workspaceIsDisconnected = true;
@@ -736,7 +736,7 @@ Friend.User = {
 		{
 			this.serverAvaiable = true;
 			this.State = 'online';
-			document.body.classList.remove( 'Offline' );
+			//document.body.classList.remove( 'Offline' );
 			if( Workspace.screen )
 				Workspace.screen.hideOfflineMessage();
 			
