@@ -1027,6 +1027,9 @@ Screen = function ( flags, initObject )
 	this.displayOfflineMessage = function()
 	{
 		//console.log('show htat we are offline...');
+		const offDiv = ge( 'OfflineMessage' )
+		const offButt = ge( 'hideOffline' )
+		console.log( 'displayOfflineMessage', [ offDiv, offButt ] )
 		var offline = this.div.getElementsByClassName( 'Offline' )[0];
 		if( offline )
 		{
