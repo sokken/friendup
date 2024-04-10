@@ -567,6 +567,7 @@ Friend.User = {
 				delete self.waitForOnlinePromise
 				delete self.waitForOnlineHandler
 				console.log( 'waitForOnline done', self )
+				Workspace.screen.hideOfflineMessage()
 				resolve()
 			}
 		})
