@@ -11397,10 +11397,13 @@ Workspace.receiveLive = function( viewId, jsonEvent ) {
 
 Workspace.pushTrashcan = {};
 
-Workspace.receivePushV2 = function( noties ) {
+Workspace.receivePushV2 = async function( noties ) {
 	const self = this;
 	console.log( 'receivePushV2', noties );
 	window.addTiming( 'receivePushV2, noties:', noties?.length )
+	
+	await Friend.User.waitForOnline()
+	
 	if ( null == self.collectPushiesTimeout ) {
 		self.collectPushiesTimeout = window.setTimeout( collatePushies, 500 );
 		self.pushiesCollected = noties;

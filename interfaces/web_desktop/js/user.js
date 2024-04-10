@@ -548,6 +548,32 @@ Friend.User = {
 	{
 		this.CheckServerConnection();
 	},
+	// returns a promise, resolves when online
+	waitForOnline: function() {
+		const self = this
+		console.log( 'waitForOnline', self.waitForOnlinePromise )
+		if ( self.waitForOnlinePromise )
+			return self.waitForOnlinePromise
+		
+		self.waitForOnlinePromise = new Promise(( resolve, reject ) => {
+			if ( 'online' == self.State ) {
+				done()
+				return
+			}
+			
+			self.waitForOnlineHandler = done
+			
+			function done() { 
+				delete self.waitForOnlinePromise
+				delete self.waitForOnlineHandler
+				console.log( 'waitForOnline done', self )
+				resolve()
+			}
+		})
+		
+		return self.waitForOnlinePromise
+		
+	},
 	// Check if the server is alive
 	CheckServerConnection: function()
 	{
@@ -658,37 +684,23 @@ Friend.User = {
 		}; 
 		
 	
-	/*
-		try
-		{
-			// Cancel previous call if it's still in pipe
-			if( Friend.User.serverCheck && Friend.User.serverCheck.currentRequest )
-			{
-				Friend.User.serverCheck.currentRequest.destroy();
-			}
-			
-			Friend.User.serverCheck = serverCheck;
-		}
-		catch( e )
-		{
-			console.log( 'servercheck catch ex', e )
-			Friend.User.SetUserConnectionState( 'offline' );
-		}
-		*/
 	},
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
 	{
-		/*
+		const self = this
 		console.log( 'SetUserConnectionState', {
 			mode      : mode,
 			force     : force,
 			currState : this.State,
+			onlineH   : self.waitForOnlineHandler,
 		})
-		*/
 		
-		if ( mode == this.State )
-			return
+		if ( 'online' == mode && self.waitForOnlineHandler )
+			self.waitForOnlineHandler()
+		
+		//if ( mode == this.State )
+			//return
 		
 		if( mode == 'offline' )
 		{
