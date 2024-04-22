@@ -1559,7 +1559,7 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"\"notification\":{"
 						"\"title\":\"%s\","
 						"\"body\":\"%s\","
-						"\"android_channel_id\":\"notie_test_channel\""
+						"\"android_channel_id\":\"all_notifications\""
 						"},"
 					"\"collapse_key\":\"no.doorman.andy.test\","
 					"\"data\":{"
@@ -1627,14 +1627,7 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 					"\"android\":{"
 						"\"priority\":\"high\""
 					"},"
-					"\"apns\":{"
-						"\"payload\":{"
-							"\"aps\":{"
-								"\"mutable-content\":1"
-							"}"
-						"}"
-					"}"
-					",\"fcm_options\":{"
+					"\"fcm_options\":{"
 						"\"image\":\"%s\""
 					"}}",
 					tokens, 
@@ -1681,16 +1674,6 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"notifid\":%lu,"
 						"\"source\":\"notification\","
 						"\"createtime\":%lu"
-					"},"
-					"\"android\":{"
-						"\"priority\":\"high\""
-					"},"
-					"\"apns\":{"
-						"\"payload\":{"
-							"\"aps\":{"
-								"\"mutable-content\":1"
-							"}"
-						"}"
 					"}}",
 					tokens, 
 					DEFAULT_BADGE_NUMBER, 
