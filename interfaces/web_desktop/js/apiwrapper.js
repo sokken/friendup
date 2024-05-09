@@ -1907,10 +1907,15 @@ function apiWrapper( event, force )
 					
 					if( v.ready )
 					{	
-						if( !app.windows )
-							app.windows = [];
+						if( !app.windows ) {
+							app.viewIds = {}
+							app.windows = []
+						}
+						
 						app.windows[ viewId ] = v;
-
+						app.windows.push( v )
+						app.viewIds[ viewId ] = v
+						
 						// Assign conf if it exists on app object
 						if( app.conf ) v.conf = app.conf;
 

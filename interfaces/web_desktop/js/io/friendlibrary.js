@@ -117,8 +117,6 @@ var FriendLibrary = function ( library, encryption )
 					var encrypted = fcrypt.encryptRSA( json, Workspace.encryption.keys.server.publickey );
 					
 					j.addVar( 'encryptedblob', encrypted );
-					
-					console.log( 'data', { vars: this.vars, data: ( data ? data : encrypted ) } );
 				}
 			}
 		}
@@ -157,13 +155,22 @@ var FriendLibrary = function ( library, encryption )
 						}
 					}
 					
-					var json = JSON.parse( rc );
+					let json = null;
+					if ( '{' == rc[0]
+						|| '[' == rc[0]
+					) {
+						try {
+							json = JSON.parse( rc );
+						} catch( ex ) {}
+					}
+					
 					if( json )
 					{
 						return t.onExecuted( json );
+					} else {
+						t.onExecuted( rc, d )
 					}
-					// No json then..
-					t.onExecuted( rc, d );
+					
 					t.destroy();
 				}
 				// No, it's not that

@@ -86,6 +86,7 @@ Application.run = function( msg, iface )
 
 		// If FriendNetwork is enabled, add the options		
 		let m = new Module('system');
+		console.log( 'checking for fnet lul' );
 		m.onExecuted = function( e,d )
 		{
 			if ( e == 'ok' && parseInt( d ) == 1 )

@@ -38,8 +38,11 @@ var Module = function( mod )
 	// Execute a command to a Friend UP module
 	this.execute = function( cmd, args )
 	{
-		if( cmd  ) this.command = cmd;
-		if( args ) this.args = args;
+		if( cmd  ) 
+			this.command = cmd
+		
+		if( args ) 
+			this.args = args
 		
 		var j = new cAjax ();
 		if( this.cancelId )
@@ -73,9 +76,13 @@ var Module = function( mod )
 		// Done with authid here
 		
 		// authid
-		if( authId ) j.addVar( 'authid', authId   );
+		if( authId ) 
+			j.addVar( 'authid', authId   )
+		
 		// session id
-		else if( Workspace.sessionId ) j.addVar( 'sessionid', Workspace.sessionId );
+		else if( Workspace.sessionId ) 
+			j.addVar( 'sessionid', Workspace.sessionId )
+		
 		j.addVar( 'module',    this.module                  );
 		j.addVar( 'args',      JSON.stringify( this.args )  );
 		j.addVar( 'command',   this.command                 );
@@ -100,6 +107,7 @@ var Module = function( mod )
 				t.destroy();
 			};
 		}
+		
 		j.send();
 		if( this.lastJax )
 			this.lastJax.destroy();

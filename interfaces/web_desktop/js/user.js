@@ -20,7 +20,7 @@ Friend.User = {
     
     // Vars --------------------------------------------------------------------
     State: 'online', 			// online, offline, login
-    ServerIsThere: true,
+    serverAvaiable: true,
     Username: '',               // Holds the user's username
     AccessToken: null,          // Holds the user's access token
     ConnectionAttempts: 0,         // How many relogin attempts were made
@@ -30,9 +30,10 @@ Friend.User = {
     // Log into Friend Core
     Login: function( username, password, remember, callback, event, flags )
     {
+    	console.log( 'User.Login', [ username, password, remember, callback, event, flags ])
     	this.State = 'login';
-    	
-    	if( !event ) event = window.event;
+    	if( !event ) 
+    		event = window.event;
     	
     	let self = this;
 		
@@ -93,12 +94,14 @@ Friend.User = {
     // Login using a session id
     LoginWithSessionId: function( sessionid, callback, event )
     {
-    	if( this.State == 'online' ) return;
+    	console.log( 'LoginWithSessionId', sessionid, callback, event, this.State )
+    	if( this.State == 'online' ) 
+    		return;
+    	
     	this.State = 'login';
     	
-    	if( !event ) event = window.event;
-    	
-    	let self = this;
+    	if( !event ) 
+    		event = window.event;
 		
 		// Close conn here - new login regenerates sessionid
 		if( Workspace.conn )
@@ -130,6 +133,7 @@ Friend.User = {
     // Send the actual login call
     SendLoginCall: function( info, callback )
     {	
+    	console.trace( 'SendLoginCall', [ info, callback, this.lastLogin ])
     	// Already logging in
     	this.State = 'login';
     	
@@ -146,7 +150,8 @@ Friend.User = {
 		
 		if( info.username && info.password )
 		{
-			Workspace.sessionId = '';
+			//Workspace.setSessionId( '' );
+			//Workspace.sessionId = '';
 			
 			if( window.Workspace && !Workspace.originalLogin )
 			{
@@ -192,6 +197,7 @@ Friend.User = {
 		m.addVar( 'deviceid', GetDeviceId() );
 		m.onExecuted = function( json, serveranswer )
 		{
+			console.log( 'SendLoginCall response', [ json, serveranswer ])
 			Friend.User.lastLogin = null;
 			// We got a real error
 			if( json == null )
@@ -204,16 +210,18 @@ Friend.User = {
 				
 				if( json.username || json.loginid )
 				{
-					Workspace.sessionId = json.sessionid;
+					//Workspace.sessionId = json.sessionid;
+					Workspace.setSessionId( json.sessionid )
+					Workspace.loginUserId = json.userid;
+					Workspace.loginid     = json.loginid;
+					Workspace.userLevel   = json.level;
+					Workspace.fullName    = json.fullname;
 					if( json.username )
 						Workspace.loginUsername = json.username;
-					Workspace.loginUserId = json.userid;
-					Workspace.loginid = json.loginid;
-					Workspace.userLevel = json.level;
-					Workspace.fullName = json.fullname;
 					
 					// If we have inviteHash, verify and add relationship between the inviter and the invitee.
-					if( info.inviteHash ) json.inviteHash = info.inviteHash;
+					if( info.inviteHash ) 
+						json.inviteHash = info.inviteHash;
 					
 					// We are now online!
 					Friend.User.SetUserConnectionState( 'online' );
@@ -259,35 +267,29 @@ Friend.User = {
 	// When session times out, use log in again...
 	ReLogin: function( callback )
 	{
-    	if( this.lastLogin ) return false;
+		console.log( 'ReLogin', {
+			callback  : callback,
+			lastLogin : this.lastLogin,
+			usern     : Workspace.username,
+			lusern    : Workspace.loginUsername,
+			lpwww     : Workspace.loginPassword,
+			sssid     : Workspace.sessionid,
+			SSSID     : Workspace.sessionId,
+		})
+		
+		// thing
+    	if( this.lastLogin ) 
+    		return false;
     	
+    	// also thing
     	this.State = 'login';
     	
+    	// yep, thing
+    	if( !event ) 
+    		event = window.event;
     	
-    	if( !event ) event = window.event;
-    	
-    	let self = this;
-    	let info = {};
-    	
-    	if( Workspace.loginUsername && Workspace.loginPassword )
-    	{
-    		//console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
-    		
-    		info.username = Workspace.loginUsername;
-    		let enc = Workspace.encryption;
-    		info.password = enc.decrypt( Workspace.loginPassword, enc.getKeys().privatekey );
-    		
-    		//console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
-    		
-    		info.hashedPassword = false;
-    	}
-    	else if( Workspace.sessionId )
-    	{
-    		info.sessionid = Workspace.sessionId;
-    	}
-		
-		// Close conn here - new login regenerates sessionid
-		if( Workspace.conn )
+    	// clean up websocket maybe
+    	if( Workspace.conn )
 		{
 			try
 			{
@@ -300,25 +302,67 @@ Friend.User = {
 			delete Workspace.conn;
 			Workspace.conn = null;
 		}
-		
-		// Reset cajax http connections (because we lost connection)
-		_cajax_http_connections = 0;
-		
-		if( info.username || info.sessionid )
-		{
-			this.SendLoginCall( info, callback, 'relogin' );
+    	
+    	// better late than never, couldve used const tho
+    	let self = this
+    	
+    	// bag for the login info we might find
+    	let info = {}
+    	
+    	// encrypted password
+    	if( Workspace.loginUsername && Workspace.loginPassword )
+    	{
+    		//console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
+    		
+    		info.username = Workspace.loginUsername;
+    		let enc = Workspace.encryption;
+    		info.password = enc.decrypt( Workspace.loginPassword, enc.getKeys().privatekey );
+    		
+    		//console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
+    		
+    		info.hashedPassword = false;
+    		re_login( info )
+    		return
+    	}
+    	
+    	// stored session
+    	if( Workspace.sessionId )
+    	{
+    		info.sessionid = Workspace.sessionId;
+    		re_login( info )
+    		return
+    	}
+    	
+    	// nothing useful was found, so..
+    	if ( window.friendApp?.restore_session ) {
+    		// fall back on credentials in mobile app
+			window.friendApp.restore_session()
 		}
-		else
-		{
+		else {
+			// give up and force user to login in again
+			// probs dosent work super well btw
 			Workspace.showLoginPrompt();
 		}
 		
-		return 0;
+		// yeet login info at server
+		function re_login( info ) {
+			_cajax_http_connections = 0;
+			console.log( 'ReLogin info', info )
+			if( info.username || info.sessionid )
+			{
+				self.SendLoginCall( info, callback, 'relogin' );
+			}
+		}
+		
     },
     // Log out
     Logout: function( cbk )
     {
-    	if( !cbk ) cbk = false;
+    	console.log( 'User.Logout', cbk )
+    	Workspace.isLoggedIn = false;
+    	
+    	if( !cbk ) 
+    		cbk = false;
     	
     	// FIXME: Remove this - it is not used anymore
 		window.localStorage.removeItem( 'WorkspaceUsername' );
@@ -328,117 +372,114 @@ Friend.User = {
 	    Workspace.loginPassword = null;
 
 		let keys = parent.ApplicationStorage.load( { applicationName : 'Workspace' } );
-
 		if( keys )
 		{
 			keys.username = '';
-
 			parent.ApplicationStorage.save( keys, { applicationName : 'Workspace' } );
 		}
 
 		let dologt = null;
-
-		SaveWindowStorage( function()
+		console.log( 'pre SaveWindowStorage', window.friendApp )
+		if ( !window.friendApp ) {
+			SaveWindowStorage( afterSaveWinSto )
+		} else {
+			afterSaveWinSto()
+		}
+		
+		async function afterSaveWinSto()
 		{
-			if( dologt != null )
-				clearTimeout( dologt );
-			
-			if( !cbk )
+			console.log( 'afterSaveWinSto', Workspace.logoutURL )
+			if( Workspace.logoutURL )
 			{
-				// Do external logout and then our internal one.
-				if( Workspace.logoutURL )
-				{
-					Workspace.externalLogout();
-					return;
-				}
-			}
-
-			if( typeof friendApp != 'undefined' && typeof friendApp.get_app_token == 'function' )
-			{
-				let ud = new cAjax();
-				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
-				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
-				//
-				ud.forceHTTP = true;
-				ud.onload = function( lmdata )
-                        	{
-                                	console.log('DeleteUma finished: ' + lmdata );
-					let m = new cAjax();
-                                	m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
-                                	m.forceHTTP = true;
-                                	m.send();
-
-                                	if( !cbk )
-                                	{
-                                        	setTimeout( doLogout, 500 );
-                                	}
-                                	else
-                                	{
-                                        	if( Workspace.conn )
-                                        	{
-                                                	try
-                                                	{
-                                                	        Workspace.conn.ws.close();
-                                               		}
-                                                	catch( e )
-                                                	{
-                                                        	console.log( 'Could not close conn.' );
-                                                	}
-                                                	delete Workspace.conn;
-                                                	Workspace.conn = null;
-                                        	}
-                                        	Workspace.sessionId = '';
-                                        	cbk();
-                                	}
-                        	};
-				ud.send();
-			}
-			else
-			{
-				let m = new cAjax();
-				m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
-				m.forceHTTP = true;
-				m.send();
-			
-				if( !cbk )
-				{
-					setTimeout( doLogout, 500 );
-				}
-				else
-				{
-					if( Workspace.conn )
-					{
-						try
-						{
-							Workspace.conn.ws.close();
-						}
-						catch( e )
-						{
-							console.log( 'Could not close conn.' );
-						}
-						delete Workspace.conn;
-						Workspace.conn = null;
-					}
-					Workspace.sessionId = '';
-					cbk();
-				}
-			}
-		} );
-		// Could be there will be no connection..
-		function doLogout()
-		{
-			if( typeof friendApp != 'undefined' && typeof friendApp.exit == 'function')
-			{
-				friendApp.exit();
+				Workspace.externalLogout();
 				return;
 			}
-			Workspace.sessionId = '';
+			
+			await deleteUMA()
+			console.log( 'IMA DOME')
+			callLogoutUser()
+			cleanupWSS()
+			exitWorkspace()
+			if ( cbk )
+				cbk()
+		}
+		
+		function deleteUMA() {
+			if ( Workspace.deleteUMAPromise )
+				return Workspace.deleteUMAPromise
+			
+			Workspace.deleteUMAPromise = new Promise(( resolve, reject ) => {
+				console.log( 'deleteUMA' )
+				let ud = new cAjax()
+				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
+				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
+				ud.onload = ( lmdata ) => {
+					console.log( 'deleteUMA returned', lmdata )
+					delete Workspace.deleteUMAPromise
+					resolve()
+				}
+				//
+				ud.forceHTTP = true;
+				ud.send();
+			})
+			return Workspace.deleteUMAPromise
+		}
+		
+		function callLogoutUser() {
+			if ( Workspace.logoutUserPromise )
+				return Workspace.logoutUserPromise
+			
+			Workspace.logoutUserPromise = new Promise(( resolve, reject ) => {
+				console.log( 'callLogoutUser' )
+				let m = new cAjax();
+            	m.open( 'get', '/system.library/user/logout/?sessionid=' + Workspace.sessionId, true );
+            	m.forceHTTP = true;
+            	m.onload = ( thing, thang ) => {
+            		console.log( 'callLogoutUser res', [ thing, thang ])
+            		delete Workspace.logoutUserPromise
+            	}
+            	m.send()
+			})
+			return Workspace.logoutUserPromise
+		}
+		
+		function cleanupWSS() {
+			console.log( 'cleanupWSS' )
+			if( Workspace.conn )
+			{
+				try
+				{
+					Workspace.conn.ws.close();
+				}
+				catch( e )
+				{
+					console.log( 'Could not close conn.' );
+				}
+				delete Workspace.conn;
+				Workspace.conn = null;
+			}
+		}
+		
+		function exitWorkspace()
+		{
+			console.trace( 'exitWorkspace' )
+			Workspace.setSessionId( '' )
+			//Workspace.sessionId = '';
+			if( window.friendApp )
+			{
+				friendApp.logout();
+				return;
+			}
+			
 			document.location.href = window.location.href.split( '?' )[0].split( '#' )[0]; //document.location.reload();
 		}
+		
+		/*
 		if( !cbk )
 		{
-			dologt = setTimeout( doLogout, 750 );
+			dologt = setTimeout( exitWorkspace, 750 );
 		}
+		*/
 		return true;
     },
     // Remember keys
@@ -465,21 +506,17 @@ Friend.User = {
 	// Renews session ids for cajax and executes ajax queue!
 	RenewAllSessionIds: function( session )
 	{
-		if( session )
-			Workspace.sessionId = session;
+		if( session ) {
+			Workspace.setSessionId( session )
+			//Workspace.sessionId = session;
+		}
 		
 		// Reset this in this case
 		_cajax_http_connections = 0;
 		
-		// Check if there's a queue of objects waiting to run
-		if( Friend.cajax && Friend.cajax.length )
-		{
-			for( var a = 0; a < Friend.cajax.length; a++ )
-			{
-				Friend.cajax[a].send();
-			}
-			Friend.cajax = [];
-		}
+		Friend.cajax?.forEach( req => req.send())
+		Friend.cajax = [];
+		
 	},
 	// Reset the password
 	ResetPassword: function( username, callback )
@@ -498,177 +535,252 @@ Friend.User = {
 	FlushSession: function()
 	{
 		// Clear Workspace session
-		Workspace.sessionId = '';
+		console.trace( 'flushSession' )
+		Workspace.setSessionId( '' )
+		//Workspace.sessionId = '';
 	},
 	// Initialize this object
 	Init: function()
 	{
-		this.ServerIsThere = true;
+		this.serverAvaiable = true;
 	},
 	CheckServerNow: function()
 	{
 		this.CheckServerConnection();
 	},
+	// returns a promise, resolves when online
+	waitForOnline: function() {
+		const self = this
+		console.log( 'waitForOnline', self.waitForOnlinePromise )
+		if ( self.waitForOnlinePromise )
+			return self.waitForOnlinePromise
+		
+		self.waitForOnlinePromise = new Promise(( resolve, reject ) => {
+			if ( 'online' == self.State ) {
+				done()
+				return
+			}
+			
+			self.waitForOnlineHandler = done
+			
+			function done() { 
+				delete self.waitForOnlinePromise
+				delete self.waitForOnlineHandler
+				console.log( 'waitForOnline done', self )
+				Workspace.screen.hideOfflineMessage()
+				resolve()
+			}
+		})
+		
+		return self.waitForOnlinePromise
+		
+	},
 	// Check if the server is alive
-	CheckServerConnection: function( useAjax )
+	CheckServerConnection: function()
 	{
-		if( Workspace && Workspace.loginPrompt ) return;
-		if( typeof( Library ) == 'undefined' ) return;
-		if( typeof( MD5 ) == 'undefined' ) return;
-		let exf = function()
+		const self = this
+		console.log( 'CheckServerConnection', {
+			loginP : Workspace?.loginPrompt,
+			state  : Friend.User.State,
+			checkInterval : Friend.User.serverCheckInterval,
+			check  : Friend.User.serverCheck,
+		})
+		
+		
+		if( Workspace?.loginPrompt ) 
+			return
+		
+		if ( Friend.User.serverCheckInterval ) {
+			return
+		}
+		
+		if( typeof( Library ) == 'undefined' ) 
+			return
+		if( typeof( MD5 ) == 'undefined' ) 
+			return
+		
+		/*
+		if( Friend.User.serverAvaiable )
 		{
-			Friend.User.serverCheck = null;
-			if( Friend.User.State != 'offline' )
+			Friend.User.ReLogin();
+			return
+		}
+		*/
+		
+		Friend.User.serverCheckInterval = setInterval(() =>
+		{
+			Friend.User.serverCheckTimeout = setTimeout( checkTimeout, 1500 )
+			sendCheck()
+		}, 2500 );
+		
+		function checkTimeout() {
+			console.log( 'serverCheck timeout')
+			Friend.User.serverCheckTimeout = null
+			if ( Friend.User.serverCheck?.currentRequest )
+				Friend.User.serverCheck.currentRequest.destroy()
+			
+			Friend.User.serverAvaiable = false
+			Friend.User.SetUserConnectionState( 'offline' );
+		}
+		
+		function sendCheck() {
+			console.log( 'send server check' )
+			let serverCheck = new Library( 'system' );
+			Friend.User.serverCheck = serverCheck
+			
+			serverCheck.forceHTTP = true;
+			serverCheck.forceSend = true;
+			serverCheck.onExecuted = handleCheckResponse
+			serverCheck.execute( 'validate' );
+		}
+		
+		function handleCheckResponse( q, s )
+		{
+			console.log( 'serverCheck result', [ q, s ])
+			if ( null == q && null == s )
+				return
+			
+			if ( null != Friend.User.serverCheckTimeout )
+				clearTimeout( Friend.User.serverCheckTimeout )
+			
+			if ( null != Friend.User.serverCheckInterval )
+				clearInterval( Friend.User.serverCheckInterval )
+			
+			Friend.User.serverCheckTimeout = null
+			Friend.User.serverCheckInterval = null
+			Friend.User.serverCheck = null
+			Friend.User.serverAvaiable = true
+			
+			// Check missing session
+			let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
+			if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
+				missSess = true;
+			if( !missSess && q == null && s == null )
+				missSess = true;
+			
+			console.log( 'serverCheck also result:', {
+				missSess : missSess,
+				q : q,
+				s : s,
+			})
+			
+			if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
 			{
-				let checkTimeo = setTimeout( function()
+				console.log( 'servercheck - bad response' )
+				if( missSess )
 				{
-					Friend.User.SetUserConnectionState( 'offline' );
-				}, 1500 );
-				let serverCheck = new Library( 'system' );
-				serverCheck.onExecuted = function( q, s )
-				{
-					// Dont need this now
-					clearTimeout( checkTimeo );
-					
-					// Check missing session
-					let missSess = ( s && s.indexOf( 'sessionid or authid parameter is missing' ) > 0 );
-					if( !missSess && ( s && s.indexOf( 'User session not found' ) > 0 ) )
-						missSess = true;
-					if( !missSess && q == null && s == null )
-						missSess = true;
-			
-					if( ( q == 'fail' && !s ) || ( !q && !s ) || ( q == 'error' && !s ) || missSess )
-					{
-						if( missSess )
-						{
-							Friend.User.ReLogin();
-						}
-						Friend.User.SetUserConnectionState( 'offline' );
-					}
+					if ( window.friendApp )
+						window.friendApp.restore_session()
 					else
-					{
-						if( !Friend.User.ServerIsThere )
-						{
-							Friend.User.SetUserConnectionState( 'online', true );
-						}
-						Friend.User.ConnectionAttempts = 0;
-					}
-				};
-				if( !useAjax )
-					serverCheck.forceHTTP = true;
-				serverCheck.forceSend = true;
-			
-				try
-				{
-					// Cancel previous call if it's still in pipe
-					if( Friend.User.serverCheck && Friend.User.serverCheck.currentRequest )
-					{
-						Friend.User.serverCheck.currentRequest.destroy();
-					}
-					serverCheck.execute( 'validate' );
-					Friend.User.serverCheck = serverCheck;
+						Friend.User.ReLogin()
 				}
-				catch( e )
-				{
-					Friend.User.SetUserConnectionState( 'offline' );
-				}
+				Friend.User.SetUserConnectionState( 'offline' );
 			}
 			else
 			{
-				Friend.User.ReLogin();
+				console.log( 'servercheck - good response' )
+				Friend.User.SetUserConnectionState( 'online', true );
+				Friend.User.ConnectionAttempts = 0;
 			}
-		};
-		// Check now!
-		exf();
+		}; 
+		
+	
 	},
 	// Set the user state (offline / online etc)
 	SetUserConnectionState: function( mode, force )
 	{
+		const self = this
+		console.log( 'SetUserConnectionState', {
+			mode      : mode,
+			force     : force,
+			currState : this.State,
+			onlineH   : self.waitForOnlineHandler,
+		})
+		
+		if ( 'online' == mode && self.waitForOnlineHandler )
+			self.waitForOnlineHandler()
+		
+		//if ( mode == this.State )
+			//return
+		
 		if( mode == 'offline' )
 		{
-			if( this.State != 'offline' )
+			this.State = 'offline';
+			Workspace.workspaceIsDisconnected = true;
+			//document.body.classList.add( 'Offline' );
+			if( Workspace.screen )
+				Workspace.screen.displayOfflineMessage();
+			Workspace.workspaceIsDisconnected = true;
+			if( Workspace.nudgeWorkspacesWidget )
+				Workspace.nudgeWorkspacesWidget();
+			
+			Friend.User.CheckServerConnection()
+			
+			// Try to close the websocket
+			if( Workspace.conn && Workspace.conn.ws )
 			{
-				Workspace.workspaceIsDisconnected = true;
-				document.body.classList.add( 'Offline' );
-				if( Workspace.screen )
-					Workspace.screen.displayOfflineMessage();
-				Workspace.workspaceIsDisconnected = true;
-				if( Workspace.nudgeWorkspacesWidget )
-					Workspace.nudgeWorkspacesWidget();
-				
-				if( this.checkInterval )
-					clearInterval( this.checkInterval );
-				this.checkInterval = setInterval( 'Friend.User.CheckServerConnection()', 2500 );
-				
-				// Try to close the websocket
+				try
+				{
+					Workspace.conn.ws.close();
+				}
+				catch( e )
+				{
+					console.log( 'Could not close conn.' );
+				}
 				if( Workspace.conn && Workspace.conn.ws )
 				{
-					try
-					{
-						Workspace.conn.ws.close();
-					}
-					catch( e )
-					{
-						console.log( 'Could not close conn.' );
-					}
-					if( Workspace.conn && Workspace.conn.ws )
-					{
-						delete Workspace.conn.ws;
-						Workspace.conn.ws = null;
-					}
-					delete Workspace.conn;
-					Workspace.conn = null;
+					delete Workspace.conn.ws;
+					Workspace.conn.ws = null;
 				}
-			
-				// Remove dirlisting cache!
-				if( window.DoorCache )
-				{
-					DoorCache.dirListing = {};
-				}
+				delete Workspace.conn;
+				Workspace.conn = null;
 			}
-			this.ServerIsThere = false;
-			this.State = 'offline';
-		}
-		else if( mode == 'online' )
-		{
-			// We're online again
-			if( this.checkInterval )
+		
+			// Remove dirlisting cache!
+			if( window.DoorCache )
 			{
-				clearInterval( this.checkInterval );
-				this.checkInterval = null;
+				DoorCache.dirListing = {};
 			}
 			
-			if( this.State != 'online' || force || !Workspace.conn )
-			{
-				this.ServerIsThere = true;
-				this.State = 'online';
-				document.body.classList.remove( 'Offline' );
-				if( Workspace.screen )
-					Workspace.screen.hideOfflineMessage();
-				Workspace.workspaceIsDisconnected = false;
-				if( Workspace.nudgeWorkspacesWidget )
-					Workspace.nudgeWorkspacesWidget();
-				// Just remove this by force
-				document.body.classList.remove( 'Busy' );
-				// Just refresh it
-				if( Workspace.refreshDesktop )
-					Workspace.refreshDesktop( true, false );
-				// Try to reboot the websocket
-				if( !Workspace.conn && Workspace.initWebSocket )
-				{
-					Workspace.initWebSocket();
-				}
-				else
-				{
-					console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
-				}
-				// Clear execution queue
-				_executionQueue = {};
-			}
+			return
 		}
-		else
+		
+		if( mode == 'online' || force || !Workspace.conn )
 		{
-			this.State = mode;
+			this.serverAvaiable = true;
+			this.State = 'online';
+			//document.body.classList.remove( 'Offline' );
+			if( Workspace.screen )
+				Workspace.screen.hideOfflineMessage();
+			
+			Workspace.workspaceIsDisconnected = false;
+			if( Workspace.nudgeWorkspacesWidget )
+				Workspace.nudgeWorkspacesWidget();
+			
+			// Just remove this by force
+			document.body.classList.remove( 'Busy' );
+			// Just refresh it
+			if( Workspace.refreshDesktop )
+				Workspace.refreshDesktop();
+			
+			// Try to reboot the websocket
+			if( !Workspace.conn && Workspace.initWebSocket )
+			{
+				Workspace.initWebSocket();
+			}
+			else
+			{
+				//console.log( 'We have a kind of conn: ', Workspace.conn, Workspace.conn ? Workspace.conn.ws : false );
+			}
+			
+			// Clear execution queue
+			_executionQueue = {};
+			
+			return
 		}
+		
+		console.log( 'SetUserConnectionState mode ????', mode )
+		this.State = mode;
+		
 	}
 };

@@ -26,6 +26,7 @@
 
 #include "worker.h"
 #include "network/socket.h"
+#include <pthread.h>
 
 typedef struct WorkerManager
 {

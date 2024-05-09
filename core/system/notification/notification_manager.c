@@ -1492,31 +1492,210 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		
 		// original message
 		//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\": {},\"data\":{\"t\":\"notify\",\"channel\":\"%s\",\"content\":\"%s\",\"title\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, notif->n_Channel, notif->n_Content, notif->n_Title, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
-	
+		
+		isImage = FALSE;
 		if( type == MOBILE_APP_TYPE_ANDROID )
 		{
 			if( isImage == TRUE )
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"collapse_key\":\"no.doorman.andy\",\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"title\":\"%s\","
+						"\"body\":\"%s\""
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"collapse_key\":\"no.doorman.andy\","
+						"\"priority\":\"high\","
+						"\"notification\":{"
+							"\"channel_id\":\"test_channel\","
+							"\"sound\":\"default\","
+							"\"default_vibrate_timings\":false,"
+							"\"vibrate_timings\":["
+								"\"0.0s\","
+								"\"0.4s\","
+								"\"0.2s\","
+								"\"0.4s\""
+							"]"
+						"}"
+					"}}", 
+					tokens, 
+					notif->n_Title, 
+					notif->n_Content, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT 
+				);
 			}
 			else
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{},\"data\":{\"t\":\"notify\",\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"title\":\"%s\","
+						"\"body\":\"%s\","
+						"\"android_channel_id\":\"all_notifications\""
+						"},"
+					"\"collapse_key\":\"no.doorman.andy.test\","
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+						"}"
+					"}",
+					tokens, 
+					notif->n_Title, 
+					notif->n_Content, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT
+				 );
 			}
 		}
 		else	// IOS
 		{
 			if( isImage == TRUE )
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"},\"apns\":{\"payload\":{\"aps\":{\"mutable-content\":1}},\"fcm_options\":{\"image\":\"%s\"}}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT, notif->n_Content );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"mutable_content\":true,"
+						"\"content_available\":true,"
+						"\"sound\":\"default\""
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"title\":\"%s\","
+						"\"content\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"},"
+					"\"android\":{"
+						"\"priority\":\"high\""
+					"},"
+					"\"fcm_options\":{"
+						"\"image\":\"%s\""
+					"}}",
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID , 
+					notif->n_ID, 
+					notif->n_OriginalCreateT, 
+					notif->n_Content
+				);
 			}
 			else
 			{
-				len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"image\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"},\"apns\":{\"payload\":{\"aps\":{\"mutable-content\":1}}}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
+				len = snprintf( msg, msgSize, "{"
+					"\"registration_ids\":[%s],"
+					"\"notification\":{"
+						"\"badge\":%d,"
+						"\"title\":\"%s\","
+						"\"subtitle\":\"%s\","
+						"\"body\":\"%s\","
+						"\"image\":\"%s\","
+						"\"mutable_content\":true,"
+						"\"content_available\":true,"
+						"\"sound\":\"default\""
+					"},"
+					"\"data\":{"
+						"\"t\":\"notify\","
+						"\"title\":\"%s\","
+						"\"content\":\"%s\","
+						"\"channel\":\"%s\","
+						"\"extra\":\"%s\","
+						"\"application\":\"%s\","
+						"\"action\":\"%s\","
+						"\"id\":%lu,"
+						"\"notifid\":%lu,"
+						"\"source\":\"notification\","
+						"\"createtime\":%lu"
+					"}}",
+					tokens, 
+					DEFAULT_BADGE_NUMBER, 
+					notif->n_Application, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Content, 
+					notif->n_Title, 
+					notif->n_Content, 
+					notif->n_Channel, 
+					notif->n_Extra, 
+					notif->n_Application, 
+					action, 
+					ID, 
+					notif->n_ID, 
+					notif->n_OriginalCreateT 
+				);
 				//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
 			}
 		}
 		
+		DEBUG("[NotificationManager send noitie]: %s\n", msg );
 		FQEntry *en = (FQEntry *)FCalloc( 1, sizeof( FQEntry ) );
 		if( en != NULL )
 		{

@@ -1042,9 +1042,12 @@ function InitDynamicClassSystem()
 
 function GetThemeInfo( property )
 {
-	if( !Workspace.loginUsername ) return false;
+	if( !Workspace.loginUsername ) 
+		return false
+	
 	if( !themeInfo.loaded )
 	{
+		addTiming( 'GetThemeInfo start parse' )
 		themeInfo.loaded = true;
 		// Flush old rules
 		let sheet = false;
@@ -1056,6 +1059,7 @@ function GetThemeInfo( property )
 				break;
 			}
 		}
+		
 		if( sheet )
 		{
 			for( var a = 0; a < sheet.cssRules.length; a++ )
@@ -1106,10 +1110,14 @@ function GetThemeInfo( property )
 				if( key ) themeInfo[ key ] = rule.style;
 			}
 		}
+		
+		addTiming( 'GetThemeInfo done parsing' )
 	}
+	
 	if( themeInfo[ property ] )
-		return themeInfo[ property ];
-	return false;
+		return themeInfo[ property ]
+	
+	return false
 }
 
 // Cover windows with overlay
@@ -2236,7 +2244,7 @@ movableListener = function( e, data )
 		{
 			let scrl = window.regionWindow.directoryview.scroller;
 			
-			if( !scrl.scrolling )
+			if( scrl && !scrl.scrolling )
 			{
 				scrl.scrollTopStart  = scrl.scrollTop;
 				scrl.scrollLeftStart = scrl.scrollLeft;
@@ -4032,11 +4040,13 @@ function doReveal()
 					let i = new Image();
 					if( Workspace.wallpaperImageDecoded )
 						i.src = Workspace.wallpaperImageDecoded;
-					else i.src = getImageUrl( Workspace.wallpaperImage );
+					else 
+						i.src = getImageUrl( Workspace.wallpaperImage );
+						
 					i.onload = function()
 					{
 						// Tell app we can show ourselves!
-						document.body.removeChild( i );
+						//document.body.removeChild( i );
 						document.body.classList.add( 'Revealed' );
 						if( document.body.classList.contains( 'ThemeRefreshing' ) )
 						{
@@ -4044,6 +4054,7 @@ function doReveal()
 						}
 						friendApp.reveal();
 					}
+					
 					i.style.visibility = 'hidden';
 					document.body.appendChild( i );
 					if( i.width && i.width > 0 )

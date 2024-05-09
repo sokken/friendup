@@ -30,7 +30,8 @@ if( !Friend.cajax ) Friend.cajax = [];
 function AddToCajaxQueue( ele )
 {
 	// If we're queueing it
-	if( ele.onQueue ) ele.onQueue();
+	if( ele.onQueue ) 
+		ele.onQueue()
 	
 	// Queued objects get eternal life
 	if( ele.life )
@@ -42,7 +43,7 @@ function AddToCajaxQueue( ele )
 	ele.queued = true;
 	
 	// Don't add to queue if we are offline
-	if( !Friend.User || !Friend.User.ServerIsThere )
+	if( !Friend.User || !Friend.User.serverAvaiable )
 	{
 		if( ele.onload )
 		{
@@ -65,33 +66,15 @@ function AddToCajaxQueue( ele )
 		}
 	}
 	// Add ajax element to the top of the queue
-	let o = [ ele ];
-	for( let a = 0; a < Friend.cajax.length; a++ )
-		o.push( Friend.cajax[ a ] );
-	Friend.cajax = o;
+	Friend.cajax = [ ele, ...Friend.cajax ];
 }
 
-function RemoveFromCajaxQueue( ele )
+function RemoveFromCajaxQueue( item )
 {
-	let o = [];
-	let executeLength = 6;
-	let executors = [];
-	for( let a = 0; a < Friend.cajax.length; a++ )
-	{
-		if( Friend.cajax[a] != ele )
-		{
-			if( executeLength > 0 )
-			{
-				executors.push( Friend.cajax[a] );
-				executeLength--;
-			}
-			else
-			{
-				o.push( Friend.cajax[a] );
-			}
-		}
-	}
-	Friend.cajax = o;
+	const leftovers = Friend.cajax.filter( j => {
+		return j.id != item.id;
+	});
+	Friend.cajax = leftovers;
 }
 
 // Cancel all queued cajax calls on id
@@ -116,7 +99,7 @@ function CancelCajaxOnId( id )
 cAjax = function()
 {
 	let self = this;
-	
+	self.id = friendUP.tool.uid();
 	_cajax_process_count++;
 	
 	// cajax only survives for so long..
@@ -216,23 +199,26 @@ cAjax = function()
 					try
 					{
 						let t = JSON.parse( jax.rawData );
-						// Deprecate from 1.0 beta 2 "no user!"
-						let res = t ? t.response.toLowerCase() : '';
-						if( t && ( res == 'user not found' || res.toLowerCase() == 'user session not found' ) )
-						{
-							if( window.Workspace && res.toLowerCase() == 'user session not found' ) 
-								Workspace.flushSession();
-							if( window.Workspace )
+						if ( t?.response?.toLowerCase ) {
+							// Deprecate from 1.0 beta 2 "no user!"
+							let res = t.response.toLowerCase()
+							if(  res == 'user not found' || res == 'user session not found' )
 							{
-								// Drop these (don't retry!) because of remote fs disconnect
-								if( jax.url.indexOf( 'file/info' ) > 0 )
+								if( window.Workspace && res.toLowerCase() == 'user session not found' ) 
+									Workspace.flushSession();
+
+								if( window.Workspace )
 								{
-									return jax.destroy();
+									// Drop these (don't retry!) because of remote fs disconnect
+									if( jax.url.indexOf( 'file/info' ) > 0 )
+									{
+										return jax.destroy();
+									}
+									
+									// Add to queue
+									AddToCajaxQueue( jax );
+									return Friend.User.CheckServerConnection();
 								}
-								
-								// Add to queue
-								AddToCajaxQueue( jax );
-								return Friend.User.CheckServerConnection();
 							}
 						}
 					}
@@ -253,7 +239,9 @@ cAjax = function()
 					{
 						let r = JSON.parse( jax.returnData );
 						
-						let res = r ? r.response.toLowerCase() : '';
+						let res = '';
+						if ( r?.response?.toLowerCase )
+							res = r.response.toLowerCase();
 						
 						if( res == 'user not found' || res.toLowerCase() == 'user session not found' )
 						{
@@ -401,7 +389,6 @@ cAjax.prototype.destroy = function()
 cAjax.prototype.open = function( method, url, syncing, hasReturnCode )
 {
 	let self = this;
-	
 	if( this.opened )
 	{
 		//console.log( '[cajax] Impossible error! Illegal reuse of object.' );
@@ -545,6 +532,7 @@ cAjax.prototype.send = function( data, callback )
 {
 	RemoveFromCajaxQueue( this );
 
+	this.yepsend = true;
     // TODO: Make queue work
     /*if( window.Workspace && Workspace.refreshWorkspaces && !Workspace.sessionId && !this.loginCall )
     {
@@ -562,6 +550,7 @@ cAjax.prototype.send = function( data, callback )
 		this.onload = function( e, d )
 		{
 			this.onload = null;
+			this.reppy = [ e, d ];
 			this.onloadAfter( e, d );
 			this.onloadAfter = null;
 			CleanAjaxCalls();
@@ -697,7 +686,6 @@ cAjax.prototype.send = function( data, callback )
 				{
 					if( self.onload )
 					{
-						console.log( 'This error could be.' );
 						self.onload( false, false );
 						self.destroy();
 					}
@@ -727,7 +715,6 @@ cAjax.prototype.send = function( data, callback )
 						reject( 'error' );
 						if( self.onload )
 						{
-							console.log( 'Error...' );
 							self.onload( false, false );
 							self.destroy();
 						}
@@ -739,7 +726,6 @@ cAjax.prototype.send = function( data, callback )
 					{
 						if( callback )
 						{
-							console.log( 'Other error' );
 							callback( false, false );
 						}
 						else
@@ -922,7 +908,7 @@ cAjax.prototype.handleWebSocketResponse = function( wsdata )
 		{
 			let t = JSON.parse( self.returnData );
 			// Deprecate from 1.0 beta 2 "no user!"
-			if( t && ( t.response.toLowerCase() == 'user not found' || t.response.toLowerCase() == 'user session not found' ) )
+			if( t?.response?.toLowerCase && ( t.response.toLowerCase() == 'user not found' || t.response.toLowerCase() == 'user session not found' ) )
 			{
 				if( window.Workspace && t.response.toLowerCase() == 'user session not found' )
 				{ 
@@ -1016,7 +1002,8 @@ function CleanAjaxCalls()
 	}
 	else
 	{
-		Friend.cajax[0].send();
+		const req = Friend.cajax[0];
+		req.send();
 	}
 }
 

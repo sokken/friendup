@@ -1027,11 +1027,25 @@ Screen = function ( flags, initObject )
 	this.displayOfflineMessage = function()
 	{
 		//console.log('show htat we are offline...');
-		var offline = this.div.getElementsByClassName( 'Offline' )[0];
-		if( offline )
-		{
-			offline.style.display = 'block';
+		const self = this
+		const offDiv = ge( 'OfflineMessage' )
+		if ( !self.offlineHideButt ) {
+			console.log( 'reg offbutt' )
+			const offButt = ge( 'hideOffline' )
+			this.offlineHideButt = offButt
+			offButt.addEventListener( 'click', e => { self.hideOfflineMessage() })
 		}
+		
+		document.body.classList.add( 'Offline' );
+		console.log( 'displayOfflineMessage', [ offDiv, self.offlineHideButt ] )
+		offDiv.style.display = 'block';
+		//var offline = this.div.getElementsByClassName( 'Offline' )[0];
+		/*
+		if( offDiv )
+		{
+			
+		}
+		
 		else
 		{
 
@@ -1040,6 +1054,7 @@ Screen = function ( flags, initObject )
 			offline.innerHTML = i18n('i18n_server_disconnected');
 			this.div.appendChild( offline );	
 		}
+		*/
 		
 		if( window.Workspace && Workspace.notifyAppsOfState )
 		{
@@ -1047,12 +1062,15 @@ Screen = function ( flags, initObject )
 				state: 'offline'
 			} );
 		}
+		
 	}
 	
 	this.hideOfflineMessage = function()
 	{
-		var offline = this.div.getElementsByClassName( 'Offline' )[0];
-		if( offline ) offline.style.display = 'none';
+		//var offline = this.div.getElementsByClassName( 'Offline' )[0];
+		//if( offline ) offline.style.display = 'none';
+		document.body.classList.remove( 'Offline' );
+		const offDiv = ge( 'OfflineMessage' )
 		
 		if( window.Workspace && Workspace.notifyAppsOfState )
 		{

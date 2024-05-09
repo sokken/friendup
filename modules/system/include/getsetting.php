@@ -218,7 +218,7 @@ else if ( isset( $args->args->setting ) )
 		}
 		
 		$initials = explode( ' ', $initials );
-		$initials = strtoupper( count( $initials ) > 1 ? $initials[0]{0} . $initials[1]{0} : substr( $initials[0], 0, 2 ) );
+		$initials = strtoupper( count( $initials ) > 1 ? $initials[0][0] . $initials[1][0] : substr( $initials[0], 0, 2 ) );
 		$dims = getsetting_calculateTextBox( $initials, $font, 88, 0 );
 		imagettftext( $img, 88, 0, 128 - ( $dims[ 'width' ] >> 1 ) - $dims[ 'left' ], 128 + ( $dims[ 'height' ] >> 1 ) + ( $dims[ 'height' ] - $dims[ 'top' ] ), $color, $font, $initials );
 		ob_start();

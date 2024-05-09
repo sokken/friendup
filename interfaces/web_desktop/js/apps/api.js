@@ -1773,7 +1773,6 @@ function receiveEvent( event, queued )
 			break;
 		// Messages for doors
 		case 'door':
-			console.log( dataPacket );
 			break;
 		case 'applicationstorage':
 			if ( dataPacket && typeof dataPacket.callbackId !== "undefined" )
@@ -4524,8 +4523,6 @@ DormantMaster = {
 		{
 			let cid = addCallback( callback );
 
-			console.log( 'Api.js - proxydoor - asking for folders.' );
-
 			Application.sendMessage( {
 				type: 'dormantmaster',
 				method: 'getDirectory',
@@ -4659,7 +4656,6 @@ ApplicationStorage = {
 
 	send : function( msg, callback )
 	{
-		console.log( 'api.ApplicationStorage.send', msg );
 		if ( callback ) {
 			let callbackId = addCallback( callback );
 			msg.callbackId = callbackId;
@@ -4758,8 +4754,6 @@ Authenticate = {
 		}
 
 		msg.type = 'authenticate';
-
-		console.log( 'api.Authenticate.send', msg );
 
 		Application.sendMessage( msg );
 	}
@@ -4999,7 +4993,6 @@ Authenticate = {
 
 		function fconnReady( res )
 		{
-			console.log( 'fconReady', res );
 			self.ready = true;
 			self.executeSendQueue();
 		}
@@ -8051,7 +8044,6 @@ AssidRequest.prototype.eventDispatcher = function( e )
 	if( this.isHost && this.flags.eventOwner == 'owner' )
 		return;
 
-	console.log( 'eventDispatcher', e );
 	// Send the event through the network!
 	let hostEndpoint = 'send/'; // broadcast to all clients
 	let clientEndpoint = 'sendowner/'; // send to session owner

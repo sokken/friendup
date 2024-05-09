@@ -17,45 +17,47 @@ var _executionQueue = {};
 //       with a function that parses flags and adds args to flags list!
 //       Mucho importante!
 
-function RemoveFromExecutionQueue( app )
+function RemoveFromExecutionQueue( app, ...cb_args )
 {
-	try
-	{
-		var out = {};
-		for( var a in _executionQueue )
-			if( a != app )
-				out[ a ] = true;
-		_executionQueue = out;
+	if ( null == _executionQueue )
+		return
+	
+	if ( null == _executionQueue[ app ] )
+		return
+	
+	if ( true !== _executionQueue[ app ]) {
+		const exec = _executionQueue[ app ]
+		console.log( 'removefromexeq', exec, cb_args )
+		exec.callbacks.forEach( cb => cb( ...cb_args ))
+		exec.resolve( cb_args[ 0 ])
 	}
-	// Something went wrong, flush
-	catch( e )
-	{
-		console.log( 'Problem!' );
-		mobileDebug( 'Something failed with execution queue.', true );
-		_executionQueue = {};
-	}
+	
+	delete _executionQueue[ app ]
 }
 
 // Load a javascript application into a sandbox
 function ExecuteApplication( app, args, callback, retries, flags )
 {
-	/*console.log( 'ExecuteApplication', [
+	console.log( 'ExecuteApplication', [
 		app,
 		args,
 		callback,
 		retries,
 		flags,
-	]);*/
+		_executionQueue,
+	]);
+	
 	// Just nothing.
 	if( !app ) {
 		console.log( 'just nothing things', app );
 		return;
 	}
 	
+	window.addTiming( 'ExecuteAppliction', app )
 	// If we don't have any cached basics, wait a bit
-	if( typeof( _applicationBasics ) == 'undefined' || !_applicationBasics.js )
+	if( !window._applicationBasics?.js )
 	{
-		//console.log( 'ExecuteApplication - retries', retries );
+		console.log( 'XXXecuteApplication - no basics, retries', retries );
 		if( retries == 3 ) 
 			return console.log( 'Could not execute app: ' + app );
 		loadApplicationBasics( function()
@@ -63,6 +65,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ExecuteApplication( app, args, callback, !retries ? 3 : retries++, flags );
 		} );
 	}
+	
 	var appName = app;
 	if( app.indexOf( ':' ) > 0 )
 	{
@@ -89,29 +92,48 @@ function ExecuteApplication( app, args, callback, retries, flags )
 	// You need to wait with opening apps until they are loaded by app name
 	if( _executionQueue[ appName ] )
 	{
+		const exec = _executionQueue[ appName ]
+		if ( callback )
+			exec.callbacks.push( callback )
+		
+		return exec.promise
+		/*
 		console.log( 'ExecuteApplication - app found in execution queue', {
 			app   : app,
 			queue : _executionQueue,
 		});
 		if( callback )
 			callback( false, { response: false, message: 'Already run.', data: 'executed' } );
-		return;
+			*/
 	}
 
 	// Register that we are executing
-	_executionQueue[ appName ] = true;
-
+	_executionQueue[ appName ] = {
+		callbacks : [],
+	}
+	const exec = _executionQueue[ appName ]
+	exec.promise = new Promise(( resolve, reject ) => {
+		exec.resolve = resolve
+		exec.reject = reject
+	})
+	if ( callback )
+		exec.callbacks.push( callback )
+	
+	console.log( 'exec', exec )
+	
 	if( isMobile )
 	{
 		Workspace.goToMobileDesktop();
+		/*
 		if( Workspace.widget )
 			Workspace.widget.slideUp();
+		*/
 		if( Workspace.mainDock )
 			Workspace.mainDock.closeDesklet();
 	}
 	
 	if( args )
-	{ 
+	{
 		Workspace.lastLaunchedAppArgs = args; 
 	}
 
@@ -147,11 +169,11 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			_WindowToFront( Friend.singleInstanceApps[ appName ].windows[ a ]._window.parentNode );
 			if( callback )
 				callback( false, { response: false, message: 'Already run.', data: 'executed' } );
-			return;
+			return exec.promise;
 		}
 		f( callback )
 			callback( false, { response: false, message: 'Already run.', data: 'executed' } );
-		return;
+		return exec.promise;
 	}
 	// Only allow one app instance in mobile!
 	else if( isMobile )
@@ -168,12 +190,14 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					_WindowToFront( app.windows[ z ]._window.parentNode );
 					
 					// Clean blocker
-					RemoveFromExecutionQueue( appName );
+					RemoveFromExecutionQueue( appName, false, { response: false, message: 'Already run.', data: 'executed' } );
 					
 					// Tell that we didn't launch
+					/*
 					if( callback )
 						callback( false, { response: false, message: 'Already run.', data: 'executed' } );
-					return;
+						*/
+					return exec.promise;
 				}
 			}
 		}
@@ -227,7 +251,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 		// Remove from execution queue
 		//console.log( 'ExecuteApplication - jsx things maybe', app );
 		RemoveFromExecutionQueue( appName );
-		return ExecuteJSXByPath( app, args, callback, undefined, flags );
+		ExecuteJSXByPath( app, args, callback, undefined, flags );
+		return exec.promise
 	}
 	else if( app.indexOf( ':' ) > 0 )
 	{
@@ -249,16 +274,17 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			//
 		}
 	
+		console.log( 'ExeApp conf', conf )
 		//console.log( 'ExecuteApplication.onExecuted', [ r, conf ]);
 		if( r == 'activate' )
 		{
 			//console.log( 'ExecuteApplication - active', app );
 			ActivateApplication( app, conf );
 			// Remove blocker
-			RemoveFromExecutionQueue( appName );
-			if( callback ) callback( false );
+			RemoveFromExecutionQueue( appName, false );
+			//if( callback ) callback( false );
 			
-			return false;
+			return exec.promise;
 		}
 		else if( r != 'ok' )
 		{
@@ -316,8 +342,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
+					return exec.promise //callback( { error: 1, errorMessage: i18n( 'application_not_signed' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_signed' ) );
 			}
@@ -326,8 +352,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
+					return exec.promise //callback( { error: 1, errorMessage: i18n( 'application_not_validated' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_validated' ) );
 			}
@@ -336,8 +362,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: i18n( 'application_not_found' ) } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: i18n( 'application_not_found' ) } );
+					return exec.promise //callback( { error: 1, errorMessage: i18n( 'application_not_found' ) } );
 				}
 				Ac2Alert( i18n( 'application_not_found' ) );
 			}
@@ -354,8 +380,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			KillApplication( appName );
 			
 			// Remove blocker
-			RemoveFromExecutionQueue( appName );
-			return false;
+			RemoveFromExecutionQueue( appName, false );
+			return exec.promise;
 		}
 
 		// 2. If the application is activated, run it...........................
@@ -367,15 +393,15 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( callback )
 				{
 					// Remove blocker
-					RemoveFromExecutionQueue( appName );
-					return callback( { error: 1, errorMessage: 'Can not run v0 applications.' } );
+					RemoveFromExecutionQueue( appName, { error: 1, errorMessage: 'Can not run v0 applications.' } );
+					return exec.promise//callback( { error: 1, errorMessage: 'Can not run v0 applications.' } );
 				}
 				Ac2Alert( 'Can not run v0 applications.' );
-				if( callback ) callback( false );
+				//if( callback ) callback( false );
 				
 				// Remove blocker
-				RemoveFromExecutionQueue( appName );
-				return false;
+				RemoveFromExecutionQueue( appName, false );
+				return exec.promise
 			}
 
 			// Load sandbox js
@@ -440,7 +466,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					// Remove blocker
 					//console.log( 'ExecuteApplication - onExecuted, more jsx things', conf );
 					RemoveFromExecutionQueue( appName );
-					return ExecuteJSXByPath( conf.Init, args, callback, conf, flags );
+					ExecuteJSXByPath( conf.Init, args, callback, conf, flags );
+					return exec.promise
 				}
 				// TODO: Check privileges of one app to launch another!
 				else
@@ -458,9 +485,9 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					j.onload = function()
 					{	
 						let ws;
-						if( _applicationBasics && _applicationBasics.apiV1 )
+						if( window._applicationBasics && window._applicationBasics.apiV1 )
 						{
-							ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + _applicationBasics.apiV1 + '"' );
+							ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + window._applicationBasics.apiV1 + '"' );
 						}
 						else
 						{
@@ -503,7 +530,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ifr.quit = function( level )
 			{
 				// Clean blocker
-				RemoveFromExecutionQueue( appName );
+				RemoveFromExecutionQueue( appName, 0 );
 				
 				// Check vr
 				if( window.FriendVR )
@@ -658,6 +685,12 @@ function ExecuteApplication( app, args, callback, retries, flags )
 						platform : platform,
 					};
 				}
+				/* else {
+					fApp = {
+						fake : true,
+					}
+				}
+				*/
 				
 				// Args could be sent in JSON format, then try to give this on.
 				var oargs = args;
@@ -691,7 +724,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					domain:   sdomain,
 					registerCallback: cid,
 					clipboard: Friend.clipboard,
-					cachedAppData: _applicationBasics
+					cachedAppData: window._applicationBasics
 				};
 				if( conf.State ) o.state = conf.State;
 
@@ -738,16 +771,19 @@ function ExecuteApplication( app, args, callback, retries, flags )
 		}
 		else
 		{
-			if( callback ) callback( "\n", { response: 'Executable has run.' } );
+			//if( callback ) callback( "\n", { response: 'Executable has run.' } );
 			
 			// Clean blocker
-			RemoveFromExecutionQueue( appName );
+			RemoveFromExecutionQueue( appName, "\n", { response: 'Executable has run.' } );
 		}
 	}
 	var eo = { application: app, args: args };
 	if( Workspace.conf && Workspace.conf.authid )
 		eo.authid = Workspace.conf.authid;
+	
 	m.execute( 'friendapplication', eo );
+	
+	return exec.promise
 	// console.log( 'Test3: Executing application: ' + app );
 }
 
@@ -1143,7 +1179,16 @@ function ExecuteApplicationActivation( app, win, permissions, reactivation )
 // Do it by path!
 function ExecuteJSXByPath( path, args, callback, conf, flags )
 {
-	if( !path ) return;
+	console.log( 'ExecuteJSXByPath', {
+		path     : path,
+		args     : args,
+		callback : callback,
+		conf     : conf,
+		flags    : flags,
+	})
+	
+	if( !path ) 
+		return;
 	
 	// Strip arguments
 	let ind = path.indexOf( '.jsx' );
@@ -1332,9 +1377,9 @@ function ExecuteJSX( data, app, args, path, callback, conf, flags )
 				j.onload = function()
 				{
 					let ws;
-					if( _applicationBasics.apiV1 )
+					if( window._applicationBasics.apiV1 )
 					{
-						ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + _applicationBasics.apiV1 + '"' );
+						ws = this.rawData.split( 'src="/webclient/js/apps/api.js"' ).join( 'src="' + window._applicationBasics.apiV1 + '"' );
 					}
 					else
 					{
@@ -1529,7 +1574,7 @@ function ExecuteJSX( data, app, args, path, callback, conf, flags )
 						viewId:           false,
 						registerCallback: cid,
 						clipboard:        Friend.clipboard,
-						cachedAppData:    _applicationBasics,
+						cachedAppData:    window._applicationBasics,
 						args:			  args
 					};
 

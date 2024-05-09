@@ -43,6 +43,10 @@ html > body.Inside
 	height: 0;
 }
 
+body[mobile=mobile] .TitleBar {
+	display: none !important;
+}
+
 body:not(.ViewMaximized) #Screens > div.Screen > .TitleBar,
 body.ViewMaximized.AppsShowing #Screens > div.Screen > .TitleBar
 {
@@ -225,6 +229,7 @@ html body .Screen .MobileTopNavigation:active
 	background-color: rgba(255,255,255,0.5);
 }
 
+/*
 html body .Screen .MobileTopNavigation:after
 {
 	display: block;
@@ -234,19 +239,20 @@ html body .Screen .MobileTopNavigation:after
 	text-align: center;
 	line-height: 40px;
 }
+*/
 
 html body .Screen .MobileAppMenu
 {
 	opacity: 1;
 	position: absolute;
 	bottom: 0;
-	right: 0;
-	width: 40px;
-	height: 40px;
+	width: 100%;
+	height: 3em;
 	z-index: 2147483647;
 	background-repeat: no-repeat;
 }
 
+/*
 html body.AppsShowing .Screen .MobileAppMenu:after
 {
 	content: "\f107";
@@ -262,6 +268,41 @@ html body .Screen .MobileAppMenu:after
 	text-align: center;
 	line-height: 40px;
 }
+*/
+
+.MobileAppMenu {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-around;
+	background-color: #333;
+}
+
+.MobileAppMenu .app_menu_item {
+	width  : 2.5em;
+	height : 2.5em;
+	background-size : contain;
+}
+
+.MobileAppMenu .switch_to_FriendChat {
+	background-image: url( '/webclient/apps/FriendChat/icon.png' );
+}
+
+.MobileAppMenu .switch_to_DoormanOffice {
+	background-image: url( '/webclient/apps/DoormanOffice/icon.png' );
+}
+
+.MobileAppMenu .logout {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.MobileAppMenu .logout i {
+	color     : white;
+	font-size : 2em;
+}
+
 
 
 /* Mobile menu -------------------------------------------------------------- */
@@ -313,6 +354,7 @@ html body .Screen .MobileAppMenu:after
 
 [mobile] #WorkspaceMenu
 {
+	display : block !important;
 	position: absolute;
 	right: auto;
 	top: 0;
@@ -1006,8 +1048,9 @@ body[mobile=mobile] .File .Title
 html body[mobile=mobile] #DoorsScreen > .ScreenContent, 
 html body[mobile=mobile]:not(.HasMenu).ViewMaximized #Screens > div.Screen > .ScreenContent
 {
-	height: calc(100% - 80px) !important;
-	min-height: calc(100% - 80px) !important;
+	top : 2.5em !important;
+	height: calc(100% - 5.5em) !important;
+	min-height: calc(100% - 5.5em) !important;
 }
 
 /* Subscreens */

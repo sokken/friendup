@@ -26,7 +26,9 @@ var ScreenOverlay = {
 	show: function()
 	{
 		var self = this;
-		if( this.visibility || !this.div ) return;
+		if( this.visibility || !this.div )
+			return
+
 		this.visibility = true;
 		this.div.classList.remove( 'Hidden' );
 		this.div.classList.add( 'Visible' );
@@ -42,9 +44,13 @@ var ScreenOverlay = {
 	// Trick hide
 	invisible: function()
 	{
-		if( this.debug ) return;
+		if( this.debug ) 
+			return;
+
 		var self = this;
-		if( !this.visibility ) return;
+		if( !this.visibility ) 
+			return;
+
 		this.div.classList.add( 'Hiding' );
 		setTimeout( function()
 		{
@@ -65,7 +71,9 @@ var ScreenOverlay = {
 	// Hide self
 	hide: function()
 	{
-		if( this.debug ) return;
+		if( this.debug ) 
+			return;
+
 		var self = this;
 		
 		// Reload the docks

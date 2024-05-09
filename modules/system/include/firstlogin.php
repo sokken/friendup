@@ -43,7 +43,7 @@ function InstallApp( $user_id, $app_name )
 // Create server token required by certain doors
 if( !Trim( $User->ServerToken ) )
 {
-	$token = hash( 'sha256', $User->FullName . rand(0,999) . mktime() . rand( 0,999 ) );
+	$token = hash( 'sha256', $User->FullName . rand(0,999) . time() . rand( 0,999 ) );
 	$SqlDatabase->query( 'UPDATE FUser SET ServerToken="' . $token . '" WHERE ID=\'' . $User->ID . '\'' );
 }
 

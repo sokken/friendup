@@ -160,7 +160,7 @@ class fcrypto extends Crypt_RSA
 		{
 			if( $m == 0 )
 			{
-				$ch = ord( $str{$a} );
+				$ch = ord( $str[$a] );
 				if( $ch == 0 || $ch == 11 ) continue;
 				else $m = 1;
 			}

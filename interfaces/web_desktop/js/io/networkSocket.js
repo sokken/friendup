@@ -355,6 +355,7 @@ NetworkConn.prototype.close = function()
 NetworkConn.prototype.init = function( hostMeta )
 {
 	var self = this;
+	console.log( 'NetworkConn.init', hostMeta )
 	self.conn = new NetworkSocket(
 		self.host,
 		self.authType,

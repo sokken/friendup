@@ -43,7 +43,7 @@ Workspace = {
 	directoryView: false,
 	conn : null,
 	
-	init: function()
+	init: async function()
 	{	
 		// First things first
 		if( this.initialized ) return;
@@ -153,7 +153,7 @@ Workspace = {
 		this.screenDiv = wbscreen.div;
 		
 		// Recall wallpaper from settings
-		this.refreshUserSettings( function(){ Workspace.refreshDesktop(); } );
+		const refreshPromise = this.refreshUserSettings();
 		
 		// Create desktop
 		this.directoryView = new DirectoryView( wbscreen.contentDiv );
@@ -164,6 +164,10 @@ Workspace = {
 		// Add desklet to dock
 		this.mainDock = mainDesklet;
 		this.reloadDocks();
+		
+		await Promise.resolve( refreshPromise )
+		Workspace.refreshDesktop();
+		
 	},
 	refreshUserSettings: function( callback )
 	{

@@ -4265,10 +4265,15 @@ var View = function( args )
 					}
 				}
 			}
-
-			let msg = {}; if( packet ) for( let a in packet ) msg[a] = packet[a];
+			
+			let msg = {};
+			if( packet ) {
+				for( let a in packet ) 
+					msg[a] = packet[a];
+			}
+			
 			msg.command = 'setbodycontent';
-			msg.cachedAppData = _applicationBasics;
+			msg.cachedAppData = window._applicationBasics;
 			msg.dosDrivers = Friend.dosDrivers;
 			msg.parentSandboxId = parentIframeId;
 			msg.locale = Workspace.locale;
@@ -5899,6 +5904,7 @@ Friend.GUI.reorganizeResponsiveMinimized = function()
 			continue;
 		}
 		
+		console.log( 'add onworksapce to', a )
 		c.classList.add( 'OnWorkspace' );
 		
 		// Next row
