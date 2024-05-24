@@ -1576,7 +1576,8 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 						"\"notifid\":%lu,"
 						"\"source\":\"notification\","
 						"\"createtime\":%lu"
-						"}"
+						"},"
+					"\"priority\":\"high\""
 					"}",
 					tokens, 
 					notif->n_Title, 
