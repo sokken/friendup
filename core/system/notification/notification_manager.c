@@ -604,7 +604,12 @@ int NotificationManagerRemoveExternalConnection( NotificationManager *nm, void *
  * @return 0 when success, otherwise error number
  */
 
-int NotificationManagerSendInformationToConnections( NotificationManager *nm, char *sername, char *msg, int len )
+int NotificationManagerSendInformationToConnections( 
+	NotificationManager *nm, 
+	char *sername, 
+	char *msg, 
+	int len 
+)
 {
 	int ret = 0;
 	ExternalServerConnection *con = nm->nm_ESConnections;
@@ -625,6 +630,59 @@ int NotificationManagerSendInformationToConnections( NotificationManager *nm, ch
 		}
 	}
 	return ret;
+}
+
+/**
+ * Simplified send event to presence
+ * 
+ * 
+ * 
+ */
+int NotificationManagerSendEventToPresence(
+	NotificationManager *nm,
+	char *path,
+	char *data
+)
+{
+	int msglen = strlen( data )+256;
+	char *msg = FCalloc( msglen, sizeof(char) );
+	int error = 0;
+	int dstsize = 0;
+	
+	dstsize = sprintf( 
+		msg, 
+		"{"
+			//"\"originUserId\":\"%s\","
+			"\"path\":\"service/%s\","
+			"\"data\":%s"
+		"}",
+		//us->us_User->u_UUID,
+		path,
+		data
+	);
+	
+	error = NotificationManagerSendInformationToConnections(
+		nm,
+		"presence",
+		msg,
+		strlen( msg )
+	);
+	
+	if ( error ) {
+		DEBUG("[SendToPresence] error: %d\n", error );
+	}
+	else {
+		DEBUG("[SendToPresence] sent: %s\n", msg );
+	}
+	
+	FFree( msg );
+	
+	if ( error ) {
+		return error;
+	}
+	else {
+		return 0;
+	}
 }
 
 /**
@@ -1443,7 +1501,15 @@ int NotificationManagerNotificationSendFirebaseQueue( NotificationManager *nm )
  * @return 0 when success, otherwise error number
  */
 
-int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, Notification *notif, FULONG ID, char *action, char *tokens, int type, FBOOL send )
+int NotificationManagerNotificationAddFirebaseMessage( 
+	NotificationManager *nm, 
+	Notification *notif, 
+	FULONG ID, 
+	char *action, 
+	char *tokens, 
+	int type, 
+	FBOOL send 
+)
 {
 	SystemBase *sb = (SystemBase *)nm->nm_SB;
 	char *host = FIREBASE_HOST;
@@ -1451,8 +1517,12 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 	
 	int msgSize = 728;
 	
-	if( tokens != NULL ){ msgSize += strlen( tokens ); }
-	if( notif->n_Channel != NULL ){ msgSize += strlen( notif->n_Channel ); }
+	if( tokens != NULL ) { 
+		msgSize += strlen( tokens ); 
+	}
+	if( notif->n_Channel != NULL ) { 
+		msgSize += strlen( notif->n_Channel ); 
+	}
 	if( notif->n_Content != NULL )
 	{
 		int conLen = strlen( notif->n_Content );
@@ -1465,9 +1535,15 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 			}
 		}
 	}
-	if( notif->n_Title != NULL ){ msgSize += (strlen( notif->n_Title )*2); }
-	if( notif->n_Extra != NULL ){ msgSize += strlen( notif->n_Extra ); }
-	if( notif->n_Application != NULL ){ msgSize += (strlen( notif->n_Application )*2); }
+	if( notif->n_Title != NULL ) { 
+		msgSize += (strlen( notif->n_Title )*2); 
+	}
+	if( notif->n_Extra != NULL ) { 
+		msgSize += strlen( notif->n_Extra ); 
+	}
+	if( notif->n_Application != NULL ) { 
+		msgSize += (strlen( notif->n_Application )*2); 
+	}
 
 #define DEFAULT_BADGE_NUMBER 0		// to be changed
 	
@@ -1493,6 +1569,7 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		// original message
 		//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\": {},\"data\":{\"t\":\"notify\",\"channel\":\"%s\",\"content\":\"%s\",\"title\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, notif->n_Channel, notif->n_Content, notif->n_Title, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
 		
+		/*
 		isImage = FALSE;
 		if( type == MOBILE_APP_TYPE_ANDROID )
 		{
@@ -1695,8 +1772,62 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 				//len = snprintf( msg, msgSize, "{\"registration_ids\":[%s],\"notification\":{\"badge\":%d,\"title\":\"%s\",\"subtitle\":\"%s\",\"body\":\"%s\",\"mutable_content\":true,\"content_available\":true},\"data\":{\"t\":\"notify\",\"title\":\"%s\",\"content\":\"%s\",\"channel\":\"%s\",\"extra\":\"%s\",\"application\":\"%s\",\"action\":\"%s\",\"id\":%lu,\"notifid\":%lu,\"source\":\"notification\",\"createtime\":%lu},\"android\":{\"priority\":\"high\"}}", tokens, DEFAULT_BADGE_NUMBER, notif->n_Application, notif->n_Title, notif->n_Content, notif->n_Title, notif->n_Content, notif->n_Channel, notif->n_Extra, notif->n_Application, action, ID , notif->n_ID, notif->n_OriginalCreateT );
 			}
 		}
+		*/
+		len = snprintf( msg, msgSize, "{"
+			"\"tokens\":[%s],"
+			"\"image\":%d,"
+			"\"notification\":{"
+				"\"badge\":%d,"
+				"\"title\":\"%s\","
+				"\"subtitle\":\"%s\","
+				"\"body\":\"%s\""
+			"},"
+			"\"data\":{"
+				"\"t\":\"notify\","
+				"\"source\":\"notification\","
+				"\"notifid\":\"%lu\","
+				"\"title\":\"%s\","
+				"\"content\":\"%s\","
+				"\"channel\":\"%s\","
+				"\"application\":\"%s\","
+				"\"extra\":\"%s\","
+				"\"action\":\"%s\","
+				"\"id\":\"%lu\","
+				"\"createtime\":\"%lu\""
+			//"},",
+			//"\"android\":{"
+			//"},",
+			//"\"ios\":{"
+			"}}",
+			tokens,
+			isImage,
+			// notification
+			DEFAULT_BADGE_NUMBER,
+			notif->n_Application,
+			notif->n_Title,
+			notif->n_Content,
+			// data
+			notif->n_ID,
+			notif->n_Title,
+			notif->n_Content,
+			notif->n_Channel,
+			notif->n_Application,
+			notif->n_Extra,
+			action,
+			ID,
+			notif->n_OriginalCreateT
+		);
 		
 		DEBUG("[NotificationManager send noitie]: %s\n", msg );
+		NotificationManagerSendEventToPresence(
+			nm,
+			"pushies/send",
+			msg
+		);
+		FFree( msg );
+		return 0;
+		
+		/*
 		FQEntry *en = (FQEntry *)FCalloc( 1, sizeof( FQEntry ) );
 		if( en != NULL )
 		{
@@ -1729,6 +1860,7 @@ int NotificationManagerNotificationAddFirebaseMessage( NotificationManager *nm, 
 		{
 			FFree( msg ); // do not release message if its going to queue
 		}
+		*/
 	}
 	else
 	{

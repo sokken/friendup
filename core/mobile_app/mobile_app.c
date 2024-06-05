@@ -1339,11 +1339,25 @@ int MobileAppNotifyUserRegister( void *lsb, const char *username, const char *ch
 		DEBUG("Sending messages across Firebase devices\n");
 		
 		// android
+		BufString *bs = MobleManagerAppTokensByUserPlatformDB( 
+			sb->sl_MobileManager, 
+			userID, 
+			MOBILE_APP_TYPE_ANDROID, 
+			USER_MOBILE_APP_STATUS_APPROVED, 
+			notif->n_ID 
+		);
 		
-		BufString *bs = MobleManagerAppTokensByUserPlatformDB( sb->sl_MobileManager, userID, MOBILE_APP_TYPE_ANDROID, USER_MOBILE_APP_STATUS_APPROVED, notif->n_ID );
 		if( bs != NULL )
 		{
-			NotificationManagerNotificationAddFirebaseMessage( sb->sl_NotificationManager, notif, 1, "register", bs->bs_Buffer, MOBILE_APP_TYPE_ANDROID, TRUE );
+			NotificationManagerNotificationAddFirebaseMessage( 
+				sb->sl_NotificationManager, 
+				notif, 
+				1, 
+				"register", 
+				bs->bs_Buffer, 
+				MOBILE_APP_TYPE_ANDROID, 
+				TRUE 
+			);
 			Log( FLOG_INFO, "Firebase tokens which should get notification: %s (Android)", bs->bs_Buffer );
 			BufStringDelete( bs );
 		}

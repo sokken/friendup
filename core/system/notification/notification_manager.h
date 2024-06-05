@@ -140,6 +140,8 @@ int NotificationManagerRemoveExternalConnection( NotificationManager *nm, void *
 
 int NotificationManagerSendInformationToConnections( NotificationManager *nm, char *sername, char *msg, int len );
 
+int NotificationManagerSendEventToPresence( NotificationManager *nm, char *path, char *data );
+
 int NotificationManagerSendEventToConnections( NotificationManager *nm, Http *req, char *sername, const char *reqid, const char *sertype, const char *func, const char *action, char *msg );
 
 BufString *NotificationManagerSendRequestToConnections( NotificationManager *nm, Http *req, UserSession *us, char *sername, int type, const char *path, const char *params );
