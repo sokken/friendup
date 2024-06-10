@@ -1793,7 +1793,8 @@ int NotificationManagerNotificationAddFirebaseMessage(
 				"\"extra\":\"%s\","
 				"\"action\":\"%s\","
 				"\"id\":\"%lu\","
-				"\"createtime\":\"%lu\""
+				"\"createtime\":\"%lu\","
+				"\"api\":\"v2\""
 			//"},",
 			//"\"android\":{"
 			//"},",
