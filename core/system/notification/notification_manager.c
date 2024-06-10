@@ -1779,7 +1779,7 @@ int NotificationManagerNotificationAddFirebaseMessage(
 			"\"notification\":{"
 				"\"badge\":%d,"
 				"\"title\":\"%s\","
-				"\"subtitle\":\"%s\","
+				//"\"subtitle\":\"%s\","
 				"\"body\":\"%s\""
 			"},"
 			"\"data\":{"
@@ -1804,7 +1804,7 @@ int NotificationManagerNotificationAddFirebaseMessage(
 			isImage,
 			// notification
 			DEFAULT_BADGE_NUMBER,
-			notif->n_Application,
+			//notif->n_Application,
 			notif->n_Title,
 			notif->n_Content,
 			// data
