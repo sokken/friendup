@@ -960,7 +960,13 @@ UserMobileApp *MobleManagerGetMobileAppByUserPlatformDBm( MobileManager *mmgr, F
  * @param notifID Notification ID, if provided (>0) then NotificationSent will be stored which every message
  * @return pointer to tokens in buffered string
  */
-BufString *MobleManagerAppTokensByUserPlatformDB( MobileManager *mmgr, FULONG userID, int type, int status, FULONG notifID )
+BufString *MobleManagerAppTokensByUserPlatformDB( 
+	MobileManager *mmgr, 
+	FULONG userID, 
+	int type, 
+	int status, 
+	FULONG notifID 
+)
 {
 	char *mobileType = NULL;
 	if( type < 0 || type >= MOBILE_APP_TYPE_MAX )
