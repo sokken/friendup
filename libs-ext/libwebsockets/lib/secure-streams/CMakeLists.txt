@@ -60,14 +60,17 @@ if (LWS_WITH_CLIENT)
 
 		if (LWS_WITH_SECURE_STREAMS_PROXY_API)
 			list(APPEND SOURCES
-				secure-streams/secure-streams-serialize.c
-				secure-streams/secure-streams-client.c
-			)
-		endif()
-
-		if (LWS_WITH_SECURE_STREAMS_PROXY_API)
-			list(APPEND SOURCES
-				secure-streams/secure-streams-process.c
+				secure-streams/serialized/proxy/proxy.c
+				secure-streams/serialized/proxy/proxy-transport.c
+				secure-streams/serialized/proxy/proxy-transport-wsi.c
+				secure-streams/serialized/proxy/proxy-deserialize.c
+				secure-streams/serialized/client/sspc.c
+				secure-streams/serialized/client/sspc-transport.c
+				secure-streams/serialized/client/sspc-transport-wsi.c
+				secure-streams/serialized/client/sspc-deserialize.c
+				core-net/transport-mux-client.c
+				core-net/transport-mux-common.c
+				core-net/transport-mux-proxy.c
 			)
 		endif()
 
@@ -78,6 +81,24 @@ if (LWS_WITH_CLIENT)
 			)
 		endif()
 
+		if (LWS_WITH_SECURE_STREAMS_AUTH_SIGV4)
+			list(APPEND SOURCES
+				secure-streams/system/auth-sigv4/sign.c
+			)
+		endif()
+
+
+		if (LWS_WITH_SECURE_STREAMS_CPP)
+			list(APPEND SOURCES secure-streams/cpp/lss.cxx)
+
+			if (LWS_ROLE_H1 OR LWS_ROLE_H2)
+				list(APPEND SOURCES secure-streams/cpp/lssFile.cxx)
+			endif()
+
+			if (LWS_ROLE_WS)
+				list(APPEND SOURCES secure-streams/cpp/lssMsg.cxx)
+			endif()
+		endif()
 
 	#
 	# Helper function for adding a secure stream plugin

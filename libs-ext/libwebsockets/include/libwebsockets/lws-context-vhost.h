@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2021 Andy Green <andy@warmcat.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -230,6 +230,19 @@
 	/**< (CTX) Disable lws_system state, eg, because we are a secure streams
 	 * proxy client that is not trying to track system state by itself. */
 
+#define LWS_SERVER_OPTION_SS_PROXY				 (1ll << 36)
+	/**< (VH) We are being a SS Proxy listen socket for the vhost */
+
+#define LWS_SERVER_OPTION_SDEVENT			 	 (1ll << 37)
+	/**< (CTX) Use sd-event loop */
+
+#define LWS_SERVER_OPTION_ULOOP					 (1ll << 38)
+	/**< (CTX) Use libubox / uloop event loop */
+
+#define LWS_SERVER_OPTION_DISABLE_TLS_SESSION_CACHE		 (1ll << 39)
+	/**< (VHOST) Disallow use of client tls caching (on by default) */
+
+
 	/****** add new things just above ---^ ******/
 
 
@@ -238,12 +251,16 @@
 struct lws_plat_file_ops;
 struct lws_ss_policy;
 struct lws_ss_plugin;
+struct lws_metric_policy;
+struct lws_sss_ops;
 
 typedef int (*lws_context_ready_cb_t)(struct lws_context *context);
 
+#if defined(LWS_WITH_NETWORK)
 typedef int (*lws_peer_limits_notify_t)(struct lws_context *ctx,
 					lws_sockfd_type sockfd,
 					lws_sockaddr46 *sa46);
+#endif
 
 /** struct lws_context_creation_info - parameters to create context and /or vhost with
  *
@@ -317,7 +334,10 @@ struct lws_context_creation_info {
 	 *
 	 * You can also set port to 0, in which case the kernel will pick
 	 * a random port that is not already in use.  You can find out what
-	 * port the vhost is listening on using lws_get_vhost_listen_port() */
+	 * port the vhost is listening on using lws_get_vhost_listen_port()
+	 *
+	 * If options specifies LWS_SERVER_OPTION_UNIX_SOCK, you should set
+	 * port to 0 */
 
 	unsigned int http_proxy_port;
 	/**< VHOST: If http_proxy_address was non-NULL, uses this port */
@@ -376,10 +396,15 @@ struct lws_context_creation_info {
 	 */
 	const char *ssl_private_key_filepath;
 	/**<  VHOST: filepath to private key if wanting SSL mode;
-	 * if this is set to NULL but ssl_cert_filepath is set, the
-	 * OPENSSL_CONTEXT_REQUIRES_PRIVATE_KEY callback is called
-	 * to allow setting of the private key directly via openSSL
-	 * library calls.   (For backwards compatibility, this can also be used
+	 * this should not be set to NULL when ssl_cert_filepath is set.
+	 *
+	 * Alteratively, the certificate and private key can both be set in
+	 * the OPENSSL_LOAD_EXTRA_SERVER_VERIFY_CERTS callback directly via
+	 * openSSL library calls.  This requires that
+	 * LWS_SERVER_OPTION_CREATE_VHOST_SSL_CTX is set in the vhost info options
+	 * to force initializtion of the SSL_CTX context.
+	 *
+	 * (For backwards compatibility, this can also be used
 	 * to pass the client cert private key filepath when setting up a
 	 * vhost client SSL context, but it is preferred to use
 	 * .client_ssl_private_key_filepath for that.)
@@ -439,6 +464,8 @@ struct lws_context_creation_info {
 	int simultaneous_ssl_restriction;
 	/**< CONTEXT: 0 (no limit) or limit of simultaneous SSL sessions
 	 * possible.*/
+	int simultaneous_ssl_handshake_restriction;
+	/**< CONTEXT: 0 (no limit) or limit of simultaneous SSL handshakes ongoing */
 	int ssl_info_event_mask;
 	/**< VHOST: mask of ssl events to be reported on LWS_CALLBACK_SSL_INFO
 	 * callback for connections on this vhost.  The mask values are of
@@ -522,6 +549,17 @@ struct lws_context_creation_info {
 	  * implementation for the one provided by provided_ssl_ctx.
 	  * Libwebsockets no longer is responsible for freeing the context
 	  * if this option is selected. */
+#else /* WITH_MBEDTLS */
+	const char *mbedtls_client_preload_filepath;
+	/**< CONTEXT: If NULL, no effect.  Otherwise it should point to a
+	 * filepath where every created client SSL_CTX is preloaded from the
+	 * system trust bundle.
+	 *
+	 * This sets a processwide variable that affects all contexts.
+	 *
+	 * Requires that the mbedtls provides mbedtls_x509_crt_parse_file(),
+	 * else disabled.
+	 */
 #endif
 #endif
 
@@ -560,10 +598,19 @@ struct lws_context_creation_info {
 	 * 0 defaults to 10s. */
 #endif /* WITH_NETWORK */
 
-	int gid;
+#if defined(LWS_WITH_TLS_SESSIONS)
+	uint32_t			tls_session_timeout;
+	/**< VHOST: seconds until timeout/ttl for newly created sessions.
+	 * 0 means default timeout (defined per protocol, usually 300s). */
+	uint32_t			tls_session_cache_max;
+	/**< VHOST: 0 for default limit of 10, or the maximum number of
+	 * client tls sessions we are willing to cache */
+#endif
+
+	gid_t gid;
 	/**< CONTEXT: group id to change to after setting listen socket,
 	 *   or -1. See also .username below. */
-	int uid;
+	uid_t uid;
 	/**< CONTEXT: user id to change to after setting listen socket,
 	 *   or -1.  See also .groupname below. */
 	uint64_t options;
@@ -598,7 +645,10 @@ struct lws_context_creation_info {
 	const char *vhost_name;
 	/**< VHOST: name of vhost, must match external DNS name used to
 	 * access the site, like "warmcat.com" as it's used to match
-	 * Host: header and / or SNI name for SSL. */
+	 * Host: header and / or SNI name for SSL.
+	 * CONTEXT: NULL, or the name to associate with the context for
+	 * context-specific logging
+	 */
 #if defined(LWS_WITH_PLUGINS)
 	const char * const *plugin_dirs;
 	/**< CONTEXT: NULL, or NULL-terminated array of directories to
@@ -718,13 +768,6 @@ struct lws_context_creation_info {
 	const lws_system_ops_t *system_ops;
 	/**< CONTEXT: hook up lws_system_ apis to system-specific
 	 * implementations */
-#if defined(LWS_WITH_DETAILED_LATENCY)
-	det_lat_buf_cb_t detailed_latency_cb;
-	/**< CONTEXT: NULL, or callback to receive detailed latency information
-	 * collected for each read and write */
-	const char *detailed_latency_filepath;
-	/**< CONTEXT: NULL, or filepath to put latency data into */
-#endif
 	const lws_retry_bo_t *retry_and_idle_policy;
 	/**< VHOST: optional retry and idle policy to apply to this vhost.
 	 *   Currently only the idle parts are applied to the connections.
@@ -742,7 +785,11 @@ struct lws_context_creation_info {
 #else
 	const char *pss_policies_json; /**< CONTEXT: point to a string
 	 * containing a JSON description of the secure streams policies.  Set
-	 * to NULL if not using Secure Streams. */
+	 * to NULL if not using Secure Streams.
+	 * If the platform supports files and the string does not begin with
+	 * '{', lws treats the string as a filepath to open to get the JSON
+	 * policy.
+	 */
 #endif
 	const struct lws_ss_plugin **pss_plugins; /**< CONTEXT: point to an array
 	 * of pointers to plugin structs here, terminated with a NULL ptr.
@@ -759,6 +806,17 @@ struct lws_context_creation_info {
 	 * the socket path given in ss_proxy_bind (start it with a + or +@);
 	 * nonzero means connect via a tcp socket to the tcp address in
 	 * ss_proxy_bind and the given port */
+	const struct lws_transport_proxy_ops *txp_ops_ssproxy; /**< CONTEXT: NULL, or
+	 * custom sss transport ops used for ss proxy communication.  NULL means
+	 * to use the default wsi-based proxy server */
+	const void *txp_ssproxy_info; /**< CONTEXT: NULL, or extra transport-
+	 * specifi creation info to be used at \p txp_ops_ssproxy creation */
+	const struct lws_transport_client_ops *txp_ops_sspc; /**< CONTEXT: NULL, or
+	 * custom sss transport ops used for ss client communication to the ss
+	 * proxy.  NULL means to use the default wsi-based client support */
+#endif
+
+#if defined(LWS_WITH_SECURE_STREAMS_PROXY_API)
 #endif
 
 	int rlimit_nofile;
@@ -790,13 +848,15 @@ struct lws_context_creation_info {
 	 */
 
 #endif /* PEER_LIMITS */
-#if defined(LWS_WITH_UDP)
-	uint8_t udp_loss_sim_tx_pc;
-	/**< CONTEXT: percentage of udp writes we could have performed
-	 * to instead not do, in order to simulate and test udp retry flow */
-	uint8_t udp_loss_sim_rx_pc;
-	/**< CONTEXT: percentage of udp reads we actually received
-	 * to make disappear, in order to simulate and test udp retry flow */
+
+#if defined(LWS_WITH_SYS_FAULT_INJECTION)
+	lws_fi_ctx_t				fic;
+	/**< CONTEXT | VHOST: attach external Fault Injection context to the
+	 * lws_context or vhost.  If creating the context + default vhost in
+	 * one step, only the context binds to \p fi.  When creating a vhost
+	 * otherwise this can bind to the vhost so the faults can be injected
+	 * from the start.
+	 */
 #endif
 
 #if defined(LWS_WITH_SYS_SMD)
@@ -809,7 +869,103 @@ struct lws_context_creation_info {
 	 */
 	void					*early_smd_opaque;
 	lws_smd_class_t				early_smd_class_filter;
+	lws_usec_t				smd_ttl_us;
+	/**< CONTEXT: SMD messages older than this many us are removed from the
+	 * queue and destroyed even if not fully delivered yet.  If zero,
+	 * defaults to 2 seconds (5 second for FREERTOS).
+	 */
+	uint16_t				smd_queue_depth;
+	/**< CONTEXT: Maximum queue depth, If zero defaults to 40
+	 * (20 for FREERTOS) */
 #endif
+
+#if defined(LWS_WITH_SYS_METRICS)
+	const struct lws_metric_policy		*metrics_policies;
+	/**< CONTEXT: non-SS policy metrics policies */
+	const char				*metrics_prefix;
+	/**< CONTEXT: prefix for this context's metrics, used to distinguish
+	 * metrics pooled from different processes / applications, so, eg what
+	 * would be "cpu.svc" if this is NULL becomes "myapp.cpu.svc" is this is
+	 * set to "myapp".  Policies are applied using the name with the prefix,
+	 * if present.
+	 */
+#endif
+
+	int					fo_listen_queue;
+	/**< VHOST: 0 = no TCP_FASTOPEN, nonzero = enable TCP_FASTOPEN if the
+	 * platform supports it, with the given queue length for the listen
+	 * socket.
+	 */
+
+	const struct lws_plugin_evlib		*event_lib_custom;
+	/**< CONTEXT: If non-NULL, override event library selection so it uses
+	 * this custom event library implementation, instead of default internal
+	 * loop.  Don't set any other event lib context creation flags in that
+	 * case. it will be used automatically.  This is useful for integration
+	 * where an existing application is using its own handrolled event loop
+	 * instead of an event library, it provides a way to allow lws to use
+	 * the custom event loop natively as if it were an "event library".
+	 */
+
+#if defined(LWS_WITH_TLS_JIT_TRUST)
+	size_t					jitt_cache_max_footprint;
+	/**< CONTEXT: 0 for no limit, else max bytes used by JIT Trust cache...
+	 * LRU items are evicted to keep under this limit */
+	int					vh_idle_grace_ms;
+	/**< CONTEXT: 0 for default of 5000ms, or number of ms JIT Trust vhosts
+	 * are allowed to live without active connections using them. */
+#endif
+
+	lws_log_cx_t				*log_cx;
+	/**< CONTEXT: NULL to use the default, process-scope logging context,
+	 * else a specific logging context to associate with this context */
+
+#if defined(LWS_WITH_CACHE_NSCOOKIEJAR) && defined(LWS_WITH_CLIENT)
+	const char				*http_nsc_filepath;
+	/**< CONTEXT: Filepath to use for http netscape cookiejar file */
+
+	size_t					http_nsc_heap_max_footprint;
+	/**< CONTEXT: 0, or limit in bytes for heap usage of memory cookie
+	 * cache */
+	size_t					http_nsc_heap_max_items;
+	/**< CONTEXT: 0, or the max number of items allowed in the cookie cache
+	 * before destroying lru items to keep it under the limit */
+	size_t					http_nsc_heap_max_payload;
+	/**< CONTEXT: 0, or the maximum size of a single cookie we are able to
+	 * handle */
+#endif
+
+#if defined(LWS_WITH_SYS_ASYNC_DNS)
+	const char				**async_dns_servers;
+	/**< CONTEXT: NULL, or a pointer to an array of strings containing the
+	 * numeric IP like "8.8.8.8" or "2001:4860:4860::8888" for a list of DNS
+	 * server to forcibly add.  If given, the list of strings must be
+	 * terminated with a NULL.
+	 */
+#endif
+
+#if defined(WIN32)
+	unsigned int win32_connect_check_interval_usec;
+	/**< CONTEXT: win32 needs client connection status checking at intervals
+	 * to work reliably.  This sets the interval in us, up to 999999.  By
+	 * default, it's 500us.
+	 */
+#endif
+
+	int default_loglevel;
+	/**< CONTEXT: 0 for LLL_USER, LLL_ERR, LLL_WARN, LLL_NOTICE enabled by default when
+	 * using lws_cmdline_option_handle_builtin(), else set to the LLL_ flags you want
+	 * to be the default before calling lws_cmdline_option_handle_builtin().  Your
+	 * selected default loglevel can then be cleanly overridden using -d 1039 etc
+	 * commandline switch */
+
+	lws_sockfd_type		vh_listen_sockfd;
+	/**< VHOST: 0 for normal vhost listen socket fd creation, if any.
+	 * Nonzero to force the selection of an already-existing fd for the
+	 * vhost's listen socket, which is already prepared.  This is intended
+	 * for an external process having chosen the fd, which cannot then be
+	 * zero.
+	 */
 
 	/* Add new things just above here ---^
 	 * This is part of the ABI, don't needlessly break compatibility
@@ -1067,30 +1223,6 @@ LWS_VISIBLE LWS_EXTERN const char *
 lws_get_vhost_iface(struct lws_vhost *vhost);
 
 /**
- * lws_json_dump_vhost() - describe vhost state and stats in JSON
- *
- * \param vh: the vhost
- * \param buf: buffer to fill with JSON
- * \param len: max length of buf
- */
-LWS_VISIBLE LWS_EXTERN int
-lws_json_dump_vhost(const struct lws_vhost *vh, char *buf, int len);
-
-/**
- * lws_json_dump_context() - describe context state and stats in JSON
- *
- * \param context: the context
- * \param buf: buffer to fill with JSON
- * \param len: max length of buf
- * \param hide_vhosts: nonzero to not provide per-vhost mount etc information
- *
- * Generates a JSON description of vhost state into buf
- */
-LWS_VISIBLE LWS_EXTERN int
-lws_json_dump_context(const struct lws_context *context, char *buf, int len,
-		      int hide_vhosts);
-
-/**
  * lws_vhost_user() - get the user data associated with the vhost
  * \param vhost: Websocket vhost
  *
@@ -1112,6 +1244,54 @@ lws_vhost_user(struct lws_vhost *vhost);
  */
 LWS_VISIBLE LWS_EXTERN void *
 lws_context_user(struct lws_context *context);
+
+LWS_VISIBLE LWS_EXTERN const char *
+lws_vh_tag(struct lws_vhost *vh);
+
+LWS_VISIBLE LWS_EXTERN void
+_lws_context_info_defaults(struct lws_context_creation_info *info,
+			   const char *sspol);
+
+LWS_VISIBLE LWS_EXTERN void
+lws_default_loop_exit(struct lws_context *cx);
+
+LWS_VISIBLE LWS_EXTERN void
+lws_context_default_loop_run_destroy(struct lws_context *cx);
+
+LWS_VISIBLE LWS_EXTERN int
+lws_cmdline_passfail(int argc, const char **argv, int actual);
+
+/**
+ * lws_systemd_inherited_fd() - prepare vhost creation info for systemd exported fd if any
+ *
+ * \param index: 0+ index of exported fd
+ * \param info: info struct to be prepared with related info, if any
+ *
+ * Returns 0 and points info to the related fd, aligning the other information
+ * to the type of fd and port it is bound to, or returns nonzero if no such
+ * inherited fd.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_systemd_inherited_fd(unsigned int index,
+			 struct lws_context_creation_info *info);
+
+/**
+ * lws_context_is_being_destroyed() - find out if context is being destroyed
+ *
+ * \param context: the struct lws_context pointer
+ *
+ * Returns nonzero if the context has had lws_context_destroy() called on it...
+ * when using event library loops the destroy process can be asynchronous.  In
+ * the special case of libuv foreign loops, the failure to create the context
+ * may have to do work on the foreign loop to reverse the partial creation,
+ * meaning a failed context create cannot unpick what it did and return NULL.
+ *
+ * In that condition, a valid context that is already started the destroy
+ * process is returned, and this test api will return nonzero as a way to
+ * find out the create is in the middle of failing.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_context_is_being_destroyed(struct lws_context *context);
 
 /*! \defgroup vhost-mounts Vhost mounts and options
  * \ingroup context-and-vhost-creation
@@ -1143,7 +1323,8 @@ enum lws_mount_protocols {
 	LWSMPRO_CGI		= 3, /**< pass to CGI to handle */
 	LWSMPRO_REDIR_HTTP	= 4, /**< redirect to http:// url */
 	LWSMPRO_REDIR_HTTPS	= 5, /**< redirect to https:// url */
-	LWSMPRO_CALLBACK	= 6, /**< hand by named protocol's callback */
+	LWSMPRO_CALLBACK	= 6, /**< handle by named protocol's callback */
+	LWSMPRO_NO_MOUNT        = 7, /**< matches fall back to no match processing */
 };
 
 /** enum lws_authentication_mode
@@ -1193,6 +1374,7 @@ struct lws_http_mount {
 	unsigned int cache_reusable:1; /**< set if client cache may reuse this */
 	unsigned int cache_revalidate:1; /**< set if client cache should revalidate on use */
 	unsigned int cache_intermediaries:1; /**< set if intermediaries are allowed to cache */
+	unsigned int cache_no:1; /**< set if client should check cache always*/
 
 	unsigned char origin_protocol; /**< one of enum lws_mount_protocols */
 	unsigned char mountpoint_len; /**< length of mountpoint string */
@@ -1202,14 +1384,11 @@ struct lws_http_mount {
 
 	/* Add new things just above here ---^
 	 * This is part of the ABI, don't needlessly break compatibility
-	 *
-	 * The below is to ensure later library versions with new
-	 * members added above will see 0 (default) even if the app
-	 * was not built against the newer headers.
 	 */
-
-	void *_unused[2]; /**< dummy */
 };
+
+LWS_VISIBLE LWS_EXTERN void
+lws_vhost_set_mounts(struct lws_vhost *v, const struct lws_http_mount *mounts);
 
 ///@}
 ///@}

@@ -108,6 +108,8 @@ enum lejp_callbacks {
 
 	LEJPCB_OBJECT_START	= 16,
 	LEJPCB_OBJECT_END	= 17,
+
+	LEJPCB_USER_START	= 32,
 };
 
 /**
@@ -176,16 +178,16 @@ LWS_EXTERN signed char _lejp_callback(struct lejp_ctx *ctx, char reason);
 typedef signed char (*lejp_callback)(struct lejp_ctx *ctx, char reason);
 
 #ifndef LEJP_MAX_PARSING_STACK_DEPTH
-#define LEJP_MAX_PARSING_STACK_DEPTH 5
+#define LEJP_MAX_PARSING_STACK_DEPTH 8
 #endif
 #ifndef LEJP_MAX_DEPTH
-#define LEJP_MAX_DEPTH 12
+#define LEJP_MAX_DEPTH 16
 #endif
 #ifndef LEJP_MAX_INDEX_DEPTH
-#define LEJP_MAX_INDEX_DEPTH 6
+#define LEJP_MAX_INDEX_DEPTH 12
 #endif
 #ifndef LEJP_MAX_PATH
-#define LEJP_MAX_PATH 128
+#define LEJP_MAX_PATH 192
 #endif
 #ifndef LEJP_STRING_CHUNK
 /* must be >= 30 to assemble floats */
@@ -193,26 +195,26 @@ typedef signed char (*lejp_callback)(struct lejp_ctx *ctx, char reason);
 #endif
 
 enum num_flags {
-	LEJP_SEEN_MINUS = (1 << 0),
-	LEJP_SEEN_POINT = (1 << 1),
-	LEJP_SEEN_POST_POINT = (1 << 2),
-	LEJP_SEEN_EXP = (1 << 3)
+	LEJP_SEEN_MINUS		= (1 << 0),
+	LEJP_SEEN_POINT		= (1 << 1),
+	LEJP_SEEN_POST_POINT	= (1 << 2),
+	LEJP_SEEN_EXP		= (1 << 3)
 };
 
 struct _lejp_stack {
-	char s; /* lejp_state stack*/
-	char p;	/* path length */
-	char i; /* index array length */
-	char b; /* user bitfield */
+	char			s; /* lejp_state stack*/
+	char			p;	/* path length */
+	char			i; /* index array length */
+	char			b; /* user bitfield */
 };
 
 struct _lejp_parsing_stack {
-	void *user;	/* private to the stack level */
-	signed char (*callback)(struct lejp_ctx *ctx, char reason);
-	const char * const *paths;
-	uint8_t count_paths;
-	uint8_t ppos;
-	uint8_t path_match;
+	void			*user;	/* private to the stack level */
+	signed char 		(*callback)(struct lejp_ctx *ctx, char reason);
+	const char * const	*paths;
+	uint8_t			count_paths;
+	uint8_t			ppos;
+	uint8_t			path_match;
 };
 
 struct lejp_ctx {
@@ -243,6 +245,12 @@ struct lejp_ctx {
 	/* short */
 
 	uint16_t uni;
+#define LEJP_FLAG_FEAT_OBJECT_INDEXES				(1 << 0)
+#define LEJP_FLAG_FEAT_LEADING_WC				(1 << 1)
+#define LEJP_FLAG_LATEST \
+					(LEJP_FLAG_FEAT_OBJECT_INDEXES | \
+					 LEJP_FLAG_FEAT_LEADING_WC)
+	uint16_t flags;
 
 	/* char */
 

@@ -89,7 +89,7 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 			target_link_libraries(${TEST_NAME} websockets)
 			add_dependencies(${TEST_NAME} websockets)
 			if (UNIX AND LWS_WITH_SSL AND NOT LWS_WITH_MBEDTLS)
-				target_link_libraries(${TEST_NAME} dl)
+				target_link_libraries(${TEST_NAME} ${CMAKE_DL_LIBS})
 			endif()
 		endif()
 		
@@ -121,7 +121,7 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 		list(APPEND TEST_APP_LIST ${TEST_NAME})
 	endmacro()
 
-	if (NOT LWS_WITHOUT_SERVER)
+	if (NOT LWS_WITHOUT_SERVER AND LWS_WITH_FILE_OPS)
 		#
 		# test-server
 		#
@@ -132,8 +132,9 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 				""
 				""
 				"")
+			target_compile_definitions(test-server PRIVATE LWS_BUILDING_SHARED)
 
-			if (LWS_WITH_CGI AND LWS_WITH_TLS)
+			if (LWS_WITH_CGI AND (LWS_WITH_PLUGINS OR LWS_WITH_PLUGINS_BUILTIN) AND LWS_WITH_TLS)
 			create_test_app(test-sshd "test-sshd.c"
 				""
 				""
@@ -141,7 +142,7 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 				""
 				"")
 			target_include_directories(test-sshd PRIVATE "${PROJECT_SOURCE_DIR}/plugins/ssh-base/include")
-
+			target_compile_definitions(test-sshd PRIVATE LWS_BUILDING_SHARED)
 			endif()
 
 		endif()
@@ -157,11 +158,11 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 				""
 				""
 				"")
+			target_compile_definitions(test-server-extpoll PRIVATE LWS_BUILDING_SHARED)
 			# Set defines for this executable only.
 			set_property(
 				TARGET test-server-extpoll
 				PROPERTY COMPILE_DEFINITIONS 
-					EXTERNAL_POLL 
 					INSTALL_DATADIR="${CMAKE_INSTALL_PREFIX}/share"
 				)
 
@@ -180,13 +181,28 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 				""
 				""
 				"")
+			target_compile_definitions(test-lejp PRIVATE LWS_BUILDING_STATIC)
 		endif()
+
+		if (LWS_WITH_CBOR)
+			create_test_app(
+				test-lecp
+				"test-lecp.c"
+				""
+				""
+				""
+				""
+				"")
+			target_compile_definitions(test-lecp PRIVATE LWS_BUILDING_STATIC)
+		endif()
+
 
 		# Data files for running the test server.
 		list(APPEND TEST_SERVER_DATA
 			"${PROJECT_SOURCE_DIR}/test-apps/favicon.ico"
 			"${PROJECT_SOURCE_DIR}/test-apps/leaf.jpg"
 			"${PROJECT_SOURCE_DIR}/test-apps/candide.zip"
+			"${PROJECT_SOURCE_DIR}/test-apps/candide-uncompressed.zip"
 			"${PROJECT_SOURCE_DIR}/test-apps/libwebsockets.org-logo.svg"
 			"${PROJECT_SOURCE_DIR}/test-apps/http2.png"
 			"${PROJECT_SOURCE_DIR}/test-apps/wss-over-h2.png"
@@ -208,7 +224,7 @@ if ((LWS_ROLE_H1 OR LWS_ROLE_H2))
 							COMMAND "${CMAKE_COMMAND}" -E copy "${TEST_FILE}" "$<TARGET_FILE_DIR:test-server>/../share/libwebsockets-test-server" VERBATIM)
 			endif()
 		endforeach()
-	endif(NOT LWS_WITHOUT_SERVER)
+	endif(NOT LWS_WITHOUT_SERVER AND LWS_WITH_FILE_OPS)
 
 	if (NOT LWS_WITHOUT_CLIENT)
 		#

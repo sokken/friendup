@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2021 Andy Green <andy@warmcat.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -29,6 +29,10 @@
 #include <sys/wait.h>
 #include <sys/times.h>
 #endif
+#endif
+
+#if defined(__OpenBSD__)
+#include <sys/siginfo.h>
 #endif
 
 /** \defgroup misc Miscellaneous APIs
@@ -110,6 +114,47 @@ lws_buflist_linear_copy(struct lws_buflist **head, size_t ofs, uint8_t *buf,
 			size_t len);
 
 /**
+ * lws_buflist_linear_use(): copy and consume from buflist head
+ *
+ * \param head: list head
+ * \param buf: buffer to copy linearly into
+ * \param len: length of buffer available
+ *
+ * Copies a possibly fragmented buflist from the head into the linear output
+ * buffer \p buf for up to length \p len, and consumes the buflist content that
+ * was copied out.
+ *
+ * Since it was consumed, calling again will resume copying out and consuming
+ * from as far as it got the first time.
+ *
+ * Returns the number of bytes written into \p buf.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_buflist_linear_use(struct lws_buflist **head, uint8_t *buf, size_t len);
+
+/**
+ * lws_buflist_fragment_use(): copy and consume <= 1 frag from buflist head
+ *
+ * \param head: list head
+ * \param buf: buffer to copy linearly into
+ * \param len: length of buffer available
+ * \param frag_first: pointer to char written on exit to if this is start of frag
+ * \param frag_fin: pointer to char written on exit to if this is end of frag
+ *
+ * Copies all or part of the fragment at the start of a buflist from the head
+ * into the output buffer \p buf for up to length \p len, and consumes the
+ * buflist content that was copied out.
+ *
+ * Since it was consumed, calling again will resume copying out and consuming
+ * from as far as it got the first time.
+ *
+ * Returns the number of bytes written into \p buf.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_buflist_fragment_use(struct lws_buflist **head, uint8_t *buf,
+			 size_t len, char *frag_first, char *frag_fin);
+
+/**
  * lws_buflist_destroy_all_segments(): free all segments on the list
  *
  * \param head: list head
@@ -133,6 +178,66 @@ lws_buflist_destroy_all_segments(struct lws_buflist **head);
 LWS_VISIBLE LWS_EXTERN void
 lws_buflist_describe(struct lws_buflist **head, void *id, const char *reason);
 
+
+/*
+ * Optional helpers for closely-managed stream flow control.  These are useful
+ * when there is no memory for large rx buffers and instead tx credit is being
+ * used to regulate the server sending data.
+ *
+ * When combined with stateful consumption-on-demand, this can be very effective
+ * at managing data flows through restricted circumstances.  These helpers
+ * implement a golden implementation that can be bound to a stream in its priv
+ * data.
+ *
+ * The helper is sophisticated enough to contain a buflist to manage overflows
+ * on heap and preferentially drain it.  RX goes through heap to guarantee the
+ * consumer can exit cleanly at any time.
+ */
+
+enum {
+	LWSDLOFLOW_STATE_READ, /* default, we want input */
+	LWSDLOFLOW_STATE_READ_COMPLETED, /* we do not need further rx, every-
+					  * thing is locally buffered or used */
+	LWSDLOFLOW_STATE_READ_FAILED, /* operation has fatal error */
+};
+
+struct lws_ss_handle;
+
+typedef struct lws_flow {
+	lws_dll2_t			list;
+
+	struct lws_ss_handle		*h;
+	struct lws_buflist		*bl;
+
+	const uint8_t			*data;
+	size_t				len;		/* bytes left in data */
+	uint32_t			blseglen;	/* bytes issued */
+	int32_t				window;
+
+	uint8_t				state;
+} lws_flow_t;
+
+/**
+ * lws_flow_feed() - consume waiting data if ready for it
+ *
+ * \param flow: pointer to the flow struct managing waiting data
+ *
+ * This will bring out waiting data from the flow buflist when it is needed.
+ */
+LWS_VISIBLE LWS_EXTERN lws_stateful_ret_t
+lws_flow_feed(lws_flow_t *flow);
+
+/**
+ * lws_flow_req() - request remote data if we have run low
+ *
+ * \param flow: pointer to the flow struct managing waiting data
+ *
+ * When the estimated remote tx credit is below flow->window, accounting for
+ * what is in the buflist, add to the peer tx credit so it can send us more.
+ */
+LWS_VISIBLE LWS_EXTERN lws_stateful_ret_t
+lws_flow_req(lws_flow_t *flow);
+
 /**
  * lws_ptr_diff(): helper to report distance between pointers as an int
  *
@@ -144,6 +249,9 @@ lws_buflist_describe(struct lws_buflist **head, void *id, const char *reason);
  */
 #define lws_ptr_diff(head, tail) \
 			((int)((char *)(head) - (char *)(tail)))
+
+#define lws_ptr_diff_size_t(head, tail) \
+			((size_t)(ssize_t)((char *)(head) - (char *)(tail)))
 
 /**
  * lws_snprintf(): snprintf that truncates the returned length too
@@ -241,6 +349,25 @@ lws_json_simple_find(const char *buf, size_t len, const char *name, size_t *alen
 LWS_VISIBLE LWS_EXTERN int
 lws_json_simple_strcmp(const char *buf, size_t len, const char *name, const char *comp);
 
+/**
+ * lws_hex_len_to_byte_array(): convert hex string like 0123456789ab into byte data
+ *
+ * \param h: incoming hex string
+ * \param hlen: number of chars to process at \p h
+ * \param dest: array to fill with binary decodes of hex pairs from h
+ * \param max: maximum number of bytes dest can hold, must be at least half
+ *		the size of strlen(h)
+ *
+ * This converts hex strings into an array of 8-bit representations, ie the
+ * input "abcd" produces two bytes of value 0xab and 0xcd.
+ *
+ * Returns number of bytes produced into \p dest, or -1 on error.
+ *
+ * Errors include non-hex chars and an odd count of hex chars in the input
+ * string.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_hex_len_to_byte_array(const char *h, size_t hlen, uint8_t *dest, int max);
 
 /**
  * lws_hex_to_byte_array(): convert hex string like 0123456789ab into byte data
@@ -261,6 +388,19 @@ lws_json_simple_strcmp(const char *buf, size_t len, const char *name, const char
 LWS_VISIBLE LWS_EXTERN int
 lws_hex_to_byte_array(const char *h, uint8_t *dest, int max);
 
+/**
+ * lws_hex_from_byte_array(): render byte array as hex char string
+ *
+ * \param src: incoming binary source array
+ * \param slen: length of src in bytes
+ * \param dest: array to fill with hex chars representing src
+ * \param len: max extent of dest
+ *
+ * This converts binary data of length slen at src, into a hex string at dest
+ * of maximum length len.  Even if truncated, the result will be NUL-terminated.
+ */
+LWS_VISIBLE LWS_EXTERN void
+lws_hex_from_byte_array(const uint8_t *src, size_t slen, char *dest, size_t len);
 
 /**
  * lws_hex_random(): generate len - 1 or - 2 characters of random ascii hex
@@ -270,10 +410,7 @@ lws_hex_to_byte_array(const char *h, uint8_t *dest, int max);
  * \param len: the number of bytes the buffer dest points to can hold
  *
  * This creates random ascii-hex strings up to a given length, with a
- * terminating NUL.  Hex characters are produced in pairs, if the length of
- * the destination buffer is even, after accounting for the NUL there will be
- * an unused byte at the end after the NUL.  So lengths should be odd to get
- * length - 1 characters exactly followed by the NUL.
+ * terminating NUL.
  *
  * There will not be any characters produced that are not 0-9, a-f, so it's
  * safe to go straight into, eg, JSON.
@@ -498,7 +635,7 @@ lws_get_child(const struct lws *wsi);
  * and subdir creation / permissions down /var/cache dynamically.
  */
 LWS_VISIBLE LWS_EXTERN void
-lws_get_effective_uid_gid(struct lws_context *context, int *uid, int *gid);
+lws_get_effective_uid_gid(struct lws_context *context, uid_t *uid, gid_t *gid);
 
 /**
  * lws_get_udp() - get wsi's udp struct
@@ -626,8 +763,10 @@ lws_rx_flow_allow_all_protocol(const struct lws_context *context,
  * ws, it is legal to not know the length of the message before it completes.
  *
  * Additionally if the message is sent via the negotiated permessage-deflate
- * extension, this number only tells the amount of **compressed** data left to
- * be read, since that is the only information available at the ws layer.
+ * extension, zero is always reported.  You should use lws_is_final_fragment()
+ * to find out if you have completed the message... in compressed case, it holds
+ * back reporting the final fragment until it's also the final decompressed
+ * block issued.
  */
 LWS_VISIBLE LWS_EXTERN size_t
 lws_remaining_packet_payload(struct lws *wsi);
@@ -760,6 +899,25 @@ LWS_VISIBLE LWS_EXTERN int
 lws_is_cgi(struct lws *wsi);
 
 /**
+ * lws_tls_jit_trust_blob_queury_skid() - walk jit trust blob for skid
+ *
+ * \param _blob: the start of the blob in memory
+ * \param blen: the length of the blob in memory
+ * \param skid: the SKID we are looking for
+ * \param skid_len: the length of the SKID we are looking for
+ * \param prpder: result pointer to receive a pointer to the matching DER
+ * \param prder_len: result pointer to receive matching DER length
+ *
+ * Helper to scan a JIT Trust blob in memory for a trusted CA cert matching
+ * a given SKID.  Returns 0 if found and *prpder and *prder_len are set, else
+ * nonzero.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_tls_jit_trust_blob_queury_skid(const void *_blob, size_t blen,
+				   const uint8_t *skid, size_t skid_len,
+				   const uint8_t **prpder, size_t *prder_len);
+
+/**
  * lws_open() - platform-specific wrapper for open that prepares the fd
  *
  * \param __file: the filepath to open
@@ -805,6 +963,13 @@ LWS_VISIBLE extern const lws_humanize_unit_t humanize_schema_si[7];
 LWS_VISIBLE extern const lws_humanize_unit_t humanize_schema_si_bytes[7];
 LWS_VISIBLE extern const lws_humanize_unit_t humanize_schema_us[8];
 
+#if defined(_DEBUG)
+void
+lws_assert_fourcc(uint32_t fourcc, uint32_t expected);
+#else
+#define lws_assert_fourcc(_a, _b) do { } while (0);
+#endif
+
 /**
  * lws_humanize() - Convert possibly large number to human-readable uints
  *
@@ -827,7 +992,7 @@ LWS_VISIBLE extern const lws_humanize_unit_t humanize_schema_us[8];
  */
 
 LWS_VISIBLE LWS_EXTERN int
-lws_humanize(char *buf, int len, uint64_t value,
+lws_humanize(char *buf, size_t len, uint64_t value,
 	     const lws_humanize_unit_t *schema);
 
 LWS_VISIBLE LWS_EXTERN void
@@ -895,7 +1060,7 @@ struct lws_spawn_piped_info {
 	struct lws			*opt_parent;
 
 	const char * const		*exec_array;
-	char				**env_array;
+	const char			**env_array;
 	const char			*protocol_name;
 	const char			*chroot_path;
 	const char			*wd;
@@ -1043,3 +1208,57 @@ lws_fsmount_mount(struct lws_fsmount *fsm);
  */
 LWS_VISIBLE LWS_EXTERN int
 lws_fsmount_unmount(struct lws_fsmount *fsm);
+
+#define LWS_MINILEX_FAIL -1
+#define LWS_MINILEX_CONTINUE 0
+#define LWS_MINILEX_MATCH 1
+
+/**
+ * lws_minilex_parse() - stateful matching vs lws minilex tables
+ *
+ * \p lex: the start of the precomputed minilex table
+ * \p ps: pointer to the int16_t that holds the parsing state (init to 0)
+ * \p c: the next incoming character to parse
+ * \p match: pointer to take the match
+ *
+ * Returns either
+ *
+ *  - LWS_MINILEX_FAIL if there is no way to match the characters seen,
+ * this is sticky for additional characters until the *ps is reset to 0.
+ *
+ *  - LWS_MINILEX_CONTINUE if the character could be part of a match but more
+ *    are required to see if it can match
+ *
+ *  - LWS_MINILEX_MATCH and *match is set to the match index if there is a
+ *    valid match.
+ *
+ * In cases where the match is ambiguous, eg, we saw "right" and the possible
+ * matches are "right" or "right-on", LWS_MINILEX_CONTINUE is returned.  To
+ * allow it to match on the complete-but-ambiguous token, if the caller sees
+ * a delimiter it can call lws_minilex_parse() again with c == 0.  This will
+ * either return LWS_MINILEX_MATCH and set *match to the smaller ambiguous
+ * match, or return LWS_MINILEX_FAIL.
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_minilex_parse(const uint8_t *lex, int16_t *ps, const uint8_t c,
+			int *match);
+
+/*
+ * Reports the number of significant bits (from the left) that is needed to
+ * represent u.  So if u is 0x80, result is 8.
+ */
+
+LWS_VISIBLE LWS_EXTERN unsigned int
+lws_sigbits(uintptr_t u);
+
+/**
+ * lws_wol() - broadcast a magic WOL packet to MAC, optionally binding to if IP
+ *
+ * \p ctx: The lws context
+ * \p ip_or_NULL: The IP address to bind to at the client side, to send the
+ *                magic packet on.  If NULL, the system chooses, probably the
+ *                interface with the default route.
+ * \p mac_6_bytes: Points to a 6-byte MAC address to direct the magic packet to
+ */
+LWS_VISIBLE LWS_EXTERN int
+lws_wol(struct lws_context *ctx, const char *ip_or_NULL, uint8_t *mac_6_bytes);

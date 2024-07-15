@@ -26,11 +26,21 @@
 #include "soc/ledc_reg.h"
 #include "driver/ledc.h"
 
+#define _LEDC_HIGH_SPEED_MODE 0
+
 static const ledc_timer_config_t tc = {
-	.speed_mode             	= LEDC_HIGH_SPEED_MODE,
+#if defined(CONFIG_IDF_TARGET_ESP32S2)
+	.speed_mode             	= LEDC_LOW_SPEED_MODE,
+#else
+	.speed_mode             	= _LEDC_HIGH_SPEED_MODE,
+#endif
 	.duty_resolution        	= LEDC_TIMER_13_BIT,
 	.timer_num              	= LEDC_TIMER_0,
+#if defined(CONFIG_IDF_TARGET_ESP32S2)
+	.freq_hz                	= 1000,
+#else
 	.freq_hz                	= 5000,
+#endif
 	.clk_cfg                	= LEDC_AUTO_CLK
 };
 
@@ -38,9 +48,14 @@ int
 lws_pwm_plat_init(const struct lws_pwm_ops *lo)
 {
 	ledc_channel_config_t lc = {
+#if defined(CONFIG_IDF_TARGET_ESP32S2)
+		.speed_mode		= LEDC_LOW_SPEED_MODE,
 		.duty			= 8191,
+#else
+		.speed_mode		= _LEDC_HIGH_SPEED_MODE,
+		.duty			= 8191,
+#endif
 		.intr_type		= LEDC_INTR_FADE_END,
-		.speed_mode		= LEDC_HIGH_SPEED_MODE,
 		.timer_sel		= LEDC_TIMER_0,
 	};
 	size_t n;
@@ -51,8 +66,8 @@ lws_pwm_plat_init(const struct lws_pwm_ops *lo)
         	lc.channel = LEDC_CHANNEL_0 + lo->pwm_map[n].index;
         	lc.gpio_num = lo->pwm_map[n].gpio;
         	ledc_channel_config(&lc);
-                ledc_set_duty(LEDC_HIGH_SPEED_MODE, lc.channel, 0);
-                ledc_update_duty(LEDC_HIGH_SPEED_MODE, lc.channel);
+                ledc_set_duty(_LEDC_HIGH_SPEED_MODE, lc.channel, 0);
+                ledc_update_duty(_LEDC_HIGH_SPEED_MODE, lc.channel);
         }
 
 	return 0;
@@ -68,9 +83,9 @@ lws_pwm_plat_intensity(const struct lws_pwm_ops *lo, _lws_plat_gpio_t gpio,
 		if (lo->pwm_map[n].gpio == gpio) {
 			if (!lo->pwm_map[n].active_level)
 				inten = 65535 - inten;
-			ledc_set_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0 +
+			ledc_set_duty(_LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0 +
 					lo->pwm_map[n].index, inten >> 3);
-			ledc_update_duty(LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0 +
+			ledc_update_duty(_LEDC_HIGH_SPEED_MODE, LEDC_CHANNEL_0 +
 					lo->pwm_map[n].index);
 			return;
 		}

@@ -47,7 +47,7 @@ if (LWS_PLAT_OPTEE)
 	set(LWS_WITH_UDP 0)
 endif()
 
-if (LWS_PLAT_FREERTOS)
+if (LWS_PLAT_FREERTOS OR (${CMAKE_SYSTEM_NAME} MATCHES "QNX"))
 	message(STATUS "No LWS_WITH_DIR or LWS_WITH_LEJP_CONF")
 	set(LWS_WITH_DIR OFF)
 	set(LWS_WITH_LEJP_CONF OFF)
@@ -77,12 +77,13 @@ if(LWS_WITH_DISTRO_RECOMMENDED)
 	set(LWS_WITH_HTTP2 1)				# selfcontained
 	set(LWS_WITH_LWSWS 1)				# libuv
 	set(LWS_WITH_CGI 1)				# selfcontained
+	set(LWS_WITH_HTTP_STREAM_COMPRESSION 1)		# libz and brotli if avail
 	set(LWS_IPV6 1)					# selfcontained
 	set(LWS_WITH_ZIP_FOPS 1)			# libz
 	set(LWS_WITH_SOCKS5 1)				# selfcontained
 	set(LWS_WITH_RANGES 1)				# selfcontained
 	set(LWS_WITH_ACME 1)				# selfcontained / tls
-	set(LWS_WITH_SERVER_STATUS 1)			# selfcontained
+	set(LWS_WITH_SYS_METRICS 1)			# selfcontained
 	set(LWS_WITH_GLIB 1)				# glib
 	set(LWS_WITH_LIBUV 1)				# libuv
 	set(LWS_WITH_LIBEV 1)				# libev
@@ -97,9 +98,11 @@ if(LWS_WITH_DISTRO_RECOMMENDED)
 	set(LWS_WITH_DISKCACHE 1)			# selfcontained
 	set(LWS_WITH_LWSAC 1)				# selfcontained
 	set(LWS_WITH_LEJP_CONF 1)			# selfcontained
-	set(LWS_WITH_PLUGINS 1)				# libdl
+	set(LWS_WITH_PLUGINS_BUILTIN 1)			# selfcontained
 	set(LWS_ROLE_RAW_PROXY 1)			# selfcontained
 	set(LWS_WITH_GENCRYPTO 1)			# selfcontained / tls
+	set(LWS_WITH_CBOR 1)				# selfcontained
+	set(LWS_WITH_COSE 1)				# selfcontained
 	set(LWS_WITH_JOSE 1)				# selfcontained
 	set(LWS_WITH_STRUCT_JSON 1)			# selfcontained
 	set(LWS_WITH_STRUCT_SQLITE3 1)			# sqlite3
@@ -117,7 +120,9 @@ endif()
 if (LWS_WITH_LIBEV OR
     LWS_WITH_LIBUV OR
     LWS_WITH_LIBEVENT OR
-    LWS_WITH_GLIB)
+    LWS_WITH_GLIB OR
+    LWS_WITH_SDEVENT OR
+    LWS_WITH_ULOOP)
 	set(LWS_WITH_EVENT_LIBS 1)
 else()
 	unset(LWS_WITH_EVENT_LIBS)
@@ -126,6 +131,8 @@ endif()
 if (LWS_WITH_SECURE_STREAMS_PROXY_API)
 	set(LWS_WITH_LWS_DSH 1)
 	set(LWS_WITH_UNIX_SOCK 1)
+	set(LWS_WITH_SYS_SMD 1)
+	set(LWS_WITH_SECURE_STREAMS 1)
 endif()
 
 if (NOT LWS_WITH_NETWORK)
@@ -148,11 +155,11 @@ if (NOT LWS_WITH_NETWORK)
 	set(LWS_WITH_HTTP_STREAM_COMPRESSION 0)
 	set(LWS_WITH_HTTP_BROTLI 0)
 	set(LWS_WITH_POLL 0)
-	set(LWS_WITH_SEQUENCER 0)
 	set(LWS_ROLE_DBUS 0)
 	set(LWS_WITH_LWS_DSH 0)
 	set(LWS_WITH_THREADPOOL 0)
 	set(LWS_WITH_SYS_SMD 0)
+	set(LWS_WITH_LHP 0)
 endif()
 
 if (LWS_WITH_CGI)
@@ -166,6 +173,14 @@ endif()
 if (LWS_WITH_HTTP_BASIC_AUTH)
 	# WWW_AUTHENTICATE used by basic auth is an "uncommon header"
 	set(LWS_WITH_HTTP_UNCOMMON_HEADERS 1)
+endif()
+
+if (LWS_WITH_SECURE_STREAMS_AUTH_SIGV4)
+	set(LWS_WITH_GENCRYPTO 1)
+endif()
+
+if (LWS_WITH_HTTP_DIGEST_AUTH)
+	set(LWS_WITH_GENCRYPTO 1)
 endif()
 
 if (APPLE)
@@ -204,7 +219,7 @@ if (LWS_WITH_LWSWS)
  set(LWS_WITH_LIBUV_INTERNAL 1)
  set(LWS_WITH_EVENT_LIBS 1) # implied by LIBUV_INTERNAL
  set(LWS_WITH_ACCESS_LOG 1)
- set(LWS_WITH_SERVER_STATUS 1)
+ set(LWS_WITH_SYS_METRICS 1)
  set(LWS_WITH_LEJP 1)
  set(LWS_WITH_LEJP_CONF 1)
  set(LWS_WITH_PEER_LIMITS 1)
@@ -261,12 +276,16 @@ if (LWS_PLAT_FREERTOS)
  set(LWS_WITH_CUSTOM_HEADERS 0)
 endif()
 
+if (LWS_WITHOUT_TESTAPPS)
+	set(LWS_WITH_MINIMAL_EXAMPLES 0)
+endif()
+
 #if (LWS_WITH_ESP32)
 # set(LWS_WITH_ZIP_FOPS 1)
 #endif()
 
 if (WIN32)
-set(LWS_MAX_SMP 1)
+#set(LWS_MAX_SMP 1)
 if (LWS_WITH_PLUGINS)
 set(LWS_WITH_LIBUV_INTERNAL 1)
 endif()
@@ -333,18 +352,6 @@ if (LWS_WITHOUT_DAEMONIZE OR WIN32)
 	set(LWS_NO_DAEMONIZE 1)
 endif()
 
-if (LWS_WITH_LIBEV)
-	set(LWS_WITH_LIBEV 1)
-endif()
-
-if (LWS_WITH_LIBUV)
-	set(LWS_WITH_LIBUV 1)
-endif()
-
-if (LWS_WITH_LIBEVENT)
-	set(LWS_WITH_LIBEVENT 1)
-endif()
-
 if (LWS_IPV6)
 	set(LWS_WITH_IPV6 1)
 endif()
@@ -362,12 +369,29 @@ endif()
 
 set(LWS_WITH_CLIENT 1)
 if (LWS_WITHOUT_CLIENT)
-	set(LWS_WITH_CLIENT)
+	set(LWS_WITH_CLIENT 0)
 	set(LWS_WITH_SECURE_STREAMS 0)
+	set(LWS_WITH_SECURE_STREAMS_PROXY_API 0)
+	set(LWS_WITH_LHP 0)
 endif()
 set(LWS_WITH_SERVER 1)
 if (LWS_WITHOUT_SERVER)
 	set(LWS_WITH_SERVER)
+endif()
+
+if (LWS_WITH_UPNG)
+	set(LWS_WITH_GZINFLATE 1)
+endif()
+
+if (LWS_WITH_OTA)
+	set(LWS_WITH_JOSE 1)
+	set(LWS_WITH_GENCRYPTO 1)
+	set(LWS_WITH_GZINFATE 1)
+endif()
+
+if (LWS_WITH_LHP)
+	set(LWS_WITH_CLIENT 1)
+	set(LWS_WITH_SECURE_STREAMS 1)
 endif()
 
 # using any abstract protocol enables LWS_WITH_ABSTRACT
@@ -399,6 +423,12 @@ if (LWS_WITH_PLUGINS AND NOT LWS_WITH_SHARED)
 	set(LWS_WITH_PLUGINS 0)
 endif()
 
+if (LWS_WITH_TLS_SESSIONS)
+	if (NOT LWS_WITH_NETWORK OR NOT LWS_WITH_CLIENT)
+		message("TLS_SESSIONS support requires client, disabling")
+		set(LWS_WITH_TLS_SESSIONS OFF)
+	endif()
+endif()
 
 # if we're only building static, we don't want event lib plugins
 #
@@ -412,6 +442,7 @@ if (LWS_WITH_PLUGINS OR (LWS_WITH_EVLIB_PLUGINS AND LWS_WITH_EVENT_LIBS))
 endif()
 
 if (WIN32 AND NOT LWS_EXT_PTHREAD_LIBRARIES)
+        set(LWS_MAX_SMP 1)
         message("SMD requires pthreads")
         set(LWS_WITH_SYS_SMD 0)
 endif()

@@ -19,7 +19,7 @@ if(OPENSSL_FOUND)
   #    and typically reside in the same or in a close by directory as the executable
   # ** we do NOT want to find dlls in general dll directories such as C:\Windows\systemXX
   #    because these IN GENERAL are not compatible with the libs
-	if(WIN32 AND OPENSSL_VERSION)
+	if (WIN32 AND OPENSSL_VERSION)
 		set(OPENSSL_BIN_FOUND 0)
 
     # we check for OpenSSL versioning, as described in https://wiki.openssl.org/index.php/Versioning
@@ -44,7 +44,7 @@ if(OPENSSL_FOUND)
       get_filename_component(OPENSSL_EXECUTABLE_PATH ${OPENSSL_EXECUTABLE} DIRECTORY)
       message(VERBOSE "OPENSSL_EXECUTABLE_PATH=${OPENSSL_EXECUTABLE_PATH}")
       set(OPENSSL_EXECUTABLE_BIN_PATH "")
-      string(REGEX MATCH "^(.*)/tools/openssl$" REGEX_MATCH ${OPENSSL_EXECUTABLE_PATH})
+      string(REGEX MATCH "^(.*)/tools/openssl$" REGEX_MATCH "${OPENSSL_EXECUTABLE_PATH}")
       message(DEBUG "REGEX_MATCH=\"${REGEX_MATCH}\"")
       message(DEBUG "CMAKE_MATCH_1=\"${CMAKE_MATCH_1}\"")
       if (NOT ${REGEX_MATCH} EQUAL "")
@@ -96,7 +96,7 @@ if(OPENSSL_FOUND)
  			set(OPENSSL_BIN_FOUND 1)
 		endif()
 
-	endif(WIN32)
+	endif(WIN32 AND OPENSSL_VERSION)
 		
 endif(OPENSSL_FOUND)
 

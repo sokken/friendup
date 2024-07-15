@@ -71,7 +71,6 @@ enum lejp_global_paths {
 
 static const char * const paths_vhosts[] = {
 	"vhosts[]",
-	"vhosts[].mounts[]",
 	"vhosts[].name",
 	"vhosts[].port",
 	"vhosts[].interface",
@@ -89,13 +88,18 @@ static const char * const paths_vhosts[] = {
 	"vhosts[].mounts[].auth-mask",
 	"vhosts[].mounts[].cgi-timeout",
 	"vhosts[].mounts[].cgi-env[].*",
+	"vhosts[].mounts[].cgi-env[]",
 	"vhosts[].mounts[].cache-max-age",
 	"vhosts[].mounts[].cache-reuse",
 	"vhosts[].mounts[].cache-revalidate",
+	"vhosts[].mounts[].cache-no",
 	"vhosts[].mounts[].basic-auth",
 	"vhosts[].mounts[].cache-intermediaries",
 	"vhosts[].mounts[].extra-mimetypes.*",
+	"vhosts[].mounts[].extra-mimetypes",
 	"vhosts[].mounts[].interpret.*",
+	"vhosts[].mounts[].interpret",
+	"vhosts[].mounts[]",
 	"vhosts[].ws-protocols[].*.*",
 	"vhosts[].ws-protocols[].*",
 	"vhosts[].ws-protocols[]",
@@ -108,6 +112,7 @@ static const char * const paths_vhosts[] = {
 	"vhosts[].ssl-option-set",
 	"vhosts[].ssl-option-clear",
 	"vhosts[].mounts[].pmo[].*",
+	"vhosts[].mounts[].pmo[]",
 	"vhosts[].headers[].*",
 	"vhosts[].headers[]",
 	"vhosts[].client-ssl-key",
@@ -119,6 +124,7 @@ static const char * const paths_vhosts[] = {
 	"vhosts[].ignore-missing-cert",
 	"vhosts[].error-document-404",
 	"vhosts[].alpn",
+	"vhosts[].fo-listen-queue",
 	"vhosts[].ssl-client-option-set",
 	"vhosts[].ssl-client-option-clear",
 	"vhosts[].tls13-ciphers",
@@ -139,7 +145,6 @@ static const char * const paths_vhosts[] = {
 
 enum lejp_vhost_paths {
 	LEJPVP,
-	LEJPVP_MOUNTS,
 	LEJPVP_NAME,
 	LEJPVP_PORT,
 	LEJPVP_INTERFACE,
@@ -157,13 +162,20 @@ enum lejp_vhost_paths {
 	LEJPVP_DEFAULT_AUTH_MASK,
 	LEJPVP_CGI_TIMEOUT,
 	LEJPVP_CGI_ENV,
+	LEJPVP_CGI_ENV_base,
 	LEJPVP_MOUNT_CACHE_MAX_AGE,
 	LEJPVP_MOUNT_CACHE_REUSE,
 	LEJPVP_MOUNT_CACHE_REVALIDATE,
+	LEJPVP_MOUNT_CACHE_NO,
 	LEJPVP_MOUNT_BASIC_AUTH,
 	LEJPVP_MOUNT_CACHE_INTERMEDIARIES,
 	LEJPVP_MOUNT_EXTRA_MIMETYPES,
+	LEJPVP_MOUNT_EXTRA_MIMETYPES_base,
 	LEJPVP_MOUNT_INTERPRET,
+	LEJPVP_MOUNT_INTERPRET_base,
+
+	LEJPVP_MOUNTS,
+
 	LEJPVP_PROTOCOL_NAME_OPT,
 	LEJPVP_PROTOCOL_NAME,
 	LEJPVP_PROTOCOL,
@@ -176,6 +188,7 @@ enum lejp_vhost_paths {
 	LEJPVP_SSL_OPTION_SET,
 	LEJPVP_SSL_OPTION_CLEAR,
 	LEJPVP_PMO,
+	LEJPVP_PM_baseO,
 	LEJPVP_HEADERS_NAME,
 	LEJPVP_HEADERS,
 	LEJPVP_CLIENT_SSL_KEY,
@@ -187,6 +200,7 @@ enum lejp_vhost_paths {
 	LEJPVP_IGNORE_MISSING_CERT,
 	LEJPVP_ERROR_DOCUMENT_404,
 	LEJPVP_ALPN,
+	LWJPVP_FO_LISTEN_QUEUE,
 	LEJPVP_SSL_CLIENT_OPTION_SET,
 	LEJPVP_SSL_CLIENT_OPTION_CLEAR,
 	LEJPVP_TLS13_CIPHERS,
@@ -297,10 +311,10 @@ lejp_globals_cb(struct lejp_ctx *ctx, char reason)
 
 	switch (ctx->path_match - 1) {
 	case LEJPGP_UID:
-		a->info->uid = atoi(ctx->buf);
+		a->info->uid = (unsigned int)atoi(ctx->buf);
 		return 0;
 	case LEJPGP_GID:
-		a->info->gid = atoi(ctx->buf);
+		a->info->gid = (unsigned int)atoi(ctx->buf);
 		return 0;
 	case LEJPGP_USERNAME:
 		a->info->username = a->p;
@@ -309,7 +323,7 @@ lejp_globals_cb(struct lejp_ctx *ctx, char reason)
 		a->info->groupname = a->p;
 		break;
 	case LEJPGP_COUNT_THREADS:
-		a->info->count_threads = atoi(ctx->buf);
+		a->info->count_threads = (unsigned int)atoi(ctx->buf);
 		return 0;
 	case LWJPGP_INIT_SSL:
 		if (arg_to_bool(ctx->buf))
@@ -332,7 +346,7 @@ lejp_globals_cb(struct lejp_ctx *ctx, char reason)
 		return 0;
 
 	case LWJPGP_TIMEOUT_SECS:
-		a->info->timeout_secs = atoi(ctx->buf);
+		a->info->timeout_secs = (unsigned int)atoi(ctx->buf);
 		return 0;
 
 #if defined(LWS_WITH_TLS)
@@ -343,11 +357,11 @@ lejp_globals_cb(struct lejp_ctx *ctx, char reason)
 
 #if defined(LWS_WITH_PEER_LIMITS)
 	case LWJPGP_IP_LIMIT_AH:
-		a->info->ip_limit_ah = atoi(ctx->buf);
+		a->info->ip_limit_ah = (uint16_t)atoi(ctx->buf);
 		return 0;
 
 	case LWJPGP_IP_LIMIT_WSI:
-		a->info->ip_limit_wsi = atoi(ctx->buf);
+		a->info->ip_limit_wsi = (uint16_t)atoi(ctx->buf);
 		return 0;
 #endif
 
@@ -360,7 +374,7 @@ lejp_globals_cb(struct lejp_ctx *ctx, char reason)
 	}
 
 dostring:
-	a->p += lws_snprintf(a->p, a->end - a->p, "%s", ctx->buf);
+	a->p += lws_snprintf(a->p, lws_ptr_diff_size_t(a->end, a->p), "%s", ctx->buf);
 	*(a->p)++ = '\0';
 
 	return 0;
@@ -594,7 +608,7 @@ lejp_vhosts_cb(struct lejp_ctx *ctx, char reason)
 			if (!strncmp(a->m.origin, mount_protocols[n],
 			     strlen(mount_protocols[n]))) {
 				lwsl_info("----%s\n", a->m.origin);
-				m->origin_protocol = n;
+				m->origin_protocol = (uint8_t)(unsigned int)n;
 				m->origin = a->m.origin +
 					    strlen(mount_protocols[n]);
 				break;
@@ -629,18 +643,18 @@ lejp_vhosts_cb(struct lejp_ctx *ctx, char reason)
 		break;
 	case LEJPVP_UNIXSKT:
 		if (arg_to_bool(ctx->buf))
-			a->info->options |= LWS_SERVER_OPTION_UNIX_SOCK;
+			a->info->options |= (uint64_t)LWS_SERVER_OPTION_UNIX_SOCK;
 		else
-			a->info->options &= ~(LWS_SERVER_OPTION_UNIX_SOCK);
+			a->info->options &= (uint64_t)~(LWS_SERVER_OPTION_UNIX_SOCK);
 		return 0;
 	case LEJPVP_UNIXSKT_PERMS:
 		a->info->unix_socket_perms = a->p;
 		break;
 	case LEJPVP_STS:
 		if (arg_to_bool(ctx->buf))
-			a->info->options |= LWS_SERVER_OPTION_STS;
+			a->info->options |= (uint64_t)LWS_SERVER_OPTION_STS;
 		else
-			a->info->options &= ~(LWS_SERVER_OPTION_STS);
+			a->info->options &= (uint64_t)~(LWS_SERVER_OPTION_STS);
 		return 0;
 #if defined(LWS_WITH_TLS)
 	case LEJPVP_HOST_SSL_KEY:
@@ -671,19 +685,22 @@ lejp_vhosts_cb(struct lejp_ctx *ctx, char reason)
 		a->m.def = a->p;
 		break;
 	case LEJPVP_DEFAULT_AUTH_MASK:
-		a->m.auth_mask = atoi(ctx->buf);
+		a->m.auth_mask = (unsigned int)atoi(ctx->buf);
 		return 0;
 	case LEJPVP_MOUNT_CACHE_MAX_AGE:
 		a->m.cache_max_age = atoi(ctx->buf);
 		return 0;
 	case LEJPVP_MOUNT_CACHE_REUSE:
-		a->m.cache_reusable = arg_to_bool(ctx->buf);
+		a->m.cache_reusable = !!arg_to_bool(ctx->buf);
 		return 0;
 	case LEJPVP_MOUNT_CACHE_REVALIDATE:
-		a->m.cache_revalidate = arg_to_bool(ctx->buf);
+		a->m.cache_revalidate = !!arg_to_bool(ctx->buf);
+		return 0;
+	case LEJPVP_MOUNT_CACHE_NO:
+		a->m.cache_no = !!arg_to_bool(ctx->buf);
 		return 0;
 	case LEJPVP_MOUNT_CACHE_INTERMEDIARIES:
-		a->m.cache_intermediaries = arg_to_bool(ctx->buf);;
+		a->m.cache_intermediaries = !!arg_to_bool(ctx->buf);;
 		return 0;
 	case LEJPVP_MOUNT_BASIC_AUTH:
 #if defined(LWS_WITH_HTTP_BASIC_AUTH)
@@ -692,6 +709,9 @@ lejp_vhosts_cb(struct lejp_ctx *ctx, char reason)
 		break;
 	case LEJPVP_CGI_TIMEOUT:
 		a->m.cgi_timeout = atoi(ctx->buf);
+		return 0;
+	case LWJPVP_FO_LISTEN_QUEUE:
+		a->info->fo_listen_queue = atoi(ctx->buf);
 		return 0;
 	case LEJPVP_KEEPALIVE_TIMEOUT:
 		a->info->keepalive_timeout = atoi(ctx->buf);
@@ -783,7 +803,7 @@ lejp_vhosts_cb(struct lejp_ctx *ctx, char reason)
 		break;
 
 	case LEJPVP_ENABLE_CLIENT_SSL:
-		a->enable_client_ssl = arg_to_bool(ctx->buf);
+		a->enable_client_ssl = !!arg_to_bool(ctx->buf);
 		return 0;
 #if defined(LWS_WITH_TLS) && defined(LWS_WITH_CLIENT)
 	case LEJPVP_CLIENT_SSL_KEY:
@@ -906,14 +926,14 @@ dostring:
 		n = lws_ptr_diff(p1, p);
 		if (n > a->end - a->p)
 			n = lws_ptr_diff(a->end, a->p);
-		lws_strncpy(a->p, p, n + 1);
+		lws_strncpy(a->p, p, (unsigned int)n + 1u);
 		a->p += n;
-		a->p += lws_snprintf(a->p, a->end - a->p, "%s",
+		a->p += lws_snprintf(a->p, lws_ptr_diff_size_t(a->end, a->p), "%s",
 				     LWS_INSTALL_DATADIR);
-		p += n + strlen(ESC_INSTALL_DATADIR);
+		p += n + (int)strlen(ESC_INSTALL_DATADIR);
 	}
 
-	a->p += lws_snprintf(a->p, a->end - a->p, "%s", p);
+	a->p += lws_snprintf(a->p, lws_ptr_diff_size_t(a->end, a->p), "%s", p);
 	if (reason == LEJPCB_VAL_STR_END)
 		*(a->p)++ = '\0';
 
@@ -932,16 +952,18 @@ lwsws_get_config(void *user, const char *f, const char * const *paths,
 	struct lejp_ctx ctx;
 	int n, m = 0, fd;
 
+	memset(&ctx, 0, sizeof(ctx));
+
 	fd = lws_open(f, O_RDONLY);
 	if (fd < 0) {
 		lwsl_err("Cannot open %s\n", f);
 		return 2;
 	}
 	lwsl_info("%s: %s\n", __func__, f);
-	lejp_construct(&ctx, cb, user, paths, count_paths);
+	lejp_construct(&ctx, cb, user, paths, (uint8_t)(unsigned int)count_paths);
 
 	do {
-		n = read(fd, buf, sizeof(buf));
+		n = (int)read(fd, buf, sizeof(buf));
 		if (!n)
 			break;
 
@@ -949,7 +971,7 @@ lwsws_get_config(void *user, const char *f, const char * const *paths,
 	} while (m == LEJP_CONTINUE);
 
 	close(fd);
-	n = ctx.line;
+	n = (int32_t)ctx.line;
 	lejp_destruct(&ctx);
 
 	if (m < 0) {

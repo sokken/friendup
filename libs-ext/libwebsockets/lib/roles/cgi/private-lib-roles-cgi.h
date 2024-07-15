@@ -50,7 +50,7 @@ enum {
 
 struct lws;
 
-/* wsi who is master of the cgi points to an lws_cgi */
+/* wsi who is owns the cgi points to an lws_cgi */
 
 struct lws_cgi {
 	struct lws_cgi *cgi_list;
@@ -74,6 +74,8 @@ struct lws_cgi {
 	lws_filepos_t post_in_expected;
 	lws_filepos_t content_length;
 	lws_filepos_t content_length_seen;
+
+	pid_t	pi;
 
 	int match[SIGNIFICANT_HDR_COUNT];
 	char l[12];

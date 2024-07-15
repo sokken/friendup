@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2021 Andy Green <andy@warmcat.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -193,7 +193,7 @@ lws_urldecode_s_process(struct lws_urldecode_stateful *s, const char *in,
 				continue;
 			}
 			if (s->pos >= (int)sizeof(s->name) - 1) {
-				lwsl_hexdump_notice(s->name, s->pos);
+				lwsl_hexdump_notice(s->name, (size_t)s->pos);
 				lwsl_notice("Name too long...\n");
 				return -1;
 			}
@@ -238,7 +238,7 @@ lws_urldecode_s_process(struct lws_urldecode_stateful *s, const char *in,
 				return -1;
 
 			in++;
-			s->out[s->pos++] = s->sum | n;
+			s->out[s->pos++] = (char)(s->sum | n);
 			s->state = US_IDLE;
 			break;
 
@@ -275,7 +275,8 @@ retry_as_first:
 					n = 2;
 				if (s->mp >= n) {
 					memcpy(s->out + s->pos,
-					       s->mime_boundary + n, s->mp - n);
+					       s->mime_boundary + n,
+					       (unsigned int)(s->mp - n));
 					s->pos += s->mp;
 					s->mp = 0;
 					goto retry_as_first;
@@ -290,7 +291,7 @@ retry_as_first:
 		case MT_HNAME:
 			c =*in;
 			if (c >= 'A' && c <= 'Z')
-				c += 'a' - 'A';
+				c = (char)(c + 'a' - 'A');
 			if (!s->mp)
 				/* initially, any of them might match */
 				s->matchable = (1 << LWS_ARRAY_SIZE(mp_hdrs)) - 1; 
@@ -304,13 +305,13 @@ retry_as_first:
 
 				if (s->mp >= mp_hdrs[n].hdr_len) {
 					/* he went past the end of it */
-					s->matchable &= ~(1 << n);
+					s->matchable &= (uint8_t)~(1 << n);
 					continue;
 				}
 
 				if (c != mp_hdrs[n].hdr[s->mp]) {
 					/* mismatched a char */
-					s->matchable &= ~(1 << n);
+					s->matchable &= (uint8_t)~(1 << n);
 					continue;
 				}
 
@@ -342,7 +343,7 @@ retry_as_first:
 			if (hit == 2)
 				s->state = MT_LOOK_BOUND_IN;
 			else
-				s->state += hit + 1;
+				s->state += (unsigned int)hit + 1u;
 			break;
 
 		case MT_DISP:
@@ -365,7 +366,7 @@ retry_as_first:
 			}
 
 			if (*in == '\"') {
-				s->inside_quote ^= 1;
+				s->inside_quote = !!((s->inside_quote ^ 1) & 1);
 				goto done;
 			}
 
@@ -437,7 +438,7 @@ done:
 
 		case MT_IGNORE3:
 			if (*in == '\x0d')
-				s->state = MT_IGNORE1;
+				s->state = MT_IGNORE2;
 			if (*in == '-') {
 				s->state = MT_COMPLETED;
 				s->wsi->http.rx_content_remain = 0;
@@ -481,7 +482,23 @@ lws_urldecode_spa_lookup(struct lws_spa *spa, const char *name)
 	int n;
 
 	for (n = 0; n < spa->i.count_params; n++) {
-		if (!strcmp(*pp, name))
+		if (!*pp && !spa->i.param_names_stride && spa->i.ac) {
+			unsigned int len = (unsigned int)strlen(name);
+			char **ptr = (char**)spa->i.param_names;
+
+			/* Use NULLs at end of list to dynamically create
+			 * unknown entries */
+
+			ptr[n] = lwsac_use(spa->i.ac, len + 1, spa->i.ac_chunk_size);
+			if (!ptr[n])
+				return -1;
+
+			memcpy(ptr[n], name, len);
+			ptr[n][len] = '\0';
+
+			return n;
+		}
+		if (*pp && !strcmp(*pp, name))
 			return n;
 
 		if (spa->i.param_names_stride)
@@ -503,7 +520,7 @@ lws_urldecode_spa_cb(struct lws_spa *spa, const char *name, char **buf, int len,
 		if (spa->i.opt_cb) {
 			n = spa->i.opt_cb(spa->i.opt_data, name,
 					spa->s->content_disp_filename,
-					buf ? *buf : NULL, len, final);
+					buf ? *buf : NULL, len, (enum lws_spa_fileupload_states)final);
 
 			if (n < 0)
 				return -1;
@@ -529,12 +546,12 @@ lws_urldecode_spa_cb(struct lws_spa *spa, const char *name, char **buf, int len,
 
 		spa->s->out_len -= len + 1;
 	} else {
-		spa->params[n] = lwsac_use(spa->i.ac, len + 1,
+		spa->params[n] = lwsac_use(spa->i.ac, (unsigned int)len + 1,
 					   spa->i.ac_chunk_size);
 		if (!spa->params[n])
 			return -1;
 
-		memcpy(spa->params[n], *buf, len);
+		memcpy(spa->params[n], *buf, (unsigned int)len);
 		spa->params[n][len] = '\0';
 	}
 
@@ -561,10 +578,10 @@ lws_spa_create_via_info(struct lws *wsi, const lws_spa_create_info_t *i)
 		spa->i.max_storage = 512;
 
 	if (i->ac)
-		spa->storage = lwsac_use(i->ac, spa->i.max_storage,
+		spa->storage = lwsac_use(i->ac, (unsigned int)spa->i.max_storage,
 					 i->ac_chunk_size);
 	else
-		spa->storage = lws_malloc(spa->i.max_storage, "spa");
+		spa->storage = lws_malloc((unsigned int)spa->i.max_storage, "spa");
 
 	if (!spa->storage)
 		goto bail2;
@@ -574,9 +591,9 @@ lws_spa_create_via_info(struct lws *wsi, const lws_spa_create_info_t *i)
 	if (i->count_params) {
 		if (i->ac)
 			spa->params = lwsac_use_zero(i->ac,
-				sizeof(char *) * i->count_params, i->ac_chunk_size);
+				sizeof(char *) * (unsigned int)i->count_params, i->ac_chunk_size);
 		else
-			spa->params = lws_zalloc(sizeof(char *) * i->count_params,
+			spa->params = lws_zalloc(sizeof(char *) * (unsigned int)i->count_params,
 					 "spa params");
 		if (!spa->params)
 			goto bail3;
@@ -590,9 +607,9 @@ lws_spa_create_via_info(struct lws *wsi, const lws_spa_create_info_t *i)
 	if (i->count_params) {
 		if (i->ac)
 			spa->param_length = lwsac_use_zero(i->ac,
-				sizeof(int) * i->count_params, i->ac_chunk_size);
+				sizeof(int) * (unsigned int)i->count_params, i->ac_chunk_size);
 		else
-			spa->param_length = lws_zalloc(sizeof(int) * i->count_params,
+			spa->param_length = lws_zalloc(sizeof(int) * (unsigned int)i->count_params,
 						"spa param len");
 		if (!spa->param_length)
 			goto bail5;

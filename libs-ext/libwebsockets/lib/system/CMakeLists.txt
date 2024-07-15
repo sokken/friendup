@@ -31,8 +31,10 @@
 
 include_directories(./async-dns)
 
-list(APPEND SOURCES
-	system/system.c)
+if (NOT LWS_ONLY_SSPC)
+	list(APPEND SOURCES
+		system/system.c)
+endif()
 	
 if (LWS_WITH_NETWORK)
 
@@ -49,12 +51,27 @@ if (LWS_WITH_NETWORK)
 
 	if (LWS_WITH_SYS_DHCP_CLIENT)
 		list(APPEND SOURCES
-			system/dhcpclient/dhcpclient.c)
+			system/dhcpclient/dhcpclient.c
+			system/dhcpclient/dhcpc4.c)
 	endif()
+
+	if (LWS_WITH_OTA)
+		list(APPEND SOURCES
+			system/ota/ota.c)
+	endif()
+
 
 	if (LWS_WITH_SYS_SMD)
 		add_subdir_include_dirs(smd)
 	endif()
+	
+	if (LWS_WITH_SYS_FAULT_INJECTION)
+		include_directories(./fault-injection)
+		list(APPEND SOURCES
+			system/fault-injection/fault-injection.c)
+	endif()
+
+	add_subdir_include_dirs(metrics)
 
 endif()
 

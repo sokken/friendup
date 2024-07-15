@@ -39,7 +39,9 @@ lws_buflist_append_segment(struct lws_buflist **head, const uint8_t *buf,
 	void *p = *head;
 	int sanity = 1024;
 
-	assert(buf);
+	if (!buf)
+		return -1;
+
 	assert(len);
 
 	/* append at the tail */
@@ -149,7 +151,7 @@ lws_buflist_use_segment(struct lws_buflist **head, size_t len)
 	assert(b->pos <= b->len);
 
 	if (b->pos < b->len)
-		return (int)(b->len - b->pos);
+		return (unsigned int)(b->len - b->pos);
 
 	if (lws_buflist_destroy_segment(head))
 		/* last segment was just destroyed */
@@ -197,6 +199,54 @@ lws_buflist_linear_copy(struct lws_buflist **head, size_t ofs, uint8_t *buf,
 	return lws_ptr_diff(buf, obuf);
 }
 
+int
+lws_buflist_linear_use(struct lws_buflist **head, uint8_t *buf, size_t len)
+{
+	uint8_t *obuf = buf;
+	size_t s;
+
+	while (*head && len) {
+		s = (*head)->len - (*head)->pos;
+		if (s > len)
+			s = len;
+		memcpy(buf, ((uint8_t *)((*head) + 1)) +
+			    LWS_PRE + (*head)->pos, s);
+		len -= s;
+		buf += s;
+		lws_buflist_use_segment(head, s);
+	}
+
+	return lws_ptr_diff(buf, obuf);
+}
+
+int
+lws_buflist_fragment_use(struct lws_buflist **head, uint8_t *buf,
+			 size_t len, char *frag_first, char *frag_fin)
+{
+	uint8_t *obuf = buf;
+	size_t s;
+
+	if (!*head)
+		return 0;
+
+	s = (*head)->len - (*head)->pos;
+	if (s > len)
+		s = len;
+
+	if (frag_first)
+		*frag_first = !(*head)->pos;
+
+	if (frag_fin)
+		*frag_fin = (*head)->pos + s == (*head)->len;
+
+	memcpy(buf, ((uint8_t *)((*head) + 1)) + LWS_PRE + (*head)->pos, s);
+	len -= s;
+	buf += s;
+	lws_buflist_use_segment(head, s);
+
+	return lws_ptr_diff(buf, obuf);
+}
+
 #if defined(_DEBUG)
 void
 lws_buflist_describe(struct lws_buflist **head, void *id, const char *reason)
@@ -223,3 +273,52 @@ lws_buflist_describe(struct lws_buflist **head, void *id, const char *reason)
 	}
 }
 #endif
+
+lws_stateful_ret_t
+lws_flow_feed(lws_flow_t *flow)
+{
+	if (flow->len)
+		return LWS_SRET_OK;
+
+	if (flow->blseglen)
+		lws_buflist_use_segment(&flow->bl, flow->blseglen);
+
+	flow->len = lws_buflist_next_segment_len(&flow->bl,
+						 (uint8_t **)&flow->data);
+	flow->blseglen = (uint32_t)flow->len;
+
+	return flow->len ||
+	       flow->state != LWSDLOFLOW_STATE_READ ? LWS_SRET_OK :
+					              LWS_SRET_WANT_INPUT;
+}
+
+lws_stateful_ret_t
+lws_flow_req(lws_flow_t *flow)
+{
+#if defined(LWS_WITH_CLIENT) && defined(LWS_WITH_SECURE_STREAMS)
+	int32_t est, ask;
+#endif
+
+	lws_flow_feed(flow);
+
+	if (!flow->h || flow->state != LWSDLOFLOW_STATE_READ)
+		return LWS_SRET_OK;
+
+#if defined(LWS_WITH_CLIENT) && defined(LWS_WITH_SECURE_STREAMS)
+	if (flow->window) {
+		est = lws_ss_get_est_peer_tx_credit(flow->h) +
+			(int)lws_buflist_total_len(&flow->bl) -
+			(int)flow->blseglen + (int)flow->len;
+
+		if (est < flow->window) {
+			ask = (int32_t)(flow->window - est);
+			if (ask > (flow->window / 2) || !est)
+				lws_ss_add_peer_tx_credit(flow->h, ask);
+		}
+	}
+#endif
+
+	return flow->len ||
+	       flow->state != LWSDLOFLOW_STATE_READ ? LWS_SRET_OK :
+					              LWS_SRET_WANT_INPUT;
+}

@@ -23,15 +23,18 @@
  */
 
 #include "private-lib-core.h"
+#include "private-lib-async-dns.h"
 
 lws_async_dns_server_check_t
-lws_plat_asyncdns_init(struct lws_context *context, lws_sockaddr46 *sa46)
+lws_plat_asyncdns_init(struct lws_context *context, lws_async_dns_t *dns)
 {
-	lws_async_dns_server_check_t s = LADNS_CONF_SERVER_CHANGED;
+	lws_async_dns_server_check_t s = LADNS_CONF_SERVER_SAME;
+	lws_async_dns_server_t *dsrv;
 	lws_sockaddr46 sa46t;
 	lws_tokenize_t ts;
-	int fd, n, ns = 0;
 	char ads[48], *r;
+	int fd, ns = 0;
+	ssize_t n;
 
 	r = (char *)context->pt[0].serv_buf;
 
@@ -53,7 +56,7 @@ lws_plat_asyncdns_init(struct lws_context *context, lws_sockaddr46 *sa46)
 				  LWS_TOKENIZE_F_MINUS_NONTERM |
 				  LWS_TOKENIZE_F_HASH_COMMENT);
 	do {
-		ts.e = lws_tokenize(&ts);
+		ts.e = (int8_t)lws_tokenize(&ts);
 		if (ts.e != LWS_TOKZE_TOKEN) {
 			ns = 0;
 			continue;
@@ -77,35 +80,13 @@ lws_plat_asyncdns_init(struct lws_context *context, lws_sockaddr46 *sa46)
 		if (lws_sa46_parse_numeric_address(ads, &sa46t) < 0)
 			continue;
 
-		if (!lws_sa46_compare_ads(sa46, &sa46t))
-			s = LADNS_CONF_SERVER_SAME;
-
-		*sa46 = sa46t;
-
-		return s;
+		dsrv = __lws_async_dns_server_find(dns, &sa46t);
+		if (!dsrv) {
+			__lws_async_dns_server_add(dns, &sa46t);
+			s = LADNS_CONF_SERVER_CHANGED;
+		}
 
 	} while (ts.e > 0);
 
-	return LADNS_CONF_SERVER_UNKNOWN;
-}
-
-/*
- * Platform-specific ntpclient server configuration
- */
-
-int
-lws_plat_ntpclient_config(struct lws_context *context)
-{
-#if defined(LWS_HAVE_GETENV)
-	char *ntpsrv = getenv("LWS_NTP_SERVER");
-
-	if (ntpsrv && strlen(ntpsrv) < 64) {
-		lws_system_blob_direct_set(lws_system_get_blob(context,
-					    LWS_SYSBLOB_TYPE_NTP_SERVER, 0),
-					    (const uint8_t *)ntpsrv,
-					    strlen(ntpsrv));
-		return 1;
-	}
-#endif
-	return 0;
+	return s;
 }

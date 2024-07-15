@@ -74,7 +74,8 @@ lws_bb_spi_write(lws_bb_spi_t *ctx, const uint8_t *buf, size_t len)
 static void
 lws_bb_spi_read(lws_bb_spi_t *ctx, uint8_t *buf, size_t len)
 {
-	uint8_t u, inv = !!(ctx->bb_ops.bus_mode & LWSSPIMODE_CPOL);
+	uint8_t u = 0;
+	uint8_t inv = !!(ctx->bb_ops.bus_mode & LWSSPIMODE_CPOL);
 
 	while (len--) {
 		int n;
@@ -115,6 +116,9 @@ lws_bb_spi_queue(const lws_spi_ops_t *octx, const lws_spi_desc_t *desc)
 
 	if (desc->count_read)
 		lws_bb_spi_read(ctx, desc->dest, desc->count_read);
+
+	if (desc->flags & LWS_SPI_FLAG_DATA_CONTINUE)
+		return 0;
 
 	/* disable nCS */
 	ctx->gpio->set(ctx->ncs[desc->channel], 1);

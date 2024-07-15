@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2010 - 2019 Andy Green <andy@warmcat.com>
+ * Copyright (C) 2010 - 2021 Andy Green <andy@warmcat.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -30,12 +30,15 @@
 
 static int
 lws_adns_parse_label(const uint8_t *pkt, int len, const uint8_t *ls, int budget,
-		     char **dest, int dl)
+		     char **dest, size_t dl)
 {
 	const uint8_t *e = pkt + len, *ols = ls;
 	char pointer = 0, first = 1;
 	uint8_t ll;
 	int n;
+
+	if (len < DHO_SIZEOF || len > 1500)
+		return -1;
 
 	if (budget < 1)
 		return 0;
@@ -81,13 +84,14 @@ again1:
 
 		return -1;
 	}
-	if (ll > budget) {
+
+	if (ll > lws_ptr_diff_size_t(ls, ols) + (size_t)budget) {
 		lwsl_notice("%s: label too long %d vs %d\n", __func__, ll, budget);
 
 		return -1;
 	}
 
-	if (ll + 2 > dl) {
+	if ((unsigned int)ll + 2 > dl) {
 		lwsl_notice("%s: qname too large\n", __func__);
 
 		return -1;
@@ -159,6 +163,9 @@ lws_adns_iterate(lws_adns_q_t *q, const uint8_t *pkt, int len,
 	char *sp, inq;
 	uint32_t ttl;
 
+	if (len < DHO_SIZEOF || len > 1500)
+		return -1;
+
 	lws_strncpy(stack[0].name, expname, sizeof(stack[0].name));
 	stack[0].enl = (int)strlen(expname);
 
@@ -204,7 +211,7 @@ start:
 
 		n = lws_adns_parse_label(pkt, len, p, len, &sp,
 					 sizeof(stack[0].name) -
-					 lws_ptr_diff(sp, stack[0].name));
+					 lws_ptr_diff_size_t(sp, stack[0].name));
 		/* includes case name won't fit */
 		if (n < 0)
 			return -1;
@@ -262,9 +269,9 @@ start:
 			m--;
 
 		if (n < 1 || n != m ||
-		    strncmp(stack[0].name, stack[stp].name, n)) {
-			lwsl_notice("%s: skipping %s vs %s\n", __func__,
-					stack[0].name, stack[stp].name);
+		    strncmp(stack[0].name, stack[stp].name, (unsigned int)n)) {
+			//lwsl_notice("%s: skipping %s vs %s\n", __func__,
+			//		stack[0].name, stack[stp].name);
 			goto skip;
 		}
 
@@ -331,7 +338,7 @@ do_cb:
 			/* get the cname alias */
 			n = lws_adns_parse_label(pkt, len, p, rrpaylen, &sp,
 						 sizeof(stack[stp].name) -
-						 lws_ptr_diff(sp, stack[stp].name));
+						 lws_ptr_diff_size_t(sp, stack[stp].name));
 			/* includes case name won't fit */
 			if (n < 0)
 				return -1;
@@ -392,12 +399,13 @@ skip:
 	if (lws_async_dns_get_new_tid(q->context, q))
 		return -1;
 
-	q->tid &= 0xfffe;
+	LADNS_MOST_RECENT_TID(q) &= 0xfffe;
 	q->asked = q->responded = 0;
 #if defined(LWS_WITH_IPV6)
 	q->sent[1] = 0;
 #endif
 	q->sent[0] = 0;
+	q->is_synthetic = 0;
 	q->recursion++;
 	if (q->recursion == DNS_RECURSION_LIMIT) {
 		lwsl_err("%s: recursion overflow\n", __func__);
@@ -416,14 +424,15 @@ skip:
 		char *cp = (char *)&q[1];
 
 		while (stack[stp].name[n])
-			*cp++ = tolower(stack[stp].name[n++]);
+			*cp++ = (char)tolower(stack[stp].name[n++]);
 		/* trim the following . if any */
 		if (n && cp[-1] == '.')
 			cp--;
 		*cp = '\0';
 	}
 
-	lws_callback_on_writable(q->dns->wsi);
+	if (q->dsrv && q->dsrv->wsi)
+		lws_callback_on_writable(q->dsrv->wsi);
 
 	return 2;
 }
@@ -493,7 +502,7 @@ lws_async_dns_store(const char *name, void *opaque, uint32_t ttl,
 
 		i = sizeof(*in6);
 		memset(in6, 0, i);
-		in6->sin6_family = adst->pos->ai_family;
+		in6->sin6_family = (sa_family_t)adst->pos->ai_family;
 		memcpy(in6->sin6_addr.s6_addr, payload, 16);
 		adst->flags |= 2;
 	} else
@@ -503,7 +512,7 @@ lws_async_dns_store(const char *name, void *opaque, uint32_t ttl,
 
 		i = sizeof(*in);
 		memset(in, 0, i);
-		in->sin_family = adst->pos->ai_family;
+		in->sin_family = (sa_family_t)adst->pos->ai_family;
 		memcpy(&in->sin_addr.s_addr, payload, 4);
 		adst->flags |= 1;
 	}
@@ -541,7 +550,7 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 
 	/* we have to at least have the header */
 
-	if (len < DHO_SIZEOF)
+	if (len < DHO_SIZEOF || len > 1500)
 		return;
 
 	/* we asked with one query, so anything else is bogus */
@@ -551,10 +560,9 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 
 	/* match both A and AAAA queries if any */
 
-	q = lws_adns_get_query(dns, 0, &dns->waiting,
-			       lws_ser_ru16be(pkt + DHO_TID), NULL);
+	q = lws_adns_get_query(dns, 0, lws_ser_ru16be(pkt + DHO_TID), NULL);
 	if (!q) {
-		lwsl_notice("%s: dropping unknown query tid 0x%x\n",
+		lwsl_info("%s: dropping unknown query tid 0x%x\n",
 			    __func__, lws_ser_ru16be(pkt + DHO_TID));
 
 		return;
@@ -568,7 +576,7 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 		goto fail_out;
 	}
 
-	q->responded |= n;
+	q->responded = (uint8_t)(q->responded | n);
 
 	/* we want to confirm the results against what we last requested... */
 
@@ -585,7 +593,7 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 
 	ncname = (int)strlen(nmcname) + 1;
 
-	est = sizeof(lws_adns_cache_t) + ncname;
+	est = sizeof(lws_adns_cache_t) + (unsigned int)ncname;
 	if (lws_ser_ru16be(pkt + DHO_NANSWERS)) {
 		int ir = lws_adns_iterate(q, pkt, (int)len, nmcname,
 					  lws_async_dns_estimate, &est);
@@ -603,7 +611,7 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 
 	lwsl_info("%s: create cache entry for %s, %zu\n", __func__, nm,
 			est - sizeof(lws_adns_cache_t));
-	c = lws_malloc(est, "async-dns-entry");
+	c = lws_malloc(est + 1, "async-dns-entry");
 	if (!c) {
 		lwsl_err("%s: OOM %zu\n", __func__, est);
 		goto fail_out;
@@ -611,8 +619,8 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 	memset(c, 0, sizeof(*c));
 
 	/* place it at end, no need to care about alignment padding */
-	adst.name = ((const char *)c) + est - n;
-	memcpy((char *)adst.name, nm, n);
+	c->name = adst.name = ((const char *)c) + est - n;
+	memcpy((char *)c->name, nm, (unsigned int)n);
 
 	/*
 	 * Then walk the packet again, placing the objects we accounted for
@@ -656,7 +664,7 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 	} else {
 
 		q->firstcache = c;
-		c->incomplete = q->responded != q->asked;
+		c->incomplete = !q->responded;// != q->asked;
 
 		/*
 		 * Only register the first one into the cache...
@@ -689,6 +697,8 @@ lws_adns_parse_udp(lws_async_dns_t *dns, const uint8_t *pkt, size_t len)
 
 	c->incomplete = 0;
 	lws_async_dns_complete(q, q->firstcache);
+
+	q->go_nogo = METRES_GO;
 
 	/*
 	 * the query is completely finished with

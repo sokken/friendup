@@ -55,13 +55,13 @@ lws_ser_wu64be(uint8_t *b, uint64_t u64)
 uint16_t
 lws_ser_ru16be(const uint8_t *b)
 {
-	return (b[0] << 8) | b[1];
+	return (uint16_t)((b[0] << 8) | b[1]);
 }
 
 uint32_t
 lws_ser_ru32be(const uint8_t *b)
 {
-	return (b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3];
+	return (unsigned int)((b[0] << 24) | (b[1] << 16) | (b[2] << 8) | b[3]);
 }
 
 uint64_t
@@ -118,23 +118,23 @@ lws_vbi_decode(const void *buf, uint64_t *value, size_t len)
 signed char char_to_hex(const char c)
 {
 	if (c >= '0' && c <= '9')
-		return c - '0';
+		return (signed char)(c - '0');
 
 	if (c >= 'a' && c <= 'f')
-		return c - 'a' + 10;
+		return (signed char)(c - 'a' + 10);
 
 	if (c >= 'A' && c <= 'F')
-		return c - 'A' + 10;
+		return (signed char)(c - 'A' + 10);
 
-	return -1;
+	return (signed char)-1;
 }
 
 int
-lws_hex_to_byte_array(const char *h, uint8_t *dest, int max)
+lws_hex_len_to_byte_array(const char *h, size_t hlen, uint8_t *dest, int max)
 {
 	uint8_t *odest = dest;
 
-	while (max-- && *h) {
+	while (max-- && hlen > 1) {
 		int t = char_to_hex(*h++), t1;
 
 		if (!*h || t < 0)
@@ -144,38 +144,82 @@ lws_hex_to_byte_array(const char *h, uint8_t *dest, int max)
 		if (t1 < 0)
 			return -1;
 
-		*dest++ = (t << 4) | t1;
+		*dest++ = (uint8_t)((t << 4) | t1);
+		hlen -= 2;
 	}
 
-	if (max < 0)
+	if (max < -1)
 		return -1;
 
 	return lws_ptr_diff(dest, odest);
 }
 
+int
+lws_hex_to_byte_array(const char *h, uint8_t *dest, int max)
+{
+	return lws_hex_len_to_byte_array(h, strlen(h), dest, max);
+}
+
 static char *hexch = "0123456789abcdef";
+
+void
+lws_hex_from_byte_array(const uint8_t *src, size_t slen, char *dest, size_t len)
+{
+	char *end = &dest[len - 1];
+
+	while (slen-- && dest != end) {
+		uint8_t b = *src++;
+		*dest++ = hexch[b >> 4];
+		if (dest == end)
+			break;
+		*dest++ = hexch[b & 0xf];
+	}
+
+	*dest = '\0';
+}
 
 int
 lws_hex_random(struct lws_context *context, char *dest, size_t len)
 {
-	size_t n = (len - 1) / 2;
+	size_t n = ((len - 1) / 2) + 1;
 	uint8_t b, *r = (uint8_t *)dest + len - n;
 
 	if (lws_get_random(context, r, n) != n)
 		return 1;
 
-	while (n--) {
+	while (len >= 3) {
 		b = *r++;
 		*dest++ = hexch[b >> 4];
 		*dest++ = hexch[b & 0xf];
+		len -= 2;
 	}
+
+	if (len == 2)
+		*dest++ = hexch[(*r) >> 4];
 
 	*dest = '\0';
 
 	return 0;
 }
 
-#if !defined(LWS_PLAT_OPTEE)
+#if defined(_DEBUG)
+void
+lws_assert_fourcc(uint32_t fourcc, uint32_t expected)
+{
+	if (fourcc == expected)
+		return;
+
+	lwsl_err("%s: fourcc mismatch, expected %c%c%c%c, saw %c%c%c%c\n",
+			__func__, (int)(expected >> 24), (int)((expected >> 16) & 0xff),
+			(int)((expected >> 8) & 0xff),(int)( expected & 0xff),
+			(int)(fourcc >> 24), (int)((fourcc >> 16) & 0xff),
+			(int)((fourcc >> 8) & 0xff), (int)(fourcc & 0xff));
+
+	assert(0);
+}
+#endif
+
+#if !defined(LWS_PLAT_OPTEE) && !defined(LWS_PLAT_BAREMETAL)
 
 #if defined(LWS_WITH_FILE_OPS)
 int lws_open(const char *__file, int __oflag, ...)
@@ -189,8 +233,18 @@ int lws_open(const char *__file, int __oflag, ...)
 		|| ((__oflag & O_TMPFILE) == O_TMPFILE)
 #endif
 	)
+#if defined(WIN32)
 		/* last arg is really a mode_t.  But windows... */
 		n = open(__file, __oflag, va_arg(ap, uint32_t));
+#else
+		/* ... and some other toolchains...
+		 *
+		 * error: second argument to 'va_arg' is of promotable type 'mode_t'
+		 * (aka 'unsigned short'); this va_arg has undefined behavior because
+		 * arguments will be promoted to 'int'
+		 */
+		n = open(__file, __oflag, (mode_t)va_arg(ap, unsigned int));
+#endif
 	else
 		n = open(__file, __oflag);
 	va_end(ap);
@@ -213,6 +267,10 @@ lws_pthread_self_to_tsi(struct lws_context *context)
 	pthread_t ps = pthread_self();
 	struct lws_context_per_thread *pt = &context->pt[0];
 	int n;
+
+	/* case that we have SMP build, but don't use it */
+	if (context->count_threads == 1)
+		return 0;
 
 	for (n = 0; n < context->count_threads; n++) {
 		if (pthread_equal(ps, pt->self))
@@ -254,7 +312,7 @@ lws_now_secs(void)
 
 	gettimeofday(&tv, NULL);
 
-	return tv.tv_sec;
+	return (unsigned long)tv.tv_sec;
 }
 
 #endif
@@ -453,7 +511,7 @@ lws_json_simple_find(const char *buf, size_t len, const char *name, size_t *alen
 		np++;
 	}
 
-	*alen = lws_ptr_diff(np, as);
+	*alen = (unsigned int)lws_ptr_diff(np, as);
 
 	return as;
 }
@@ -477,7 +535,7 @@ lws_json_simple_strcmp(const char *buf, size_t len, const char *name,
 static const char *hex = "0123456789ABCDEF";
 
 const char *
-lws_sql_purify(char *escaped, const char *string, int len)
+lws_sql_purify(char *escaped, const char *string, size_t len)
 {
 	const char *p = string;
 	char *q = escaped;
@@ -675,7 +733,7 @@ lws_urldecode(char *string, const char *escaped, int len)
 			if (n < 0)
 				return -1;
 			escaped++;
-			sum = n << 4;
+			sum = (char)(n << 4);
 			state++;
 			break;
 
@@ -684,7 +742,7 @@ lws_urldecode(char *string, const char *escaped, int len)
 			if (n < 0)
 				return -1;
 			escaped++;
-			*string++ = sum | n;
+			*string++ = (char)(sum | n);
 			len--;
 			state = 0;
 			break;
@@ -692,6 +750,94 @@ lws_urldecode(char *string, const char *escaped, int len)
 
 	}
 	*string = '\0';
+
+	return 0;
+}
+
+/*
+ * Copy the url formof rel into dest, using base to fill in missing context
+ *
+ * If base is https://x.com/y/z.html
+ *
+ *   a.html               -> https://x.com/y/a/html
+ *   ../b.html            -> https://x.com/b.html
+ *   /c.html              -> https://x.com/c.html
+ *   https://y.com/a.html -> https://y.com/a.html
+ */
+
+int
+lws_http_rel_to_url(char *dest, size_t len, const char *base, const char *rel)
+{
+	size_t n = 0, ps = 0;
+	char d = 0;
+
+	// lwsl_err("%s: base %s, rel %s\n", __func__, base, rel);
+
+	if (!strncmp(rel, "https://", 8) ||
+	    !strncmp(rel, "http://", 7) ||
+	    !strncmp(rel, "file://", 7)) {
+		/* rel is already a full url, just copy it */
+		lws_strncpy(dest, rel, len);
+		return 0;
+	}
+
+	/* we're going to be using the first part of base at least */
+
+	while (n < len - 2 && base[n]) {
+		dest[n] = base[n];
+		if (d && base[n] == '/') {
+			n++;
+			ps = n;
+			//if (rel[0] == '/') {
+				break;
+			//}
+		}
+		if (n && base[n] == '/' && base[n - 1] == '/')
+			d = 1;
+		n++;
+	}
+
+	if (!n || n >= len - 2)
+		return 1;
+
+	/* if we did not have a '/' after the hostname, add one */
+	if (dest[n - 1] != '/') {
+		ps = n;
+		dest[n++] = '/';
+	}
+
+	/* is rel an absolute path we should just use with the hostname? */
+	if (rel[0] != '/') {
+
+		/*
+		 * Apply the rest of the basename, without the file part,
+		 * end with last / if any
+		 */
+
+		ps = n;
+		while (n < len - 2 && base[n]) {
+			dest[n] = base[n];
+			n++;
+			if (base[n] == '/')
+				ps = n;
+		}
+
+		n = ps;
+
+		if (n >= len - 2)
+			return 1;
+
+		/* if we did not have a '/' after the base path, add one */
+		if (dest[n - 1] != '/')
+			dest[n++] = '/';
+	}
+
+	/* append rel */
+
+	if (len - n < strlen(rel) + 2)
+		return 1;
+
+	lws_strncpy(dest + n, rel, len - n);
 
 	return 0;
 }
@@ -708,7 +854,7 @@ lws_finalize_startup(struct lws_context *context)
 
 #if !defined(LWS_PLAT_FREERTOS)
 void
-lws_get_effective_uid_gid(struct lws_context *context, int *uid, int *gid)
+lws_get_effective_uid_gid(struct lws_context *context, uid_t *uid, gid_t *gid)
 {
 	*uid = context->uid;
 	*gid = context->gid;
@@ -750,26 +896,17 @@ lws_timingsafe_bcmp(const void *a, const void *b, uint32_t len)
 	uint8_t sum = 0;
 
 	while (len--)
-		sum |= (*pa++ ^ *pb++);
+		sum |= (uint8_t)(*pa++ ^ *pb++);
 
 	return sum;
 }
-
-
-typedef enum {
-	LWS_TOKZS_LEADING_WHITESPACE,
-	LWS_TOKZS_QUOTED_STRING,
-	LWS_TOKZS_TOKEN,
-	LWS_TOKZS_TOKEN_POST_TERMINAL
-} lws_tokenize_state;
 
 lws_tokenize_elem
 lws_tokenize(struct lws_tokenize *ts)
 {
 	const char *rfc7230_delims = "(),/:;<=>?@[\\]{}";
-	lws_tokenize_state state = LWS_TOKZS_LEADING_WHITESPACE;
-	char c, flo = 0, d_minus = '-', d_dot = '.', s_minus = '\0',
-	     s_dot = '\0', skipping = 0;
+	char c, flo = 0, d_minus = '-', d_dot = '.', d_star = '*', s_minus = '\0',
+	     s_dot = '\0', s_star = '\0', d_eq = '=', s_eq = '\0', skipping = 0;
 	signed char num = (ts->flags & LWS_TOKENIZE_F_NO_INTEGERS) ? 0 : -1;
 	int utf8 = 0;
 
@@ -783,15 +920,31 @@ lws_tokenize(struct lws_tokenize *ts)
 		d_dot = '\0';
 		s_dot = '.';
 	}
+	if (ts->flags & LWS_TOKENIZE_F_ASTERISK_NONTERM) {
+		d_star = '\0';
+		s_star = '*';
+	}
+	if (ts->flags & LWS_TOKENIZE_F_EQUALS_NONTERM) {
+		d_eq = '\0';
+		s_eq = '=';
+	}
 
-	ts->token = NULL;
-	ts->token_len = 0;
+	if (!ts->dry)
+		ts->token = ts->collect;
+	ts->dry = 0;
+
+	if (ts->reset_token) {
+		ts->effline = ts->line;
+		ts->state = LWS_TOKZS_LEADING_WHITESPACE;
+		ts->token_len = 0;
+		ts->reset_token = 0;
+	}
 
 	while (ts->len) {
 		c = *ts->start++;
 		ts->len--;
 
-		utf8 = lws_check_byte_utf8((unsigned char)utf8, c);
+		utf8 = lws_check_byte_utf8((unsigned char)utf8, (unsigned char)c);
 		if (utf8 < 0)
 			return LWS_TOKZE_ERR_BROKEN_UTF8;
 
@@ -808,7 +961,7 @@ lws_tokenize(struct lws_tokenize *ts)
 		/* comment */
 
 		if (ts->flags & LWS_TOKENIZE_F_HASH_COMMENT &&
-		    state != LWS_TOKZS_QUOTED_STRING &&
+		    ts->state != LWS_TOKZS_QUOTED_STRING &&
 		    c == '#') {
 			skipping = 1;
 			continue;
@@ -818,26 +971,35 @@ lws_tokenize(struct lws_tokenize *ts)
 
 		if (c == ' ' || c == '\t' || c == '\n' || c == '\r' ||
 		    c == '\f') {
-			switch (state) {
+			if (c == '\r' && !ts->crlf)
+				ts->line++;
+			if (c == '\n') {
+				ts->line++;
+				ts->crlf = 1;
+			}
+			switch (ts->state) {
 			case LWS_TOKZS_LEADING_WHITESPACE:
 			case LWS_TOKZS_TOKEN_POST_TERMINAL:
 				continue;
 			case LWS_TOKZS_QUOTED_STRING:
-				ts->token_len++;
-				continue;
+				goto agg;
 			case LWS_TOKZS_TOKEN:
 				/* we want to scan forward to look for = */
 
-				state = LWS_TOKZS_TOKEN_POST_TERMINAL;
+				ts->state = LWS_TOKZS_TOKEN_POST_TERMINAL;
 				continue;
 			}
-		}
+		} else
+			ts->crlf = 0;
 
 		/* quoted string */
 
 		if (c == '\"') {
-			if (state == LWS_TOKZS_QUOTED_STRING)
+			if (ts->state == LWS_TOKZS_QUOTED_STRING) {
+				ts->reset_token = 1;
+
 				return LWS_TOKZE_QUOTED_STRING;
+			}
 
 			/* starting a quoted string */
 
@@ -847,8 +1009,8 @@ lws_tokenize(struct lws_tokenize *ts)
 				ts->delim = LWSTZ_DT_NEED_DELIM;
 			}
 
-			state = LWS_TOKZS_QUOTED_STRING;
-			ts->token = ts->start;
+			ts->state = LWS_TOKZS_QUOTED_STRING;
+			ts->token = ts->collect;
 			ts->token_len = 0;
 
 			continue;
@@ -856,8 +1018,12 @@ lws_tokenize(struct lws_tokenize *ts)
 
 		/* token= aggregation */
 
-		if (c == '=' && (state == LWS_TOKZS_TOKEN_POST_TERMINAL ||
-				 state == LWS_TOKZS_TOKEN)) {
+		if (!(ts->flags & LWS_TOKENIZE_F_EQUALS_NONTERM) &&
+		    c == '=' && (ts->state == LWS_TOKZS_TOKEN_POST_TERMINAL ||
+				 ts->state == LWS_TOKZS_TOKEN)) {
+
+			ts->reset_token = 1;
+
 			if (num == 1)
 				return LWS_TOKZE_ERR_NUM_ON_LHS;
 			/* swallow the = */
@@ -867,20 +1033,22 @@ lws_tokenize(struct lws_tokenize *ts)
 		/* optional token: aggregation */
 
 		if ((ts->flags & LWS_TOKENIZE_F_AGG_COLON) && c == ':' &&
-		    (state == LWS_TOKZS_TOKEN_POST_TERMINAL ||
-		     state == LWS_TOKZS_TOKEN))
+		    (ts->state == LWS_TOKZS_TOKEN_POST_TERMINAL ||
+		     ts->state == LWS_TOKZS_TOKEN)) {
+			ts->reset_token = 1;
+
 			/* swallow the : */
 			return LWS_TOKZE_TOKEN_NAME_COLON;
+		}
 
 		/* aggregate . in a number as a float */
 
 		if (c == '.' && !(ts->flags & LWS_TOKENIZE_F_NO_FLOATS) &&
-		    state == LWS_TOKZS_TOKEN && num == 1) {
+		    ts->state == LWS_TOKZS_TOKEN && num == 1) {
 			if (flo)
 				return LWS_TOKZE_ERR_MALFORMED_FLOAT;
 			flo = 1;
-			ts->token_len++;
-			continue;
+			goto agg;
 		}
 
 		/*
@@ -905,11 +1073,12 @@ lws_tokenize(struct lws_tokenize *ts)
 		    ((!(ts->flags & LWS_TOKENIZE_F_RFC7230_DELIMS) &&
 		     (c < '0' || c > '9') && (c < 'A' || c > 'Z') &&
 		     (c < 'a' || c > 'z') && c != '_') &&
-		     c != s_minus && c != s_dot) ||
-		    c == d_minus || c == d_dot
+		     c != s_minus && c != s_dot && c != s_star && c != s_eq) ||
+		    c == d_minus || c == d_dot || c == d_star || c == d_eq
 		    ) &&
+		    !((ts->flags & LWS_TOKENIZE_F_COLON_NONTERM) && c == ':') &&
 		    !((ts->flags & LWS_TOKENIZE_F_SLASH_NONTERM) && c == '/')) {
-			switch (state) {
+			switch (ts->state) {
 			case LWS_TOKZS_LEADING_WHITESPACE:
 				if (ts->flags & LWS_TOKENIZE_F_COMMA_SEP_LIST) {
 					if (c != ',' ||
@@ -920,10 +1089,16 @@ lws_tokenize(struct lws_tokenize *ts)
 
 				ts->token = ts->start - 1;
 				ts->token_len = 1;
+				ts->reset_token = 1;
+
 				return LWS_TOKZE_DELIMITER;
 
 			case LWS_TOKZS_QUOTED_STRING:
-				ts->token_len++;
+agg:
+				ts->collect[ts->token_len++] = c;
+				if (ts->token_len == sizeof(ts->collect) - 1)
+					return LWS_TOKZE_TOO_LONG;
+				ts->collect[ts->token_len] = '\0';
 				continue;
 
 			case LWS_TOKZS_TOKEN_POST_TERMINAL:
@@ -937,23 +1112,32 @@ lws_tokenize(struct lws_tokenize *ts)
 
 		/* anything that's not whitespace or delimiter is payload */
 
-		switch (state) {
+		switch (ts->state) {
 		case LWS_TOKZS_LEADING_WHITESPACE:
 
 			if (ts->flags & LWS_TOKENIZE_F_COMMA_SEP_LIST) {
-				if (ts->delim == LWSTZ_DT_NEED_DELIM)
+				if (ts->delim == LWSTZ_DT_NEED_DELIM) {
+					ts->reset_token = 1;
+
 					return LWS_TOKZE_ERR_COMMA_LIST;
+				}
 				ts->delim = LWSTZ_DT_NEED_DELIM;
 			}
 
-			state = LWS_TOKZS_TOKEN;
-			ts->token = ts->start - 1;
+			ts->state = LWS_TOKZS_TOKEN;
+			ts->reset_token = 1;
+
+			ts->token = ts->collect; //ts->start - 1;
+			ts->collect[0] = c;
 			ts->token_len = 1;
 			goto checknum;
 
 		case LWS_TOKZS_QUOTED_STRING:
 		case LWS_TOKZS_TOKEN:
-			ts->token_len++;
+			ts->collect[ts->token_len++] = c;
+			if (ts->token_len == sizeof(ts->collect) - 1)
+				return LWS_TOKZE_TOO_LONG;
+			ts->collect[ts->token_len] = '\0';
 checknum:
 			if (!(ts->flags & LWS_TOKENIZE_F_NO_INTEGERS)) {
 				if (c < '0' || c > '9')
@@ -974,14 +1158,20 @@ checknum:
 
 	/* we ran out of content */
 
+	if (ts->flags & LWS_TOKENIZE_F_EXPECT_MORE) {
+		ts->reset_token = 0;
+		ts->dry = 1;
+		return LWS_TOKZE_WANT_READ;
+	}
+
 	if (utf8) /* ended partway through a multibyte char */
 		return LWS_TOKZE_ERR_BROKEN_UTF8;
 
-	if (state == LWS_TOKZS_QUOTED_STRING)
+	if (ts->state == LWS_TOKZS_QUOTED_STRING)
 		return LWS_TOKZE_ERR_UNTERM_STRING;
 
-	if (state != LWS_TOKZS_TOKEN_POST_TERMINAL &&
-	    state != LWS_TOKZS_TOKEN) {
+	if (ts->state != LWS_TOKZS_TOKEN_POST_TERMINAL &&
+	    ts->state != LWS_TOKZS_TOKEN) {
 		if ((ts->flags & LWS_TOKENIZE_F_COMMA_SEP_LIST) &&
 		     ts->delim == LWSTZ_DT_NEED_NEXT_CONTENT)
 			return LWS_TOKZE_ERR_COMMA_LIST;
@@ -992,6 +1182,8 @@ checknum:
 	/* report the pending token */
 
 token_or_numeric:
+
+	ts->reset_token = 1;
 
 	if (num != 1)
 		return LWS_TOKZE_TOKEN;
@@ -1019,8 +1211,16 @@ lws_tokenize_init(struct lws_tokenize *ts, const char *start, int flags)
 {
 	ts->start = start;
 	ts->len = 0x7fffffff;
-	ts->flags = flags;
+	ts->flags = (uint16_t)(unsigned int)flags;
 	ts->delim = LWSTZ_DT_NEED_FIRST_CONTENT;
+	ts->token = NULL;
+	ts->token_len = 0;
+	ts->line = 0;
+	ts->effline = 0;
+	ts->dry = 0;
+	ts->reset_token = 0;
+	ts->crlf = 0;
+	ts->state = LWS_TOKZS_LEADING_WHITESPACE;
 }
 
 
@@ -1135,6 +1335,88 @@ drain:
 	return LSTRX_DONE;
 }
 
+int
+lws_strcmp_wildcard(const char *wildcard, size_t wlen, const char *check,
+		    size_t clen)
+{
+	const char *match[3], *wc[3], *wc_end = wildcard + wlen,
+		   *cend = check + clen;
+	int sp = 0;
+
+	do {
+
+		if (wildcard == wc_end) {
+			/*
+			 * We reached the end of wildcard, but not of check,
+			 * and the last thing in wildcard was not a * or we
+			 * would have completed already... if we can rewind,
+			 * let's try that...
+			 */
+			if (sp) {
+				wildcard = wc[sp - 1];
+				check = match[--sp];
+
+				continue;
+			}
+
+			/* otherwise it's the end of the road for this one */
+
+			return 1;
+		}
+
+		if (*wildcard == '*') {
+
+			if (++wildcard == wc_end)
+				 /*
+				  * Wildcard ended on a *, so we know we will
+				  * match unconditionally
+				  */
+				return 0;
+
+			/*
+			 * Now we need to stick wildcard here and see if there
+			 * is any remaining match exists, for eg b of "a*b"
+			 */
+
+			if (sp == LWS_ARRAY_SIZE(match)) {
+				lwsl_err("%s: exceeds * stack\n", __func__);
+				return 1; /* we can't deal with it */
+			}
+
+			wc[sp] = wildcard;
+			/* if we ever pop and come back here, pick up from +1 */
+			match[sp++] = check + 1;
+			continue;
+		}
+
+		if (*(check++) == *wildcard) {
+
+			if (wildcard == wc_end)
+				return 0;
+			/*
+			 * We're still compatible with wildcard... keep going
+			 */
+			wildcard++;
+
+			continue;
+		}
+
+		if (!sp)
+			/*
+			 * We're just trying to match literals, and failed...
+			 */
+			return 1;
+
+		/* we're looking for a post-* match... keep looking... */
+
+	} while (check < cend);
+
+	/*
+	 * We reached the end of check, if also at end of wildcard we're OK
+	 */
+
+	return wildcard != wc_end;
+}
 
 #if LWS_MAX_SMP > 1
 
@@ -1145,7 +1427,13 @@ lws_mutex_refcount_init(struct lws_mutex_refcount *mr)
 	mr->last_lock_reason = NULL;
 	mr->lock_depth = 0;
 	mr->metadata = 0;
+#ifdef __PTW32_H
+	/* If we use implementation of PThreads for Win that is
+	 * distributed by VCPKG */
+	memset(&mr->lock_owner, 0, sizeof(pthread_t));
+#else
 	mr->lock_owner = 0;
+#endif
 }
 
 void
@@ -1167,7 +1455,14 @@ lws_mutex_refcount_lock(struct lws_mutex_refcount *mr, const char *reason)
 	 *
 	 *  - it can be false and change to a different tid that is also false
 	 */
-	if (mr->lock_owner == pthread_self()) {
+#ifdef __PTW32_H
+	/* If we use implementation of PThreads for Win that is
+	 * distributed by VCPKG */
+	if (pthread_equal(mr->lock_owner, pthread_self()))
+#else
+	if (mr->lock_owner == pthread_self())
+#endif
+	{
 		/* atomic because we only change it if we own the lock */
 		mr->lock_depth++;
 		return;
@@ -1189,15 +1484,27 @@ lws_mutex_refcount_unlock(struct lws_mutex_refcount *mr)
 		return;
 
 	mr->last_lock_reason = "free";
+#ifdef __PTW32_H
+	/* If we use implementation of PThreads for Win that is
+	 * distributed by VCPKG */
+	memset(&mr->lock_owner, 0, sizeof(pthread_t));
+#else
 	mr->lock_owner = 0;
-	//lwsl_notice("tid %d: unlock %s\n", mr->tid, mr->last_lock_reason);
+#endif
+	// lwsl_notice("tid %d: unlock %s\n", mr->tid, mr->last_lock_reason);
 	pthread_mutex_unlock(&mr->lock);
 }
 
 void
 lws_mutex_refcount_assert_held(struct lws_mutex_refcount *mr)
 {
+#ifdef __PTW32_H
+	/* If we use implementation of PThreads for Win that is
+	 * distributed by VCPKG */
+	assert(pthread_equal(mr->lock_owner, pthread_self()) && mr->lock_depth);
+#else
 	assert(mr->lock_owner == pthread_self() && mr->lock_depth);
+#endif
 }
 
 #endif /* SMP */
@@ -1206,7 +1513,8 @@ lws_mutex_refcount_assert_held(struct lws_mutex_refcount *mr)
 const char *
 lws_cmdline_option(int argc, const char **argv, const char *val)
 {
-	int n = (int)strlen(val), c = argc;
+	size_t n = strlen(val);
+	int c = argc;
 
 	while (--c > 0) {
 
@@ -1229,11 +1537,22 @@ lws_cmdline_option(int argc, const char **argv, const char *val)
 
 static const char * const builtins[] = {
 	"-d",
-#if defined(LWS_WITH_UDP)
-	"--udp-tx-loss",
-	"--udp-rx-loss",
-#endif
-	"--ignore-sigterm"
+	"--fault-injection",
+	"--fault-seed",
+	"--ignore-sigterm",
+	"--ssproxy-port",
+	"--ssproxy-iface",
+	"--ssproxy-ads",
+};
+
+enum opts {
+	OPT_DEBUGLEVEL,
+	OPT_FAULTINJECTION,
+	OPT_FAULT_SEED,
+	OPT_IGNORE_SIGTERM,
+	OPT_SSPROXY_PORT,
+	OPT_SSPROXY_IFACE,
+	OPT_SSPROXY_ADS,
 };
 
 #if !defined(LWS_PLAT_FREERTOS)
@@ -1244,11 +1563,80 @@ lws_sigterm_catch(int sig)
 #endif
 
 void
+_lws_context_info_defaults(struct lws_context_creation_info *info,
+			  const char *sspol)
+{
+	memset(info, 0, sizeof *info);
+        info->fd_limit_per_thread = 1 + 6 + 1;
+#if defined(LWS_WITH_NETWORK)
+        info->port = CONTEXT_PORT_NO_LISTEN;
+#endif
+#if defined(LWS_WITH_SECURE_STREAMS) && !defined(LWS_WITH_SECURE_STREAMS_STATIC_POLICY_ONLY)
+        info->pss_policies_json = sspol;
+#endif
+#if defined(LWS_WITH_SECURE_STREAMS_PROXY_API)
+        if (!sspol)
+        	info->protocols = lws_sspc_protocols;
+#endif
+       	info->options = LWS_SERVER_OPTION_EXPLICIT_VHOSTS |
+       		LWS_SERVER_OPTION_H2_JUST_FIX_WINDOW_UPDATE_OVERFLOW |
+       		LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
+}
+
+void
+lws_default_loop_exit(struct lws_context *cx)
+{
+	if (cx) {
+		cx->interrupted = 1;
+#if defined(LWS_WITH_NETWORK)
+		lws_cancel_service(cx);
+#endif
+	}
+}
+
+#if defined(LWS_WITH_NETWORK)
+void
+lws_context_default_loop_run_destroy(struct lws_context *cx)
+{
+        /* the default event loop, since we didn't provide an alternative one */
+
+        while (!cx->interrupted && lws_service(cx, 0) >= 0)
+        	;
+
+        lws_context_destroy(cx);
+}
+#endif
+
+int
+lws_cmdline_passfail(int argc, const char **argv, int actual)
+{
+	int expected = 0;
+	const char *p;
+
+	if ((p = lws_cmdline_option(argc, argv, "--expected-exit")))
+		expected = atoi(p);
+
+	if (actual == expected) {
+		lwsl_user("Completed: OK (seen expected %d)\n", actual);
+
+		return 0;
+	}
+
+	lwsl_err("Completed: failed: exit %d, expected %d\n", actual, expected);
+
+	return 1;
+}
+
+void
 lws_cmdline_option_handle_builtin(int argc, const char **argv,
 				  struct lws_context_creation_info *info)
 {
 	const char *p;
-	int n, m, logs = LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
+	int n, m, logs = info->default_loglevel ? info->default_loglevel :
+				LLL_USER | LLL_ERR | LLL_WARN | LLL_NOTICE;
+#if defined(LWS_WITH_SYS_FAULT_INJECTION)
+	uint64_t seed = (uint64_t)lws_now_usecs();
+#endif
 
 	for (n = 0; n < (int)LWS_ARRAY_SIZE(builtins); n++) {
 		p = lws_cmdline_option(argc, argv, builtins[n]);
@@ -1258,20 +1646,43 @@ lws_cmdline_option_handle_builtin(int argc, const char **argv,
 		m = atoi(p);
 
 		switch (n) {
-		case 0:
+		case OPT_DEBUGLEVEL:
 			logs = m;
 			break;
-#if defined(LWS_WITH_UDP)
-		case 1:
-			info->udp_loss_sim_tx_pc = m;
+
+#if defined(LWS_WITH_SECURE_STREAMS_PROXY_API)
+		case OPT_SSPROXY_PORT:
+			/* connect to ssproxy via UDS by default, else via
+			 * tcp connection to this port */
+			info->ss_proxy_port = (uint16_t)atoi(p);
 			break;
-		case 2:
-			info->udp_loss_sim_rx_pc = m;
+
+		case OPT_SSPROXY_IFACE:
+			/* UDS "proxy.ss.lws" in abstract namespace, else this socket
+			 * path; when -p given this can specify the network interface
+			 * to bind to */
+			info->ss_proxy_bind = p;
 			break;
-		case 3:
-#else
-		case 1:
+
+		case OPT_SSPROXY_ADS:
+			info->ss_proxy_address = p;
+			break;
 #endif
+
+		case OPT_FAULTINJECTION:
+#if !defined(LWS_WITH_SYS_FAULT_INJECTION)
+			lwsl_err("%s: FAULT_INJECTION not built\n", __func__);
+#endif
+			lws_fi_deserialize(&info->fic, p);
+			break;
+
+		case OPT_FAULT_SEED:
+#if defined(LWS_WITH_SYS_FAULT_INJECTION)
+			seed = (uint64_t)atoll(p);
+#endif
+			break;
+
+		case OPT_IGNORE_SIGTERM:
 #if !defined(LWS_PLAT_FREERTOS)
 			signal(SIGTERM, lws_sigterm_catch);
 #endif
@@ -1279,77 +1690,92 @@ lws_cmdline_option_handle_builtin(int argc, const char **argv,
 		}
 	}
 
+#if defined(LWS_WITH_SYS_FAULT_INJECTION)
+	lws_xos_init(&info->fic.xos, seed);
+#endif
 	lws_set_log_level(logs, NULL);
+
+#if defined(LWS_WITH_SYS_FAULT_INJECTION)
+	if (info->fic.fi_owner.count)
+		lwsl_notice("%s: Fault Injection seed %llu\n", __func__,
+				(unsigned long long)seed);
+#endif
 }
 
 
 const lws_humanize_unit_t humanize_schema_si[] = {
-	{ "Pi ", LWS_PI }, { "Ti ", LWS_TI }, { "Gi ", LWS_GI },
-	{ "Mi ", LWS_MI }, { "Ki ", LWS_KI }, { "   ", 1 },
+	{ "Pi", LWS_PI }, { "Ti", LWS_TI }, { "Gi", LWS_GI },
+	{ "Mi", LWS_MI }, { "Ki", LWS_KI }, { "", 1 },
 	{ NULL, 0 }
 };
 const lws_humanize_unit_t humanize_schema_si_bytes[] = {
 	{ "PiB", LWS_PI }, { "TiB", LWS_TI }, { "GiB", LWS_GI },
-	{ "MiB", LWS_MI }, { "KiB", LWS_KI }, { "B  ", 1 },
+	{ "MiB", LWS_MI }, { "KiB", LWS_KI }, { "B", 1 },
 	{ NULL, 0 }
 };
 const lws_humanize_unit_t humanize_schema_us[] = {
-	{ "y  ",  (uint64_t)365 * 24 * 3600 * LWS_US_PER_SEC },
-	{ "d  ",  (uint64_t)24 * 3600 * LWS_US_PER_SEC },
-	{ "hr ", (uint64_t)3600 * LWS_US_PER_SEC },
+	{ "y",  (uint64_t)365 * 24 * 3600 * LWS_US_PER_SEC },
+	{ "d",  (uint64_t)24 * 3600 * LWS_US_PER_SEC },
+	{ "hr", (uint64_t)3600 * LWS_US_PER_SEC },
 	{ "min", 60 * LWS_US_PER_SEC },
-	{ "s  ", LWS_US_PER_SEC },
-	{ "ms ", LWS_US_PER_MS },
-	{ "us ", 1 },
+	{ "s", LWS_US_PER_SEC },
+	{ "ms", LWS_US_PER_MS },
+#if defined(WIN32)
+	{ "us", 1 },
+#else
+	{ "μs", 1 },
+#endif
 	{ NULL, 0 }
 };
+
+/* biggest ull is 18446744073709551615 (20 chars) */
 
 static int
 decim(char *r, uint64_t v, char chars, char leading)
 {
-	int n = chars - 1;
 	uint64_t q = 1;
+	char *ro = r;
+	int n = 1;
 
-	r += n;
-
-	while (n >= 0) {
-		if (v / q)
-			*r-- = '0' + ((v / q) % 10);
-		else
-			*r-- = leading ? '0' : ' ';
+	while ((leading || v > (q * 10) - 1) && n < 20 && n < chars) {
 		q = q * 10;
-		n--;
+		n++;
 	}
 
-	if (v / q)
-		/* the number is bigger than the allowed chars! */
-		r[1] = '!';
+	/* n is how many chars needed */
 
-	return chars;
+	while (n--) {
+		*r++ = (char)('0' + (char)((v / q) % 10));
+		q = q / 10;
+	}
+
+	*r = '\0';
+
+	return lws_ptr_diff(r, ro);
 }
 
 int
-lws_humanize(char *p, int len, uint64_t v, const lws_humanize_unit_t *schema)
+lws_humanize(char *p, size_t len, uint64_t v, const lws_humanize_unit_t *schema)
 {
-	char *end = p + len;
+	char *obuf = p, *end = p + len;
 
 	do {
 		if (v >= schema->factor || schema->factor == 1) {
 			if (schema->factor == 1) {
-				*p++ = ' ';
 				p += decim(p, v, 4, 0);
-				return lws_snprintf(p, lws_ptr_diff(end, p),
-						    "%s    ", schema->name);
+				p += lws_snprintf(p, lws_ptr_diff_size_t(end, p),
+						    "%s", schema->name);
+				return lws_ptr_diff(p, obuf);
 			}
 
-			*p++ = ' ';
 			p += decim(p, v / schema->factor, 4, 0);
 			*p++ = '.';
 			p += decim(p, (v % schema->factor) /
 					(schema->factor / 1000), 3, 1);
 
-			return lws_snprintf(p, lws_ptr_diff(end, p),
+			p += lws_snprintf(p, lws_ptr_diff_size_t(end, p),
 					    "%s", schema->name);
+			return lws_ptr_diff(p, obuf);
 		}
 		schema++;
 	} while (schema->name);
@@ -1358,4 +1784,303 @@ lws_humanize(char *p, int len, uint64_t v, const lws_humanize_unit_t *schema)
 	strncpy(p, "unknown value", len);
 
 	return 0;
+}
+
+/*
+ * -1 = fail
+ *  0 = continue
+ *  1 = hit
+ */
+
+#define LWS_MINILEX_FAIL_CODING 8
+
+int
+lws_minilex_parse(const uint8_t *lex, int16_t *ps, const uint8_t c, int *match)
+{
+	if (*ps == (int16_t)-1)
+		return LWS_MINILEX_FAIL;
+
+	while (1) {
+		if (lex[*ps] & (1 << 7)) {
+			/* 1-byte, fail on mismatch */
+			if ((lex[*ps] & 0x7f) != c)
+				goto nope;
+
+			/* go forward */
+			if (lex[++(*ps)] == LWS_MINILEX_FAIL_CODING)
+				goto nope;
+
+			if (lex[*ps] < LWS_MINILEX_FAIL_CODING) {
+				/* this is a terminal marker */
+				*match = (int)lex[++(*ps)];
+				return LWS_MINILEX_MATCH;
+			}
+
+			return LWS_MINILEX_CONTINUE;
+		}
+
+		if (lex[*ps] == LWS_MINILEX_FAIL_CODING)
+			goto nope;
+
+		/* b7 = 0, end or 3-byte */
+		if (lex[*ps] < LWS_MINILEX_FAIL_CODING) {
+			/* this is a terminal marker */
+			*match = (int)lex[++(*ps)];
+			return LWS_MINILEX_MATCH;
+		}
+
+		if (lex[*ps] == c) { /* goto-on-match */
+			*ps = (int16_t)(*ps + (lex[(*ps) + 1]) +
+					      (lex[(*ps) + 2] << 8));
+			return LWS_MINILEX_CONTINUE;
+		}
+
+		/* fall thru to next */
+		*ps = (int16_t)((*ps) + 3);
+	}
+
+nope:
+	*ps = (int16_t)-1;
+
+	return LWS_MINILEX_FAIL;
+}
+
+unsigned int
+lws_sigbits(uintptr_t u)
+{
+	uintptr_t mask = (uintptr_t)(0xffllu << ((sizeof(u) - 1) * 8)),
+		  m1   = (uintptr_t)(0x80llu << ((sizeof(u) - 1) * 8));
+	unsigned int n;
+
+	for (n = sizeof(u) * 8; n > 0; n -= 8) {
+		if (u & mask)
+			break;
+		mask >>= 8;
+		m1 >>= 8;
+	}
+
+	if (!n)
+		return 1; /* not bits are set, we need at least 1 to represent */
+
+	while (!(u & m1)) {
+		n--;
+		m1 >>= 1;
+	}
+
+	return n;
+}
+
+const lws_fx_t *
+lws_fx_add(lws_fx_t *r, const lws_fx_t *a, const lws_fx_t *b)
+{
+	int32_t w, sf;
+
+	w = a->whole + b->whole;
+	sf = a->frac + b->frac;
+	if (sf >= 100000000) {
+		w++;
+		r->frac = sf - 100000000;
+	} else if (sf < -100000000) {
+		w--;
+		r->frac = sf + 100000000;
+	} else
+		r->frac = sf;
+
+	r->whole = w;
+
+	return r;
+}
+
+const lws_fx_t *
+lws_fx_sub(lws_fx_t *r, const lws_fx_t *a, const lws_fx_t *b)
+{
+	int32_t w;
+
+	if (a->whole >= b->whole) {
+		w = a->whole - b->whole;
+		if (a->frac >= b->frac)
+			r->frac = a->frac - b->frac;
+		else {
+			w--;
+			r->frac = (100000000 + a->frac) - b->frac;
+		}
+	} else {
+		w = -(b->whole - a->whole);
+		if (b->frac >= a->frac)
+			r->frac = b->frac - a->frac;
+		else {
+			w++;
+			r->frac = (100000000 + b->frac) - a->frac;
+		}
+	}
+	r->whole = w;
+
+	return r;
+}
+
+const lws_fx_t *
+lws_fx_mul(lws_fx_t *r, const lws_fx_t *a, const lws_fx_t *b)
+{
+	int64_t _c1, _c2;
+	int32_t w, t;
+	char neg = 0;
+
+	assert(a->frac < LWS_FX_FRACTION_MSD);
+	assert(b->frac < LWS_FX_FRACTION_MSD);
+
+	/* we can't use r as a temp, because it may alias on to a, b */
+
+	w = a->whole * b->whole;
+
+	if (!lws_neg(a) && !lws_neg(b)) {
+		_c2 = (((int64_t)((int64_t)a->frac) * (int64_t)b->frac) /
+							LWS_FX_FRACTION_MSD);
+		_c1 = ((int64_t)a->frac * ((int64_t)b->whole)) +
+		        (((int64_t)a->whole) * (int64_t)b->frac) + _c2;
+		w += (int32_t)(_c1 / LWS_FX_FRACTION_MSD);
+	} else
+		if (lws_neg(a) && !lws_neg(b)) {
+			_c2 = (((int64_t)((int64_t)-a->frac) * (int64_t)b->frac) /
+								LWS_FX_FRACTION_MSD);
+			_c1 = ((int64_t)-a->frac * (-(int64_t)b->whole)) +
+			       (((int64_t)a->whole) * (int64_t)b->frac) - _c2;
+			w += (int32_t)(_c1 / LWS_FX_FRACTION_MSD);
+			neg = 1;
+		} else
+			if (!lws_neg(a) && lws_neg(b)) {
+				_c2 = (((int64_t)((int64_t)a->frac) * (int64_t)-b->frac) /
+									LWS_FX_FRACTION_MSD);
+				_c1 = ((int64_t)a->frac * ((int64_t)b->whole)) -
+				       (((int64_t)a->whole) * (int64_t)-b->frac) - _c2;
+				w += (int32_t)(_c1 / LWS_FX_FRACTION_MSD);
+				neg = 1;
+			} else {
+				_c2 = (((int64_t)((int64_t)-a->frac) * (int64_t)-b->frac) /
+									LWS_FX_FRACTION_MSD);
+				_c1 = ((int64_t)-a->frac * ((int64_t)b->whole)) +
+				       (((int64_t)a->whole) * (int64_t)-b->frac) - _c2;
+				w -= (int32_t)(_c1 / LWS_FX_FRACTION_MSD);
+			}
+
+	t = (int32_t)(_c1 % LWS_FX_FRACTION_MSD);
+	r->whole = w; /* don't need a,b any further... now we can write to r */
+	if (neg ^ !!(t < 0))
+		r->frac = -t;
+	else
+		r->frac = t;
+
+	return r;
+}
+
+const lws_fx_t *
+lws_fx_div(lws_fx_t *r, const lws_fx_t *a, const lws_fx_t *b)
+{
+	int64_t _a = lws_fix64_abs(a), _b = lws_fix64_abs(b), q = 0, d, m;
+
+	if (!_b)
+		_a = 0;
+	else {
+		int c = 64 / 2 + 1;
+
+		while (_a && c >= 0) {
+			d = _a / _b;
+			m = (_a % _b);
+			if (m < 0)
+				m = -m;
+			_a = m << 1;
+			q += d << (c--);
+		}
+		_a = q >> 1;
+	}
+
+	if (lws_neg(a) ^ lws_neg(b)) {
+		r->whole = -(int32_t)(_a >> 32);
+		r->frac = -(int32_t)((100000000 * (_a & 0xffffffff)) >> 32);
+	} else {
+		r->whole = (int32_t)(_a >> 32);
+		r->frac = (int32_t)((100000000 * (_a & 0xffffffff)) >> 32);
+	}
+
+	return r;
+}
+
+const lws_fx_t *
+lws_fx_sqrt(lws_fx_t *r, const lws_fx_t *a)
+{
+	uint64_t t, q = 0, b = 1ull << 62, v = ((uint64_t)a->whole << 32) +
+	    	 (((uint64_t)a->frac << 32) / LWS_FX_FRACTION_MSD);
+
+	while (b > 0x40) {
+		t = q + b;
+		if (v >= t) {
+			v -= t;
+			q = t + b;
+		}
+		v <<= 1;
+		b >>= 1;
+	}
+
+	r->whole = (int32_t)(q >> 48);
+	r->frac = (int32_t)((((q >> 16) & 0xffffffff) *
+					LWS_FX_FRACTION_MSD) >> 32);
+
+	return r;
+}
+
+/* returns < 0 if a < b, >0 if a > b, or 0 if exactly equal */
+
+int
+lws_fx_comp(const lws_fx_t *a, const lws_fx_t *b)
+{
+	if (a->whole < b->whole)
+		return -1;
+	if (a->whole > b->whole)
+                return 1;
+
+	if (a->frac < b->frac)
+		return -1;
+
+	if (a->frac > b->frac)
+		return 1;
+
+	return 0;
+}
+
+int
+lws_fx_roundup(const lws_fx_t *a)
+{
+	if (!a->frac)
+		return a->whole;
+
+	if (lws_neg(a))
+		return a->whole - 1;
+
+	return a->whole + 1;
+}
+
+LWS_VISIBLE LWS_EXTERN int
+lws_fx_rounddown(const lws_fx_t *a)
+{
+	return a->whole;
+}
+
+LWS_VISIBLE LWS_EXTERN const char *
+lws_fx_string(const lws_fx_t *a, char *buf, size_t size)
+{
+	int n, m = 7;
+
+	if (lws_neg(a))
+		n = lws_snprintf(buf, size - 1, "-%d.%08d",
+				 (int)(a->whole < 0 ? -a->whole : a->whole),
+				 (int)(a->frac < 0 ? -a->frac : a->frac));
+	else
+		n = lws_snprintf(buf, size - 1, "%d.%08d", (int)a->whole,
+				 (int)a->frac);
+
+	while (m-- && buf[n - 1] == '0')
+		n--;
+
+	buf[n] = '\0';
+
+	return buf;
 }
