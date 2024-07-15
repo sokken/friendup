@@ -55,14 +55,14 @@ typedef struct SpecialData
 
 int libInit( AuthMod *l, void *sb )
 {
-	DEBUG("[PHPAUTH] libinit\n");
-
 	if( ( l->SpecialData = FCalloc( 1, sizeof( struct SpecialData ) ) ) == NULL )
 	{
 		FERROR("Cannot allocate memory for special data!\n");
 		return -1;
 	}
+	
 	SpecialData *sd = l->SpecialData;
+	DEBUG("[PHPAUTH] libinit: %s  \n", sd->sd_ModuleType );
 
 	l->am_Name = LIB_NAME;
 	l->am_Version = LIB_VERSION;
