@@ -62,7 +62,6 @@ int libInit( AuthMod *l, void *sb )
 	}
 	
 	SpecialData *sd = l->SpecialData;
-	DEBUG("[PHPAUTH] libinit: %s  \n", sd->sd_ModuleType );
 
 	l->am_Name = LIB_NAME;
 	l->am_Version = LIB_VERSION;
@@ -80,6 +79,8 @@ int libInit( AuthMod *l, void *sb )
 	char tempText[ 512 ];
 	snprintf( tempText, sizeof(tempText), "module/%s/module.php", sd->sd_ModuleType );
 	sd->sd_ModulePath = StringDuplicate( tempText );
+	
+	DEBUG("[PHPAUTH] libinit: %s  \n", sd->sd_ModulePath );
 	
 	SystemBase *locsys = (SystemBase *)sb;
 	sd->sd_EModule = locsys->sl_Modules;

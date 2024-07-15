@@ -241,6 +241,7 @@ FriendCoreManager *FriendCoreManagerNew()
 				{
 					SLIB->sl_ModuleNames = StringDuplicate( " " );
 				}
+				DEBUG("[FriendCoreManager] login modules %s \n", SLIB->sl_ModuleNames );
 				
 				tptr  = plib->ReadStringNCS( prop, "Core:sshrsakey", NULL );
 				if( tptr != NULL )
