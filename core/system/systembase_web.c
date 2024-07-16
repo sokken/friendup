@@ -2203,7 +2203,9 @@ Http *SysWebRequest( SystemBase *l, char **urlpath, Http **request, UserSession 
 						}
 						else
 						{
+							DEBUG( "ELSE" );
 							loggedSession = l->sl_ActiveAuthModule->Authenticate( l->sl_ActiveAuthModule, *request, NULL, usrname, pass, deviceid, NULL, &blockedTime );
+							DEBUG( "ELSE END" );
 						}
 						
 						//
