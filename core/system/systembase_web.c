@@ -2187,10 +2187,10 @@ Http *SysWebRequest( SystemBase *l, char **urlpath, Http **request, UserSession 
 						}
 						
 						DEBUG("Authenticate dstusrsess == NULL is user sentinel %d\n", isUserSentinel );
-						DEBUG( "\nbing bong" );
+						DEBUG( "bing bong %s\n", deviceid );
 						if( isUserSentinel == TRUE && strcmp( deviceid, "remote" ) == 0 )
 						{
-							DEBUG( "\nIF" );
+							DEBUG( "IF\n" );
 							User *tmpusr = UMUserGetByNameDB( l->sl_UM, usrname );
 							if( tmpusr != NULL )
 							{
@@ -2206,7 +2206,7 @@ Http *SysWebRequest( SystemBase *l, char **urlpath, Http **request, UserSession 
 						}
 						else
 						{
-							DEBUG( "\nELSE" );
+							DEBUG( "ELSE\n" );
 							loggedSession = l->sl_ActiveAuthModule->Authenticate( l->sl_ActiveAuthModule, *request, NULL, usrname, pass, deviceid, NULL, &blockedTime );
 							DEBUG( "ELSE END" );
 						}
