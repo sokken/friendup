@@ -25,9 +25,14 @@ initLoginModules();
 /* init our modules */
 function initLoginModules()
 {
+	include_once( 'classes/logger.php' );
+	$logger =& $GLOBALS['Logger'];
+	
 	// check which modules to load...
 	$modules = checkFCConfig();
 	$moduleconfigs = [];
+	
+	$logger->Log( $modules );
 	
 	// Specific regext to trap oauth login module
 	if( preg_match( '/\/oauth[\/]{0,1}/i', $GLOBALS['argv'][1], $m ) )
