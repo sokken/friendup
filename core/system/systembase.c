@@ -842,7 +842,7 @@ SystemBase *SystemInit( void )
 		while( ( dir = readdir( d ) ) != NULL )
 		{
 			if( dir->d_name[0] == '.' || strcmp( dir->d_name, "fcdb.authmod" ) == 0 ) continue;
-			Log( FLOG_INFO,  "[SystemBase] Reading auth modules:  %s fullauthmodpath %s\n", dir->d_name, tempString );
+			Log( FLOG_INFO,  "[SystemBase]:  %s fullauthmodpath %s\n", dir->d_name, tempString );
 			
 			locmod = AuthModNew( l,  l->sl_LoginModPath, dir->d_name, 0, l->sl_DefaultAuthModule );
 			if( locmod != NULL )

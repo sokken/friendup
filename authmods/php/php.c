@@ -74,7 +74,7 @@ int libInit( AuthMod *l, void *sb )
 	
 	// modules/name/module.php
 	
-	sd->sd_ModuleType = StringDuplicate("login");
+	sd->sd_ModuleType = StringDuplicate("login/doorman");
 	
 	char tempText[ 512 ];
 	snprintf( tempText, sizeof(tempText), "module/%s/module.php", sd->sd_ModuleType );
