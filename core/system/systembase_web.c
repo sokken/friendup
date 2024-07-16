@@ -2187,6 +2187,7 @@ Http *SysWebRequest( SystemBase *l, char **urlpath, Http **request, UserSession 
 						}
 						
 						DEBUG("Authenticate dstusrsess == NULL is user sentinel %d\n", isUserSentinel );
+						DEBUG( "bing bong" );
 						if( isUserSentinel == TRUE && strcmp( deviceid, "remote" ) == 0 )
 						{
 							DEBUG( "IF" );
