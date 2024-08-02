@@ -43,8 +43,9 @@ ALL:	$(OBJ_FILES) $(OUTPUT)
 
 
 $(OUTPUT): $(OBJ_FILES)
-	@echo "\033[34mLinking ...\033[0m"
-	$(GCC) $(CFLAGS) -o $(OUTPUT) $(LFLAGS) $(OBJ_FILES) ../../core/obj/library.o ../../core/obj/user_session.o ../../core/obj/sha256.o ../../core/obj/list.o ../../core/obj/string.o ../../core/obj/hashmap.o ../../core/obj/uri.o ../../core/obj/path.o ../../core/obj/user_application.o ../../core/obj/user.o -lcrypto
+	@echo "\033[34mLinking ...\033[0m $(OBJ_FILES) .. $(PWD)"
+	#$(GCC) -o $(OUTPUT) $(CFLAGS) $(LFLAGS) $(OBJ_FILES) ../../core/obj/library.o ../../core/obj/user_session.o ../../core/obj/sha256.o ../../core/obj/list.o ../../core/obj/string.o ../../core/obj/hashmap.o ../../core/obj/uri.o ../../core/obj/path.o ../../core/obj/user_application.o ../../core/obj/user.o -lcrypto
+	$(GCC) -o $(OUTPUT) $(LFLAGS) $(OBJ_FILES) ../../libs-ext/libwebsockets/build/lib/libwebsockets.so ../../core/obj/library.o ../../core/obj/user_session.o ../../core/obj/sha256.o ../../core/obj/list.o ../../core/obj/string.o ../../core/obj/hashmap.o ../../core/obj/uri.o ../../core/obj/path.o ../../core/obj/user_application.o ../../core/obj/user.o -lcrypto
 
 obj/fcdb.o: fcdb.c
 	@echo "\033[34mCompile ...\033[0m"

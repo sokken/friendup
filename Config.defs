@@ -1,6 +1,7 @@
 #
 # global path's and variables
 #
+WEBSOCKETS                  =   1
 WEBSOCKETS_THREADS			=	1
 WS_COMPRESSION				=	1
 USE_SELECT					=	0
