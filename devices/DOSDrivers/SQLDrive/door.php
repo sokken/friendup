@@ -106,8 +106,9 @@ if( !class_exists( 'DoorSQLDrive' ) )
 			$uname = str_replace( array( '..', '/', ' ' ), '_', $User->Name );
 			$wname = $Config->FCUpload . $uname . '/';
 			
-			//$Logger->log( 'Executing a dos action: ' . $args->command );
-			//$Logger->log( 'Pure args: ' . print_r( $args, 1 ) );
+			$Logger->log( 'Executing a dos action: ' . $args->command );
+			$Logger->log( 'Pure args: ' . print_r( $args, 1 ) );
+			$Logger->log( 'wname: ' . $wname . ' uname: ' . $uname );
 			
 			// TODO: This is a workaround, please fix in Friend Core!
 			//       Too much code for getting a real working path..
@@ -218,12 +219,14 @@ if( !class_exists( 'DoorSQLDrive' ) )
 							$entries[$k]->Shared = 'Private';
 						}
 					}
-					if( $shared = $SqlDatabase->FetchObjects( $q = ( '
+					$shared_query = '
 						SELECT Path, UserID, ID, `Name`, `Hash` FROM FFileShared s
 						WHERE
 							s.DstUserSID = "Public" AND s.Path IN ( "' . implode( '", "', $paths ) . '" ) AND
-							s.UserID IN ( ' . implode( ', ', $userids ) . ' )
-					' ) ) )
+							s.UserID IN ( "' . implode( '", "', $userids ) . '" )
+					';
+					$Logger->log( '[SQLDRIVE] shared_query: ' . $shared_query );
+					if( $shared = $SqlDatabase->FetchObjects( $q = ( $shared_query ) ))
 					{
 						foreach( $entries as $k=>$entry )
 						{
@@ -386,12 +389,14 @@ if( !class_exists( 'DoorSQLDrive' ) )
 				// Create a file object
 				$f = new dbIO( 'FSFile' );
 				$f->FilesystemID = $this->ID;
-				$fname = explode( ':', $args->path ); $fname = end( $fname );
+				$fname = explode( ':', $args->path ); 
+				$fname = end( $fname );
 				$subPath = $fname;
 				
 				if( strstr( $fname, '/' ) )
 				{
-					$fname = explode( '/', $fname ); $fname = end( $fname );
+					$fname = explode( '/', $fname );
+					$fname = end( $fname );
 				}
 				$f->Filename = $fname;
 				$f->UserID = $User->ID;
@@ -440,17 +445,18 @@ if( !class_exists( 'DoorSQLDrive' ) )
 					// Overwrite existing and catch object
 					if( $f->Load() )
 					{
+						$Logger->log( 'loaded ' . $f->DiskFilename );
 						$deletable = $Config->FCUpload . $f->DiskFilename;
 						$fn = $f->DiskFilename;
 					}
 					else
 					{
+						$Logger->log( 'not loaded ' . $f->Filename );
 						$fn = $f->Filename;
 						$f->DiskFilename = '';
 					}
 					
-					$Logger->log( '[SQLDRIVE] 1. Does our previous file exist?' . ( file_get_contents( $deletable ) ) . ' -> ' . $deletable );
-					
+					$Logger->log( '[SQLDRIVE] 1. Does our previous file exist?' . $deletable );
 				
 					// Sanitize!
 					if( strstr( $fn, '/' ) )
@@ -479,7 +485,7 @@ if( !class_exists( 'DoorSQLDrive' ) )
 						}
 					}
 				
-					$Logger->log( '[SQLDRIVE] 2. Does our previous file exist?' . ( file_get_contents( $deletable ) ) . ' -> ' . $deletable );
+					$Logger->log( '[SQLDRIVE] 2.' );
 				
 					// If the file exists, check it, if not, make a new writable file
 					if( ( $f->ID > 0 && file_exists( $wname . $fn ) ) || true )
@@ -492,7 +498,7 @@ if( !class_exists( 'DoorSQLDrive' ) )
 								
 								if( $len > 0 )
 								{
-									$Logger->log( '[SQLDRIVE] 3. Does our previous file exist?' . ( file_get_contents( $deletable ) ) . ' -> ' . $deletable );
+									$Logger->log( '[SQLDRIVE] 3. ' );
 								
 									//$Logger->log( '[SQLDrive] Ugly workaround to "fix" base64 support...' );
 									// TODO: UGLY WORKAROUND, FIX IT!
