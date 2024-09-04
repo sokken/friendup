@@ -320,7 +320,7 @@ if( $userid > 0 && $wname )
 			$initials = isset( $args->args->fullname ) ? trim( $args->args->fullname ) : $User->FullName;
 			$initials = mb_convert_encoding( $initials, 'ISO-8859-1', 'UTF-8' );
 			$initials = explode( ' ', $initials );
-			$initials = strtoupper( count( $initials ) > 1 ? $initials[0]{0} . $initials[1]{0} : substr( $initials[0], 0, 2 ) );
+			$initials = strtoupper( count( $initials ) > 1 ? $initials[0][0] . $initials[1][0] : substr( $initials[0], 0, 2 ) );
 			
 			$dims = getsetting_calculateTextBox( $initials, $font, 88, 0 );
 			imagettftext( $img, 88, 0, 128 - ( $dims[ 'width' ] >> 1 ) - $dims[ 'left' ], 128 + ( $dims[ 'height' ] >> 1 ) + ( $dims[ 'height' ] - $dims[ 'top' ] ), $color, $font, $initials );
@@ -410,7 +410,7 @@ if( $userid > 0 && $wname )
 					$depth = 0;
 					while ( $file = readdir ( $dir ) )
 					{
-						if ( $file{0} == '.' && strlen( $file ) <= 2 ) continue;
+						if ( $file[0] == '.' && strlen( $file ) <= 2 ) continue;
 						
 						// File with correct hash not found, clean it up ...
 						if( $file && !strstr( $file, $hash . '_' ) )

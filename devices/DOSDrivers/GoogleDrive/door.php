@@ -322,7 +322,7 @@ if( !class_exists( 'GoogleDrive' ) )
 					// FIX WEBDAV problems
 					if( count( $path ) > 1 )
 					{
-						if( $path[1] != '' && $path[1]{0} == '/' )
+						if( $path[1] != '' && $path[1][0] == '/' )
 							$path[1] = substr( $path[1], 1, strlen( $path[1] ) );
 					}
 					$path = implode( ':', $path );

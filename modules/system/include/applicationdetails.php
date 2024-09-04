@@ -23,7 +23,7 @@ if( isset( $args->args->application ) && isset( $args->args->mode ) )
 		{
 			while( $file = readdir( $dir ) )
 			{
-				if( $file{0} == '.' ) continue;
+				if( $file[0] == '.' ) continue;
 				if( $file == $args->args->application )
 				{
 					$appPath = $path . $file . '/';

@@ -28,7 +28,7 @@ if( $f = opendir( 'libs' ) )
 	
 	while( $fl = readdir( $f ) )
 	{
-		if( $fl{0} == '.' ) continue;
+		if( $fl[0] == '.' ) continue;
 		if( is_dir( 'libs/' . $fl ) ) continue;
 		$s = stat( 'libs/' . $fl );
 		$o = new stdClass();

@@ -15,7 +15,7 @@ if( $dir = opendir( 'libs' ) )
 	$mods = [];
 	while( $file = readdir( $dir ) )
 	{
-		if( $file{0} == '.' ) continue;
+		if( $file[0] == '.' ) continue;
 		$o = new stdClass();
 		$o->Filename = $file;
 		$o->Path = 'System:Libraries/';

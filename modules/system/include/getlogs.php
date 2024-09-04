@@ -25,7 +25,7 @@ if( !isset( $args->args->logfile ) )
 	
 		while( $f = readdir( $d ) )
 		{
-			if( $f{0} == '.' ) continue;
+			if( $f[0] == '.' ) continue;
 			
 			// Handle differently
 			if( is_dir( 'log/' . $f ) )

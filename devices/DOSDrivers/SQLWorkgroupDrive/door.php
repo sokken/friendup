@@ -102,8 +102,8 @@ if( !class_exists( 'DoorSQLWorkgroupDrive' ) )
 		{
 			global $SqlDatabase, $User, $Config, $Logger;
 		
-			//$Logger->log( 'Executing a dos action: ' . $args->command );
-			//$Logger->log( 'Pure args: ' . print_r( $args, 1 ) );
+			$Logger->log( 'Executing a dos action: ' . $args->command );
+			$Logger->log( 'Pure args: ' . print_r( $args, 1 ) );
 			
 			// TODO: This is a workaround, please fix in Friend Core!
 			//       Too much code for getting a real working path..
@@ -131,8 +131,9 @@ if( !class_exists( 'DoorSQLWorkgroupDrive' ) )
 					// FIX WEBDAV problems
 					if( count( $path ) > 1 )
 					{
-						if( $path[1] != '' && $path[1]{0} == '/' )
-							$path[1] = substr( $path[1], 1, strlen( $path[1] ) );
+						if( $path[1] != '' && $path[1][0] == '/' ) {
+							$path[1] = substr( $path[1], 1, strlen( $path[1] ));
+						}
 					}
 					$args->path = implode( ':', $path );
 				}
@@ -708,7 +709,7 @@ if( !class_exists( 'DoorSQLWorkgroupDrive' ) )
 					$fcount = 0;
 					while( $f = readdir( $dir ) )
 					{
-						if( $f{0} == '.' ) continue;
+						if( $f[0] == '.' ) continue;
 					
 						$fl = new dbIO( 'FSFile' );
 						$fl->FilesystemID = $this->ID;

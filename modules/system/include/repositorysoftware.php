@@ -21,7 +21,7 @@ if( $dir = opendir( 'repository' ) )
 {
 	while( $file = readdir( $dir ) )
 	{
-		if( $file{0} == '.' )
+		if( $file[0] == '.' )
 			continue;
 		$p = 'repository/' . $file . '/';
 		$c = new stdClass();

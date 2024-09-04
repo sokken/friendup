@@ -114,7 +114,7 @@ foreach( $paths as $path )
 	{
 		while( $file = readdir( $dir ) )
 		{
-			if( $file{0} == '.' ) continue;
+			if( $file[0] == '.' ) continue;
 		
 			// For repositories
 			if( file_exists( $path . $file . '/Signature.sig' ) )

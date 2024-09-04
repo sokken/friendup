@@ -217,12 +217,12 @@ if( !class_exists( 'DoorWordpress' ) )
 									if ( strstr( $oldurl, 'https://' ) )
 									{
 										$parts = explode( '/', str_replace( 'https://', '', $oldurl ) );
-										$newurl = ( 'https://' . reset( $parts ) . ( $newurl{0} != '/' ? '/' : '' ) . $newurl );
+										$newurl = ( 'https://' . reset( $parts ) . ( $newurl[0] != '/' ? '/' : '' ) . $newurl );
 									}
 									if ( strstr( $oldurl, 'http://' ) )
 									{
 										$parts = explode( '/', str_replace( 'http://', '', $oldurl ) );
-										$newurl = ( 'http://' . reset( $parts ) . ( $newurl{0} != '/' ? '/' : '' ) . $newurl );
+										$newurl = ( 'http://' . reset( $parts ) . ( $newurl[0] != '/' ? '/' : '' ) . $newurl );
 									}
 								
 								}

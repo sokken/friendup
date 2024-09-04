@@ -20,7 +20,7 @@ if( isset( $args->args->type ) )
 			{
 				while( $file = readdir( $dir ) )
 				{
-					if( $file{0} == '.' ) continue;
+					if( $file[0] == '.' ) continue;
 					$base = 'devices/DOSDrivers/' . $file;
 					if( 
 						file_exists( $base ) && 

@@ -160,7 +160,7 @@ if( $fr->Load() )
 						{
 							continue;
 						}
-						if( $f{0} == '.' )
+						if( $f[0] == '.' )
 						{
 							// Remove dot files. We don't allow them!
 							if( $f != '..' && $f != '.' )
@@ -244,7 +244,7 @@ function findByExtension( $rpath, $ext )
 	{
 		while( $f = readdir( $dir ) )
 		{
-			if( $f{0} == '.' ) continue;
+			if( $f[0] == '.' ) continue;
 			if( is_dir( $rpath . $f ) )
 			{
 				$r = findJSX( $rpath . '/' . $f . '/' );

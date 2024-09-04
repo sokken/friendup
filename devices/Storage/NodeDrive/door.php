@@ -2144,7 +2144,7 @@ if( !class_exists( 'DoorNodeDrive' ) )
 					$fcount = 0;
 					while( $f = readdir( $dir ) )
 					{
-						if( $f{0} == '.' ) continue;
+						if( $f[0] == '.' ) continue;
 						
 						$fl = new dbIO( 'FSFile' );
 						$fl->FilesystemID = $this->ID;

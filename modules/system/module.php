@@ -1037,6 +1037,8 @@ if( isset( $args->command ) )
 					// TODO: Will be deprecated to be here'
 					$path = isset( $args->path ) ? $args->path : ( isset( $args->args->path ) && $args->args->path ? $args->args->path : false );
 					$test = 'devices/DOSDrivers/' . $row->Type . '/door.php';
+					$Logger->log( 'testing: ' . $test );
+					
 					if( file_exists( $test ) )
 					{
 						$args->command = 'dosaction';
@@ -1048,7 +1050,6 @@ if( isset( $args->command ) )
 
 						foreach( $row as $k=>$v )
 							$door->$k = $v;
-
 
 
 						if( $result = $door->dosAction( $args ) )

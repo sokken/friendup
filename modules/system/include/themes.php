@@ -14,7 +14,7 @@ if( $dir = opendir( 'resources/themes' ) )
 	$out = array();
 	while( $file = readdir( $dir ) )
 	{
-		if( $file{0} == '.' ) continue;
+		if( $file[0] == '.' ) continue;
 		if( !file_exists( 'resources/themes/' . $file . '/theme.css' ) )
 			continue;
 		$o = new stdClass();

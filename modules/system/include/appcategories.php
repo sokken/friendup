@@ -18,7 +18,7 @@ foreach( array( 'resources/webclient/apps/', 'repository/' ) as $cpath )
 	{
 		while( $file = readdir( $dir ) )
 		{
-			if( $file{0} == '.' ) continue;
+			if( $file[0] == '.' ) continue;
 			if( !file_exists( $fz = $cpath . $file . '/Config.conf' ) )
 				continue;
 			if( $f = file_get_contents( $fz ) )

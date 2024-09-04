@@ -72,7 +72,7 @@ if( $dir = opendir( 'services' ) )
 	$services = [];
 	while( $file = readdir( $dir ) )
 	{
-		if( $file{0} == '.' ) continue;
+		if( $file[0] == '.' ) continue;
 		if( !is_dir( 'services/' . $file ) )
 			continue;
 		$o = new stdClass();

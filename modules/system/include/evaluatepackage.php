@@ -17,7 +17,7 @@ if( $level != 'Admin' )
 
 if( isset( $args->args->pckg ) )
 {
-	if( $args->args->pckg{0} == '.' || strstr( $args->args->pckg, '..' ) )
+	if( $args->args->pckg[0] == '.' || strstr( $args->args->pckg, '..' ) )
 		die( 'fail<!--separate-->{"response":"illegal package name"}' );
 	
 	$f = 'repository/' . $args->args->pckg;
@@ -44,7 +44,7 @@ if( isset( $args->args->pckg ) )
 				{
 					continue;
 				}
-				if( $f{0} == '.' )
+				if( $f[0] == '.' )
 				{
 					// Remove dot files. We don't allow them!
 					if( $f != '..' && $f != '.' )

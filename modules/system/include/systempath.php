@@ -60,7 +60,7 @@ if( isset( $args->args ) && substr( $args->args->path, 0, $len ) == 'System:Soft
 			
 			while( $file = readdir( $dir ) )
 			{
-				if( $file{0} == '.' ) continue;
+				if( $file[0] == '.' ) continue;
 				if( !file_exists( $fz = ( $path . $file . '/Config.conf' ) ) )
 					continue;
 			
@@ -184,7 +184,7 @@ else if( isset( $args->args ) && substr( $args->args->path, 0, strlen( 'System:R
 		$out = [];
 		while( $file = readdir( $dr ) )
 		{
-			if( $file{0} == '.' ) continue;
+			if( $file[0] == '.' ) continue;
 			if( is_dir( 'repository/' . $file ) )
 			{
 				if( file_exists( 'repository/' . $file . '/package.zip' ) )
@@ -231,7 +231,7 @@ else if(
 		$out = [];
 		while( $f = readdir( $dr ) )
 		{
-			if( $f{0} == '.' ) continue;
+			if( $f[0] == '.' ) continue;
 			$doorfile = 'devices/DOSDrivers/' . $o->Filename . '/door.php';
 			$o = new stdClass();
 			$o->Filename = $f;
@@ -269,7 +269,7 @@ else if( isset( $args->args ) && strtolower( trim( $args->args->path ) ) == 'sys
 		$out = [];
 		foreach( $rows as $row )
 		{
-			if( $f{0} == '.' ) continue;
+			if( $f[0] == '.' ) continue;
 			$o = new stdClass();
 			
 			$identity = json_decode( $row->Data );
@@ -302,7 +302,7 @@ else if( isset( $args->args ) && strtolower( trim( $args->args->path ) ) == 'sys
 		$out = [];
 		foreach( $rows as $row )
 		{
-			if( $f{0} == '.' ) continue;
+			if( $f[0] == '.' ) continue;
 			$o = new stdClass();
 			$o->Filename = $row->DeviceIdentity;
 			$o->Type = 'File';

@@ -593,7 +593,7 @@ if( !class_exists( 'DoorFriendStoreDrive' ) )
 					$fcount = 0;
 					while( $f = readdir( $dir ) )
 					{
-						if( $f{0} == '.' ) continue;
+						if( $f[0] == '.' ) continue;
 					
 						$fl = new dbIO( 'FriendStoreFile' );
 						$fl->FilesystemID = $this->ID;

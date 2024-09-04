@@ -14,7 +14,7 @@ if( $dir = opendir( 'modules' ) )
 	$mods = [];
 	while( $file = readdir( $dir ) )
 	{
-		if( $file{0} == '.' ) continue;
+		if( $file[0] == '.' ) continue;
 		$o = new stdClass();
 		$o->Filename = ucfirst( $file ) . '.module';
 		$o->Path = 'System:Modules/' . ucfirst( $file ) . '.module';
