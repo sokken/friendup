@@ -41,6 +41,9 @@ function friend_json_decode( $string )
 function jsUrlEncode( $in )
 { 
 	$out = '';
+	if ( !is_string( $in ))
+		$in = '';
+	
 	$len = strlen( $in );
 	for( $i = 0; $i < $len; $i++ )
 	{
