@@ -1956,13 +1956,13 @@ function applySetup( $userid, $id )
 			{
 				// 2. Setup standard dock items
 				$dockItems = array(
-					array( 'Dock', 'Manage your application laucher' ),
-					array( 'FriendShell', 'The Friend command line interface' ),
+					//array( 'Dock', 'Manage your application laucher' ),
+					//array( 'FriendShell', 'The Friend command line interface' ),
 					array( 'FriendChat', 'A chat and video conferencing application' ),
-					array( 'FriendCreate', 'A programmers editor' ),
-					array( 'Author', 'A simple word processor' ),
+					//array( 'FriendCreate', 'A programmers editor' ),
+					//array( 'Author', 'A simple word processor' ),
 					array( 'Wallpaper', 'Select wallpapers' ),
-					array( 'Calculator', 'Do some math' )
+					//array( 'Calculator', 'Do some math' )
 				);
 				$i = 0;
 				foreach( $dockItems as $r )

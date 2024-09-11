@@ -20,6 +20,7 @@ if( !defined( 'DOOR_SLASH_REPLACEMENT' ) )
 
 if( !class_exists( 'Door' ) )
 {
+	#[AllowDynamicProperties]
 	class Door extends dbIO
 	{	
 		// How to authenticate?

@@ -12,6 +12,7 @@
 
 
 // SQL Database abstraction ------------------------------------------------
+#[AllowDynamicProperties]
 class SqlDatabase
 {
 	var $_database, $_username, $_password, $_hostname;
@@ -239,6 +240,7 @@ class SqlDatabase
 }
 
 // SQL Database table abstraction ------------------------------------------
+#[AllowDynamicProperties]
 class DbTable
 {
 	var $_database;
@@ -402,6 +404,7 @@ class DbTable
 }
 
 // SQL Database row abstraction --------------------------------------------
+#[AllowDynamicProperties]
 class DbIO extends DbTable
 {
 	var $_debug;

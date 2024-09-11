@@ -23,6 +23,9 @@ $width = 56;
 $height = 48;
 $mode = 'crop';
 
+$jargs = json_encode( $args );
+$Logger->log( 'thump ' . $jargs );
+
 if( !isset( $args->path ) )
 {
 	die( 'ok<!--separate-->{"response":-1,"message":"Fail."}' );
@@ -51,6 +54,7 @@ $wname = $Config->FCUpload;
 if( substr( $wname, -1, 1 ) != '/' ) $wname .= '/';
 if( !file_exists( $wname . 'thumbnails' ) )
 {
+	$Logger->log( 'thump - mkdir: ' . $wname . 'thumbnails' );
 	mkdir( $wname . 'thumbnails' );
 }
 
