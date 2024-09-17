@@ -395,11 +395,13 @@ Friend.User = {
 				return;
 			}
 			
-			await deleteUMA()
-			console.log( 'IMA DOME')
+			if ( self.friendApp )
+				await deleteUMA()
+			
 			callLogoutUser()
 			cleanupWSS()
 			exitWorkspace()
+			
 			if ( cbk )
 				cbk()
 		}
@@ -408,11 +410,13 @@ Friend.User = {
 			if ( Workspace.deleteUMAPromise )
 				return Workspace.deleteUMAPromise
 			
+			
 			Workspace.deleteUMAPromise = new Promise(( resolve, reject ) => {
 				console.log( 'deleteUMA' )
 				let ud = new cAjax()
 				//ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + window.Base64alt.encode( friendApp.get_app_token() ) , true );
-				ud.open( 'get', '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token() , true );
+				const url = '/system.library/mobile/deleteuma/?sessionid=' + Workspace.sessionId + '&token=' + friendApp.get_app_token()
+				ud.open( 'get', url , true );
 				ud.onload = ( lmdata ) => {
 					console.log( 'deleteUMA returned', lmdata )
 					delete Workspace.deleteUMAPromise
