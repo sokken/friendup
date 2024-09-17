@@ -19,6 +19,7 @@ require 'php/3rdparty/phpmailer6/PHPMailer.php';
 require 'php/3rdparty/phpmailer6/SMTP.php';
 
 // Define the mailserver class
+#[AllowDynamicProperties]
 class Mailer
 {
 	var $template = false;

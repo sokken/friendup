@@ -10,6 +10,7 @@
 *****************************************************************************©*/
 
 // For adding a queued message
+#[AllowDynamicProperties]
 class LogSlot
 {
 	function __construct( $log, $message )
@@ -42,6 +43,7 @@ class LogSlot
 }
 
 // Main logger object
+#[AllowDynamicProperties]
 class Logger
 {
 	var $path = 'log/php_log.txt';

@@ -11,6 +11,7 @@
 *****************************************************************************©*/
 
 // Meow, I log your output to a file and console!
+#[AllowDynamicProperties]
 class LogCat
 {
 	var $_file;

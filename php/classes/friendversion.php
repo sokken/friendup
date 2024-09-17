@@ -22,6 +22,7 @@ global $args, $SqlDatabase, $User, $Config;
 
 include_once('php/constants.php');
 
+#[AllowDynamicProperties]
 class FriendVersion
 {
 

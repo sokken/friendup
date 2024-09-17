@@ -14,6 +14,7 @@
 // Uses door to get disk information
 require_once( 'door.php' );
 
+#[AllowDynamicProperties]
 class File
 {
 	var $_content = '';
