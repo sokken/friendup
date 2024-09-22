@@ -11564,6 +11564,12 @@ Workspace.receivePushV2 = async function( noties ) {
 	}
 }
 
+//
+Workspace.setAppState = function( new_state ) {
+	const self = this;
+	console.log( 'setAppState', new_state )
+}
+
 // Receive push notification (when a user clicks native push notification on phone)
 Workspace.receivePush = function( jsonMsg, ready )
 {
