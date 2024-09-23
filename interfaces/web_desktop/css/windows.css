@@ -1627,17 +1627,21 @@ html body.Loading #FriendScreenOverlay
 
 #FriendScreenOverlay:after
 {
-	display: block;
-	content: " ";
-	position: absolute;
-	top: calc(50% - 35px);
-	left: calc(50% - 35px);
+	display   : block;
+	/*content: " ";*/
+	content   : "Loading..";
+	font-size : 2em;
+	position  : absolute;
+	top       : calc(50% - 35px);
+	left      : calc(50% - 35px);
+	/*
 	width: 70px;
 	height: 70px;
 	background-position: center;
 	background-repeat: no-repeat;
 	background-image: url(/themes/friendup12/gfx/busy.png);
 	background-size: contain;
+	*/
 	/*clip-path: ellipse(20px 20px at 20px 20px);
 	-webkit-clip-path: ellipse(20px 20px at 20px 20px);*/
 }
