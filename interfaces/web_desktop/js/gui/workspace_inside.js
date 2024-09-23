@@ -11568,8 +11568,9 @@ Workspace.receivePushV2 = async function( noties ) {
 Workspace.setAppState = function( new_state ) {
 	const self = this;
 	console.log( 'setAppState', new_state )
-	if ( new_state == 'hidden' )
+	if ( new_state == 'inactive' )
 		ScreenOverlay.show()
+	
 	if ( new_state == 'resumed' )
 		ScreenOverlay.hide()
 }
