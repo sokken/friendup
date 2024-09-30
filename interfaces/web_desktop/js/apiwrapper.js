@@ -4053,6 +4053,14 @@ function apiWrapper( event, force )
 								app.contentWindow.postMessage( JSON.stringify( nmsg ), '*' );	
 						};
 						break;
+					case 'openqrscan':
+						const win = app.windows[ msg.viewId ]
+						console.log( 'open qr scan', [ msg, app, win ])
+						const title = msg.title || msg.flags?.title || 'Scan QR code';
+						qrView = new View({
+							title : title,
+						})
+						break;
 				}
 				break;
 		}

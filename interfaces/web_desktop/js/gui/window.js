@@ -5407,6 +5407,7 @@ var View = function( args )
 		
 		function setCameraMode( e )
 		{
+			console.log( 'setCameraMode', e )
 			let v = null;
 			if( !self.cameraOptions )
 			{
@@ -5478,10 +5479,13 @@ var View = function( args )
 				}
 			}
 			let constraints = {
-				video: {
+				video : {
 					deviceId: { exact: self.cameraOptions.currentDevice.deviceId }
-				}
+				},
+				audio : false,
 			};
+			
+			console.log( 'constraints', constraints )
 			
 			let ue = navigator.userAgent.toLowerCase();
 			
