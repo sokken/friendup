@@ -5407,7 +5407,10 @@ var View = function( args )
 		
 		function setCameraMode( e )
 		{
-			console.log( 'setCameraMode', e )
+			console.log( 'setCameraMode', [ e, self.cameraOptions ])
+			if ( !e && !self.cameraOptions )
+				return;
+			
 			let v = null;
 			if( !self.cameraOptions )
 			{
@@ -5448,6 +5451,12 @@ var View = function( args )
 					devs.push( dev );
 				}
 			}
+			
+			if ( !devs.length ) {
+				callback({ response : -1, message : 'no video device' })
+				return
+			}
+			
 			if( !self.cameraOptions.currentDevice && self.cameraOptions.potentialDevice )
 			{
 				self.cameraOptions.currentDevice = self.cameraOptions.potentialDevice
