@@ -5488,9 +5488,11 @@ var View = function( args )
 				}
 			}
 			let constraints = {
-				video : {
+				/*video : {
 					deviceId: { exact: self.cameraOptions.currentDevice.deviceId }
 				},
+				*/
+				video : true,
 				audio : false,
 			};
 			
