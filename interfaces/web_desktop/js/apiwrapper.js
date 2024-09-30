@@ -4054,9 +4054,9 @@ function apiWrapper( event, force )
 						};
 						break;
 					case 'openqrscan':
-						const win = app.windows[ msg.viewId ]
+						const qrwin = app.windows[ msg.viewId ]
 						console.log( 'open qr scan', [ msg, app, win ])
-						const title = msg.title || msg.flags?.title || 'Scan QR code';
+						const qrtitle = msg.title || msg.flags?.title || 'Scan QR code';
 						qrView = new View({
 							title : title,
 						})
