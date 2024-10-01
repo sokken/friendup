@@ -4053,13 +4053,20 @@ function apiWrapper( event, force )
 								app.contentWindow.postMessage( JSON.stringify( nmsg ), '*' );	
 						};
 						break;
-					case 'openqrscan':
-						const qrwin = app.windows[ msg.viewId ]
-						console.log( 'open qr scan', [ msg, app, win ])
-						const qrtitle = msg.title || msg.flags?.title || 'Scan QR code';
-						qrView = new View({
-							title : title,
-						})
+					case 'openqrscanner':
+						if ( friendApp ) {
+							friendApp.scanQRCode()
+						}
+						else {
+							return
+							const qrwin = app.windows[ msg.viewId ]
+							console.log( 'open qr scan', [ msg, app, win ])
+							const qrtitle = msg.title || msg.flags?.title || 'Scan QR code';
+							qrView = new View({
+								title : title,
+							})
+						}
+						
 						break;
 				}
 				break;

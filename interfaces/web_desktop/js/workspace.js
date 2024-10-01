@@ -133,6 +133,7 @@ Workspace = {
 		if( window.friendApp )
 		{
 			document.body.classList.add( 'friendapp' );
+			Workspace.setupFriendApp()
 		}
 	},
 	init: function()
@@ -558,6 +559,12 @@ Workspace = {
 			}
 		}
 	},
+	
+	// extend friendApp functionality
+	setupFriendApp : function() {
+		console.log( 'setupFriendApp', friendApp )
+	},
+	
 	// Just a stub - this isn't used anymore
 	rememberKeys: function() {
 		return false;

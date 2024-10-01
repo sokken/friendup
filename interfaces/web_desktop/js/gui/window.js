@@ -5378,6 +5378,8 @@ var View = function( args )
 		
 		function setCameraEvents( ele )
 		{
+			return
+			/*
 			ele.ontouchstart = function( e )
 			{
 				this.offX = e.touches[0].clientX;
@@ -5403,12 +5405,16 @@ var View = function( args )
 					setCameraMode();
 				}	
 			}
+			*/
 		}
 		
 		function setCameraMode( e )
 		{
 			console.log( 'setCameraMode', [ e, self.cameraOptions ])
 			if ( !e && !self.cameraOptions )
+				return;
+			
+			if ( self.hasMedia )
 				return;
 			
 			let v = null;
@@ -5509,7 +5515,9 @@ var View = function( args )
 					dd.srcObject.getTracks().forEach(track => track.stop())
 					dd.srcObject = null;
 				}
-				if( self.content.container.camera ) self.content.container.removeChild( self.content.container.camera );
+				if( self.content.container.camera ) 
+					self.content.container.removeChild( self.content.container.camera );
+				
 				delete self.content.container.camera;
 				delete navigator.gm;
 			}
@@ -5527,27 +5535,28 @@ var View = function( args )
 					constraints, 
 					function( localMediaStream )
 					{
+						console.log( 'gum ok', localMediaStream )
+						self.hasMedia = true;
 						// Remove old video object
 						//might be too late here? at least on mobile? moved this check up a couple of lines..
+						/*
 						let oldCam = self.content.container.camera;
 						if( oldCam && oldCam.srcObject )
 						{
 							oldCam.srcObject.getTracks().forEach( track => track.stop() );
 							oldCam.srcObject = localMediaStream;
 						}
-						else
-						{
-							// New element!
-							let vi = document.createElement( 'video' );
-							vi.setAttribute( 'autoplay', 'autoplay' );
-							vi.setAttribute( 'playinline', 'playinline' );
-							vi.className = 'FriendCameraElement';
-							vi.srcObject = localMediaStream;
-							self.content.container.appendChild( vi );
-							self.content.container.camera = vi;
-					
-							setCameraEvents( vi );
-						}
+						*/
+						// New element!
+						let vi = document.createElement( 'video' );
+						vi.setAttribute( 'autoplay', 'autoplay' );
+						vi.setAttribute( 'playinline', 'playinline' );
+						vi.className = 'FriendCameraElement';
+						//vi.srcObject = localMediaStream;
+						self.content.container.appendChild( vi );
+						self.content.container.camera = vi;
+				
+						setCameraEvents( vi );
 					
 						// Create an object URL for the video stream and use this 
 						// to set the video source.
@@ -5598,7 +5607,10 @@ var View = function( args )
 							
 							let switchbtn = document.createElement( 'button' );
 							switchbtn.className = 'IconButton IconSmall fa-refresh';
-							switchbtn.onclick = function() { setCameraMode() };
+							switchbtn.onclick = e => { 
+								setCameraMode() 
+							};
+							
 							self.content.container.appendChild( switchbtn );
 
 							//stop the video if the view is closed!
@@ -5618,6 +5630,7 @@ var View = function( args )
 					function( err )
 					{
 						v = self.content;
+						console.log( 'gum err', err )
 						// Log the error to the console.
 						callback( { response: -2, message: 'Could not access camera. getUserMedia() failed.' + err } );
 						if( v )
