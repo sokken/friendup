@@ -4056,6 +4056,9 @@ function apiWrapper( event, force )
 					case 'openqrscanner':
 						if ( friendApp ) {
 							friendApp.scanQRCode()
+								.then( qr_value => {
+									return_to_caller( msg, qr_value )
+								})
 						}
 						else {
 							return
@@ -4065,6 +4068,17 @@ function apiWrapper( event, force )
 							qrView = new View({
 								title : title,
 							})
+						}
+						
+						function return_to_caller( msg, data ) {
+							const return_msg = {
+								command  : 'callback',
+								viewId   : msg.viewId || undefined,
+								callback : msg.callback,
+								data     : data,
+							}
+							console.log( 'retunr_to_caller', return_msg )
+							app.contentWindow.postMessage( JSON.stringify( return_msg ), '*' )
 						}
 						
 						break;

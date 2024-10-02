@@ -563,6 +563,34 @@ Workspace = {
 	// extend friendApp functionality
 	setupFriendApp : function() {
 		console.log( 'setupFriendApp', friendApp )
+		if ( !friendApp )
+			return
+		
+		friendApp._callbacks = {}
+		friendApp.return_call = function( callback_id, ...args ) {
+			const self = this
+			console.log( 'return_call', [ self._callbacks, callback_id, args ])
+			const callback = self._callback[ callback_id ]
+			if ( !callback )
+				throw new Error( 'no callback found' )
+			
+			callback( ...args )
+			delete self._callbacks[ callback_id ]
+		}
+		
+		friendApp.scanQRCode = function() {
+			const self = this
+			return new Promise(( resolve, reject ) => {
+				const cb_id = tool.uid()
+				console.log( 'cb_id', cb_id )
+				self._callbacks[ cb_id ] = resolve
+				const event = {
+					type : 'scanQRCode',
+					data : cb_id,
+				}
+				friendApp.postMessage( JSON.stringify( event ))
+			})
+		}
 	},
 	
 	// Just a stub - this isn't used anymore
