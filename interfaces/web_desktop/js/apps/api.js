@@ -2382,6 +2382,23 @@ function View( flags )
 		Application.sendMessage( o );
 	}
 	
+	this.openQRScanner = function( callback )
+	{
+		let cid = addCallback( function( msg )
+		{
+			callback( msg.data );
+		} );
+		let o = {
+			type: 'view',
+			method: 'openqrscanner',
+			viewId: viewId,
+			// Right scope!
+			targetViewId: Application.viewId ? Application.viewId : null,
+			callback: cid
+		};
+		Application.sendMessage( o );
+	}
+	
 	// Show the mobile back button
 	this.showBackButton = function( visible, callback )
 	{
