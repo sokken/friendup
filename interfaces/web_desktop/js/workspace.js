@@ -580,8 +580,9 @@ Workspace = {
 		
 		friendApp.scanQRCode = function() {
 			const self = this
+			console.log( 'scanQRCode', friendUP )
 			return new Promise(( resolve, reject ) => {
-				const cb_id = tool.uid()
+				const cb_id = friendUP.tool.uid()
 				console.log( 'cb_id', cb_id )
 				self._callbacks[ cb_id ] = resolve
 				const event = {
