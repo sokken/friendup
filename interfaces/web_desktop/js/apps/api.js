@@ -399,6 +399,22 @@ var Application =
 			el.fullscreenEnabled = false;
 		}
 	},
+	
+	openQRScanner: function( callback )
+	{
+		let cid = addCallback( function( msg )
+		{
+			callback( msg.data );
+		} );
+		let o = {
+			type: 'view',
+			method: 'openqrscanner',
+			viewId: Applicatioin.viewId || undefined,
+			callback: cid
+		};
+		Application.sendMessage( o );
+	},
+	
 	// Application messaging ---------------------------------------------------
 	sendApplicationMessage: function( appFilter, msg, cbk )
 	{

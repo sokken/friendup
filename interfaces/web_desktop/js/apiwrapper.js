@@ -4061,7 +4061,9 @@ function apiWrapper( event, force )
 								})
 						}
 						else {
+							return_to_caller( msg, 'NYI' );
 							return
+							
 							console.log( 'open qr scan', [ msg, app, win ])
 							const qrtitle = msg.title || msg.flags?.title || 'Scan QR code';
 							qrView = new View({
