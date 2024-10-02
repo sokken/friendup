@@ -407,9 +407,9 @@ var Application =
 			callback( msg.data );
 		} );
 		let o = {
-			type: 'system',
-			method: 'openqrscanner',
-			viewId: Application.viewId || undefined,
+			type    : 'system',
+			command : 'openqrscanner',
+			viewId  : Application.viewId || undefined,
 			callback: cid
 		};
 		Application.sendMessage( o );
