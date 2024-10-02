@@ -407,7 +407,7 @@ var Application =
 			callback( msg.data );
 		} );
 		let o = {
-			type: 'view',
+			type: 'system',
 			method: 'openqrscanner',
 			viewId: Application.viewId || undefined,
 			callback: cid
