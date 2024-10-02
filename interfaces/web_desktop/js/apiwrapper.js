@@ -4062,7 +4062,6 @@ function apiWrapper( event, force )
 						}
 						else {
 							return
-							const qrwin = app.windows[ msg.viewId ]
 							console.log( 'open qr scan', [ msg, app, win ])
 							const qrtitle = msg.title || msg.flags?.title || 'Scan QR code';
 							qrView = new View({
@@ -4078,7 +4077,15 @@ function apiWrapper( event, force )
 								data     : data,
 							}
 							console.log( 'retunr_to_caller', return_msg )
-							app.contentWindow.postMessage( JSON.stringify( return_msg ), '*' )
+							const source_view = app.windows[ msg.viewId ] || null
+							let dest = null
+							if ( source_view )
+								dest = source_view.iframe.contentWindow
+							else
+								dest = app.contentWindow
+							
+							console.log( 'dest', [ dest, source_view ])
+							dest.postMessage( JSON.stringify( return_msg ), '*' )
 						}
 						
 						break;
