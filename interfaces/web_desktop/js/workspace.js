@@ -570,7 +570,7 @@ Workspace = {
 		friendApp.return_call = function( callback_id, ...args ) {
 			const self = this
 			console.log( 'return_call', [ self._callbacks, callback_id, args ])
-			const callback = self._callback[ callback_id ]
+			const callback = self._callbacks[ callback_id ]
 			if ( !callback )
 				throw new Error( 'no callback found' )
 			
