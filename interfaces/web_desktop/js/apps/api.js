@@ -409,7 +409,7 @@ var Application =
 		let o = {
 			type: 'view',
 			method: 'openqrscanner',
-			viewId: Applicatioin.viewId || undefined,
+			viewId: Application.viewId || undefined,
 			callback: cid
 		};
 		Application.sendMessage( o );
