@@ -4054,7 +4054,7 @@ function apiWrapper( event, force )
 						};
 						break;
 					case 'openqrscanner':
-						if ( friendApp ) {
+						if ( window.friendApp ) {
 							friendApp.scanQRCode()
 								.then( qr_value => {
 									return_to_caller( msg, qr_value )
