@@ -589,7 +589,12 @@ Workspace = {
 					type : 'scanQRCode',
 					data : cb_id,
 				}
-				friendApp.postMessage( JSON.stringify( event ))
+				const j_event = JSON.stringify( event )
+				if ( friendApp.get_platform() == 'iOS' ) {
+					console.log( 'ios postmessage')
+					webkit.messageHandlers.scanQRCode.postMessage( j_event )
+				} else
+					friendApp.postMessage( j_event )
 			})
 		}
 	},
