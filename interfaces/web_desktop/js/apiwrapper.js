@@ -4055,6 +4055,10 @@ function apiWrapper( event, force )
 						break;
 					case 'openqrscanner':
 						if ( window.friendApp ) {
+							console.log( 'openqrscanner fap', window.friendApp )
+							if ( !window.friendApp.scanQRCode )
+								Workspace.setupFriendApp()
+							
 							friendApp.scanQRCode()
 								.then( qr_value => {
 									return_to_caller( msg, qr_value )
