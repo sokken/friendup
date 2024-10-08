@@ -2659,6 +2659,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				}
 				
 				// Make sure iOS has the correct information
+				/*
 				if( window.friendApp && window.webkit && window.friendApp.setBackgroundColor )
 				{
 					let col = '#34495E';
@@ -2672,6 +2673,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					}
 					window.friendApp.setBackgroundColor( col );
 				}
+				*/
 				
 				// If we haven't refreshed, do it now
 				if( !Workspace.desktopFirstRefresh )
