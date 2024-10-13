@@ -574,21 +574,29 @@ Workspace = {
 			if ( !callback )
 				throw new Error( 'no callback found' )
 			
-			callback( ...args )
 			delete self._callbacks[ callback_id ]
+			callback( ...args )
 		}
 		
 		friendApp.scanQRCode = function() {
 			const self = this
 			console.log( 'scanQRCode', friendUP )
+			
 			return new Promise(( resolve, reject ) => {
-				const cb_id = friendUP.tool.uid()
-				console.log( 'cb_id', cb_id )
+				// only allow one sq request at a time
+				const cb_id = 'scan_qr_code'
+				if ( self._callbacks[ cb_id ]) {
+					resolve( null )
+					return
+				}
+				
+				
 				self._callbacks[ cb_id ] = resolve
 				const event = {
 					type : 'scanQRCode',
 					data : cb_id,
 				}
+				
 				const j_event = JSON.stringify( event )
 				if ( friendApp.get_platform() == 'iOS' ) {
 					console.log( 'ios postmessage')
