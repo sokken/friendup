@@ -2069,6 +2069,7 @@ var WorkspaceInside = {
 			let appMenu = document.createElement( 'div' );
 			appMenu.className = 'MobileAppMenu';
 			
+			try{
 			// add QR button
 			const qr_butt = document.createElement( 'div' )
 			qr_butt.className = 'app_menu_item qr_butt'
@@ -2083,7 +2084,8 @@ var WorkspaceInside = {
 			appMenu.appendChild( qr_butt )
 			
 			// adds FriendChat and DoormanOffice buttons 
-			[ 'FriendChat', 'DoormanOffice' ].forEach( appName => {
+			const mobileMenuApps = [ 'FriendChat', 'DoormanOffice' ]
+			mobileMenuApps.forEach( appName => {
 				const app = document.createElement( 'div' )
 				app.className = 'app_menu_item switch_to_' + appName
 				app.onclick = e => this.switchToApp( appName )
@@ -2101,6 +2103,10 @@ var WorkspaceInside = {
 				this.logout()
 			}
 			appMenu.appendChild( logout )
+		} catch( ex ) {
+			console.log( 'ex', ex )
+			throw new Error( "YEP")
+		}
 			
 			//
 			Workspace.appMenu = appMenu;
