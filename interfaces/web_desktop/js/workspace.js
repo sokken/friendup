@@ -607,6 +607,15 @@ Workspace = {
 		}
 	},
 	
+	scanQRForDoorman : async function() {
+		console.log( 'scanQRForDoorman' )
+		if ( !window.friendApp )
+			return
+		
+		const res = await friendApp.scanQRCode()
+		console.log( 'scanQRForDoorman res', res )
+	},
+	
 	// Just a stub - this isn't used anymore
 	rememberKeys: function() {
 		return false;

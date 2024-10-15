@@ -2068,6 +2068,21 @@ var WorkspaceInside = {
 			// App menu toggle
 			let appMenu = document.createElement( 'div' );
 			appMenu.className = 'MobileAppMenu';
+			
+			// add QR button
+			const qr_butt = document.createElement( 'div' )
+			qr_butt.className = 'app_menu_item qr_butt'
+			const qrIcon = document.createElement( 'i' )
+			qrIcon.className = 'fa fa-fw fa-qr-code'
+			qr_butt.appendChild( qrIcon )
+			qr_butt.onclick = e => {
+				console.log( 'qr_butt this', this )
+				Workspace.scanQRForDoorman()
+			}
+			
+			appMenu.appendChild( qr_butt )
+			
+			// adds FriendChat and DoormanOffice buttons 
 			[ 'FriendChat', 'DoormanOffice' ].forEach( appName => {
 				const app = document.createElement( 'div' )
 				app.className = 'app_menu_item switch_to_' + appName
@@ -2075,6 +2090,7 @@ var WorkspaceInside = {
 				appMenu.appendChild( app )
 			})
 			
+			// add logout button
 			const logout = document.createElement( 'div' )
 			logout.className = 'app_menu_item logout'
 			const logoutIcon = document.createElement( 'i' )
@@ -2086,6 +2102,7 @@ var WorkspaceInside = {
 			}
 			appMenu.appendChild( logout )
 			
+			//
 			Workspace.appMenu = appMenu;
 			Workspace.screen.contentDiv.parentNode.appendChild( appMenu );
 			appMenu.onclick = function( e )
@@ -2727,6 +2744,13 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							{
 								seq = [];
 							}
+						}
+						
+						if ( window.friendApp ) {
+							seq = [ 
+								'launch FriendChat',
+								'launch DoormanOffice',
+							]
 						}
 						
 						if( seq.length )
