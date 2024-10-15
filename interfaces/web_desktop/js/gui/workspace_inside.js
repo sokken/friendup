@@ -2072,7 +2072,7 @@ var WorkspaceInside = {
 			try{
 			// add QR button
 			const qr_butt = document.createElement( 'div' )
-			qr_butt.className = 'app_menu_item qr_butt'
+			qr_butt.className = 'app_menu_item icon_butt qr_butt'
 			const qrIcon = document.createElement( 'i' )
 			qrIcon.className = 'fa fa-fw fa-qr-code'
 			qr_butt.appendChild( qrIcon )
@@ -2094,7 +2094,7 @@ var WorkspaceInside = {
 			
 			// add logout button
 			const logout = document.createElement( 'div' )
-			logout.className = 'app_menu_item logout'
+			logout.className = 'app_menu_item icon_butt logout'
 			const logoutIcon = document.createElement( 'i' )
 			logoutIcon.className = 'fa fa-fw fa-sign-out'
 			logout.appendChild( logoutIcon )
