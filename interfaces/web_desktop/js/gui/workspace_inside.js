@@ -2074,7 +2074,7 @@ var WorkspaceInside = {
 			const qr_butt = document.createElement( 'div' )
 			qr_butt.className = 'app_menu_item icon_butt qr_butt'
 			const qrIcon = document.createElement( 'i' )
-			qrIcon.className = 'fa fa-fw fa-qr-code'
+			qrIcon.className = 'fa fa-fw fa-qrcode'
 			qr_butt.appendChild( qrIcon )
 			qr_butt.onclick = e => {
 				console.log( 'qr_butt this', this )
@@ -2754,8 +2754,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						
 						if ( window.friendApp ) {
 							seq = [ 
-								'launch FriendChat',
 								'launch DoormanOffice',
+								'launch FriendChat',
 							]
 						}
 						
