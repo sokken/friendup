@@ -2160,7 +2160,7 @@ var WorkspaceInside = {
 		console.log( 'postToApp', [ appName, event ])
 		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
 		if ( !app ) {
-			console.log( 'postToApp - no app found for, try exe', [ appName, Workspace.applications )
+			console.log( 'postToApp - no app found for, try exe', [ appName, Workspace.applications ])
 			const res = await ExecuteApplication( appName )
 			console.log( 'executed app', appName, res )
 		}
@@ -12040,7 +12040,7 @@ async function loadApplicationBasics( callback )
 	
 };
 
-/*
+
 (function( ns, undefined ) {
 	ns.Mobile_menu = function( containing_element  ) {
 		const self = this
@@ -12131,6 +12131,4 @@ async function loadApplicationBasics( callback )
 	}
 	
 	
-})( window )
-
-*/
+})( window );
