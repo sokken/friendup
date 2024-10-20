@@ -4054,6 +4054,9 @@ function apiWrapper( event, force )
 						};
 						break;
 					case 'toggleqravailable':
+						if ( !window.mobile_menu )
+							return
+						
 						console.log( 'api wrapper toggle_qr_available', msg )
 						window.mobile_menu.toggle_qr_available( msg.data )
 						
