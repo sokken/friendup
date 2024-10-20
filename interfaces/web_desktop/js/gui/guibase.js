@@ -1539,7 +1539,7 @@ function NewSelectBox ( divobj, height, multiple )
 	
 	// Adjust height
 	let rheight = 0;
-	rheight = cont.getElementsByTagName ( 'td' )[0].offsetHeight;
+	rheight = ( cont.getElementsByTagName ( 'td' )[0]?.offsetHeight || 0 );
 	cont.style.minHeight = rheight * height + 'px';
 	
 }
