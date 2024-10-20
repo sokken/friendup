@@ -12038,7 +12038,7 @@ async function loadApplicationBasics( callback )
 	if( callback != null )
 		callback()
 	
-};
+}
 
 (function( ns, undefined ) {
 	ns.Mobile_menu = function( containing_element  ) {
@@ -12131,3 +12131,4 @@ async function loadApplicationBasics( callback )
 	
 	
 })( window )
+
