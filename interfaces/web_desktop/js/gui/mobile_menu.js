@@ -76,7 +76,7 @@
 		
 	}
 	
-	ns.Mobile_menu.prototype = function( append_class_name, append_icon_class ) {
+	ns.Mobile_menu.prototype.create_button = function( append_class_name, append_icon_class ) {
 		const self = this
 		const div = document.createElement( 'div' )
 		div.className = 'app_menu_item ' + append_class_name
