@@ -304,8 +304,7 @@ html body .Screen .MobileAppMenu:after
 }
 
 .MobileAppMenu .im-disabled {
-	opacity: 0.5;
-	
+	opacity: 0.3;
 }
 
 
