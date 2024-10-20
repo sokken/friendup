@@ -612,8 +612,16 @@ Workspace = {
 		if ( !window.friendApp )
 			return
 		
+		if ( !friendApp.scanQRCode )
+			Workspace.setupFriendApp()
+		
 		const res = await friendApp.scanQRCode()
 		console.log( 'scanQRForDoorman res', res )
+		const msg = {
+			type : 'qr-scan-value',
+			data : res,
+		}
+		Workspace.postToApp( 'DoormanOffice', msg )
 	},
 	
 	// Just a stub - this isn't used anymore

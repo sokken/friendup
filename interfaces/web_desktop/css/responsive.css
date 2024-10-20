@@ -303,6 +303,11 @@ html body .Screen .MobileAppMenu:after
 	font-size : 2em;
 }
 
+.MobileAppMenu .im-disabled {
+	opacity: 0.5;
+	
+}
+
 
 
 /* Mobile menu -------------------------------------------------------------- */

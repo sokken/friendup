@@ -4053,6 +4053,11 @@ function apiWrapper( event, force )
 								app.contentWindow.postMessage( JSON.stringify( nmsg ), '*' );	
 						};
 						break;
+					case 'toggleqravailable':
+						console.log( 'api wrapper toggle_qr_available', msg )
+						window.mobile_menu.toggle_qr_available( msg.data )
+						
+						break;
 					case 'openqrscanner':
 						if ( window.friendApp ) {
 							console.log( 'openqrscanner fap', window.friendApp )

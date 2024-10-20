@@ -2069,6 +2069,7 @@ var WorkspaceInside = {
 			let appMenu = document.createElement( 'div' );
 			appMenu.className = 'MobileAppMenu';
 			
+			/*
 			try{
 			// add QR button
 			const qr_butt = document.createElement( 'div' )
@@ -2103,14 +2104,23 @@ var WorkspaceInside = {
 				this.logout()
 			}
 			appMenu.appendChild( logout )
-		} catch( ex ) {
-			console.log( 'ex', ex )
-			throw new Error( "YEP")
-		}
+			} catch( ex ) {
+				console.log( 'ex', ex )
+				throw new Error( "YEP")
+			}
+			*/
 			
 			//
 			Workspace.appMenu = appMenu;
 			Workspace.screen.contentDiv.parentNode.appendChild( appMenu );
+			
+			try{
+				window.mobile_menu = new window.Mobile_menu( appMenu )
+			} catch( ex ) {
+				throw new Error( 'mobile_menu init fail', ex )
+			}
+			
+			/*
 			appMenu.onclick = function( e )
 			{
 				console.log( 'appMenu.onclick' )
@@ -2141,9 +2151,23 @@ var WorkspaceInside = {
 					if( !Workspace.isSingleTask && Workspace.mainDock )
 						Workspace.mainDock.openDesklet();
 				}
-				*/
+				
 			}
+			*/
 		}
+	},
+	postToApp : async function( appName, event ) {
+		console.log( 'postToApp', [ appName, event ])
+		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
+		if ( !app ) {
+			console.log( 'postToApp - no app found for, try exe', [ appName, Workspace.applications )
+			const res = await ExecuteApplication( appName )
+			console.log( 'executed app', appName, res )
+		}
+		
+		const j_event = JSON.stringify( event )
+		app.contentWindow.postMessage( j_event, '*' )
+		
 	},
 	switchToApp : async function( appName ) {
 		const self = this
@@ -12016,3 +12040,94 @@ async function loadApplicationBasics( callback )
 	
 };
 
+(function( ns, undefined ) {
+	ns.Mobile_menu = function( containing_element  ) {
+		const self = this
+		self.ws = window.Workspace
+		self.container    = containing_element
+		
+		self.qr_butt      = null
+		self.qr_opts      = {
+			is_admin : false,
+			workroom : false,
+		}
+		self.qr_available = false
+		
+		self.chat_butt    = null
+		self.dmo_butt     = null
+		self.logout_butt  = null
+		
+		console.log( 'Mobile_menu constructor', containing_element )
+		self.init()
+	}
+	
+	// Public
+	
+	ns.Mobile_menu.prototype.toggle_qr_available = function( opts ) {
+		const self = this;
+		console.log( 'toggle_qr_available', opts )
+		if ( opts.is_admin != null )
+			self.qr_opts.is_admin = opts.is_admin
+		if ( opts.workroom != null )
+			self.qr_opts.workroom = opts.workroom
+		
+		let is_available = ( self.qr_opts.is_admin || self.qr_opts.workroom )
+		self.qr_available = is_available
+		console.log( 'is_available', is_available, self.qr_opts )
+		self.qr_butt.classList.toggle( 'im-disabled', !is_available )
+	}
+	
+	// Priv
+	
+	ns.Mobile_menu.prototype.init = function( container ) {
+		const self = this
+		// qr button 
+		self.qr_butt = self.create_button( 'icon_butt qr_butt im-disabled', 'fa-qrcode' )
+		self.qr_butt.addEventListener( 'click', on_qr_click, false )
+		function on_qr_click( e ) { 
+			console.log( 'qr_butt click', self.qr_available )
+			if ( !self.qr_available )
+				return
+			
+			self.ws.scanQRForDoorman()
+		}
+		
+		// chat button
+		self.chat_butt = self.create_button( 'switch_to_FriendChat' )
+		self.chat_butt.addEventListener( 'click', on_chat_click, false )
+		function on_chat_click( e ) {
+			self.ws.switchToApp( 'FriendChat' )
+		}
+		
+		// dmo button
+		self.dmo_butt = self.create_button( 'switch_to_DoormanOffice' )
+		self.dmo_butt.addEventListener( 'click', on_dmo_click, false )
+		function on_dmo_click( e ) {
+			self.ws.switchToApp( 'DoormanOffice' )
+		}
+		
+		// logut button
+		self.logout_butt = self.create_button( 'icon_butt logout', 'fa-sign-out' )
+		self.logout_butt.addEventListener( 'click', on_logout_click, false )
+		function on_logout_click( e ) {
+			self.ws.logout()
+		}
+		
+	}
+	
+	ns.Mobile_menu.prototype = function( append_class_name, append_icon_class ) {
+		const self = this
+		const div = document.createElement( 'div' )
+		div.className = 'app_menu_item ' + append_class_name
+		if ( append_icon_class ) {
+			const icon = document.createElement( 'i' )
+			icon.className = 'fa fa-fw ' + append_icon_class
+			div.appendChild( icon )
+		}
+		
+		self.container.appendChild( div )
+		return div
+	}
+	
+	
+})( window )
