@@ -731,8 +731,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					o.state = conf.State;
 				
 				if ( appName == 'DoormanOffice' ) {
-					o.dmo_session Workspace.dmo_session
-					o.dmo_token = Workspace.dmo_token
+					o.dmo_session = Workspace.dmo_session
+					o.dmo_token   = Workspace.dmo_token
 				}
 				
 				// Get JSON data from url
