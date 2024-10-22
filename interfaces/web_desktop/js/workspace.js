@@ -1096,6 +1096,11 @@ Workspace = {
 			isLoggedIn : Workspace.isLoggedIn
 		})
 		
+		if ( json.dmo_session ) {
+			Workspace.dmo_session = json.dmo_session
+			Workspace.dmo_token = json.dmo_token
+		}
+		
 		Workspace.isLoggedIn = true
 		
 		Workspace.setLoading( true )

@@ -2163,6 +2163,8 @@ var WorkspaceInside = {
 			console.log( 'postToApp - no app found for, try exe', [ appName, Workspace.applications ])
 			const res = await ExecuteApplication( appName )
 			console.log( 'executed app', appName, res )
+			await res.promise
+			//await Promise.all([ res.promise ])
 		}
 		
 		const j_event = JSON.stringify( event )

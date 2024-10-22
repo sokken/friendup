@@ -525,7 +525,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ifr.authId = conf.AuthID;
 			ifr.applicationNumber = _appNum++;
 			ifr.permissions = conf.Permissions;
-
+			
 			// Quit the application
 			ifr.quit = function( level )
 			{
@@ -726,11 +726,18 @@ function ExecuteApplication( app, args, callback, retries, flags )
 					clipboard: Friend.clipboard,
 					cachedAppData: window._applicationBasics
 				};
-				if( conf.State ) o.state = conf.State;
-
+				
+				if( conf.State ) 
+					o.state = conf.State;
+				
+				if ( appName == 'DoormanOffice' ) {
+					o.dmo_session Workspace.dmo_session
+					o.dmo_token = Workspace.dmo_token
+				}
+				
 				// Get JSON data from url
 				var vdata = GetUrlVar( 'data' ); if( vdata ) o.data = vdata;
-
+				
 				// Language support
 				if( conf.language )
 				{

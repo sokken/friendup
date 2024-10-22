@@ -1424,17 +1424,19 @@ function receiveEvent( event, queued )
 		case 'register':
 			window.origin = event.origin;
 			// A function to send a message
-			Friend.dosDrivers         = dataPacket.dosDrivers;
-			Application.domain        = dataPacket.domain;
-			Application.authId        = dataPacket.authId;
-			Application.filePath      = dataPacket.filePath;
-			Application.applicationId = dataPacket.applicationId;
-			Application.userId        = dataPacket.userId;
-			Application.fullName      = dataPacket.fullName;
-			Application.username      = dataPacket.username;
-			Application.workspaceMode = dataPacket.workspaceMode;
+			Friend.dosDrivers           = dataPacket.dosDrivers;
+			Application.domain          = dataPacket.domain;
+			Application.authId          = dataPacket.authId;
+			Application.filePath        = dataPacket.filePath;
+			Application.applicationId   = dataPacket.applicationId;
+			Application.userId          = dataPacket.userId;
+			Application.fullName        = dataPacket.fullName;
+			Application.username        = dataPacket.username;
+			Application.workspaceMode   = dataPacket.workspaceMode;
 			Application.applicationName = dataPacket.applicationName;
-			Application.sendMessage   = setupMessageFunction( dataPacket, window.origin );
+			Application.sendMessage     = setupMessageFunction( dataPacket, window.origin );
+			Application.dmo_session     = dataPacket.dmo_session;
+			Application.dmo_token       = dataPacket.dmo_token;
 			
 			// Initialize app frame
 			initApplicationFrame( dataPacket, event.origin );

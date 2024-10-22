@@ -3248,7 +3248,10 @@ function apiWrapper( event, force )
 							var m = new Module( 'system' );
 							m.onExecuted = function( e, d )
 							{
-								//console.log( { e: e, d: JSON.parse( d ) } );
+								console.log( 'getappliocationkey res', { 
+									e: e, 
+									d: d,  
+								});
 								
 								if( e && e == 'ok' && d )
 								{
