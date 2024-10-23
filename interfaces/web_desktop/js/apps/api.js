@@ -723,8 +723,18 @@ uniqueIdString = Friend.uniqueIdString;
 // Extract a callback element and return it
 function extractCallback( id, keep )
 {
-	let f = false;
-
+	cb = Application.callbacks[ id ]
+	if ( !cb ) {
+		cb = Application.permanentCallbacks[ id ] || null
+		return cb
+	}
+	
+	if ( !keep )
+		delete Application.callbacks[ id ]
+	
+	return cb
+	
+	/*
 	let out = []; // Only use this if we're not keeping callback
 
 	for( let a in Application.callbacks )
@@ -750,6 +760,7 @@ function extractCallback( id, keep )
 		}
 	}
 	return f;
+	*/
 }
 
 // Add callback ( will return false if something already exists )
