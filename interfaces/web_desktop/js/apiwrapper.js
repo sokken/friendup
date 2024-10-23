@@ -4072,8 +4072,11 @@ function apiWrapper( event, force )
 							
 							friendApp.scanQRCode()
 								.then( qr_value => {
+									console.log( 'then', qr_value )
 									return_to_caller( msg, qr_value )
 								})
+								
+							return
 						}
 						else {
 							return_to_caller( msg, 'NYI' );
