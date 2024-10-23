@@ -4088,6 +4088,7 @@ function apiWrapper( event, force )
 						
 						function return_to_caller( msg, data ) {
 							const return_msg = {
+								type     : 'callback',
 								command  : 'callback',
 								viewId   : msg.viewId || undefined,
 								callback : msg.callback,
