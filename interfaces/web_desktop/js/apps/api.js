@@ -402,10 +402,9 @@ var Application =
 	
 	openQRScanner: function( callback )
 	{
-		let cid = addCallback( function( msg )
-		{
-			callback( msg.data );
-		} );
+		let cid = addCallback( function( data ) {
+			callback( data );
+		});
 		let o = {
 			type    : 'system',
 			command : 'openqrscanner',
@@ -2413,10 +2412,9 @@ function View( flags )
 	
 	this.openQRScanner = function( callback )
 	{
-		let cid = addCallback( function( msg )
-		{
-			callback( msg.data );
-		} );
+		let cid = addCallback( function( data ) {
+			callback( data );
+		});
 		let o = {
 			type: 'view',
 			method: 'openqrscanner',
