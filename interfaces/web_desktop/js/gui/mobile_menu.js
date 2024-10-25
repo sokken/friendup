@@ -29,10 +29,10 @@
 		console.log( 'toggle_qr_available', opts )
 		if ( opts.is_admin != null )
 			self.qr_opts.is_admin = opts.is_admin
-		if ( opts.workroom != null )
-			self.qr_opts.workroom = opts.workroom
+		if ( opts.has_job != null )
+			self.qr_opts.has_job = opts.has_job
 		
-		let is_available = ( self.qr_opts.is_admin || self.qr_opts.workroom )
+		let is_available = ( self.qr_opts.is_admin || self.qr_opts.has_job )
 		self.qr_available = is_available
 		console.log( 'is_available', is_available, self.qr_opts )
 		self.qr_butt.classList.toggle( 'im-disabled', !is_available )
