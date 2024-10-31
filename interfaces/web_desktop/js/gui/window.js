@@ -4272,6 +4272,8 @@ const View = function( args )
 					msg[a] = packet[a];
 			}
 			
+			console.log( 'View ifr onload', self.args )
+			
 			msg.viewConf = self.args?.viewConf
 			msg.command = 'setbodycontent';
 			msg.cachedAppData = window._applicationBasics;
