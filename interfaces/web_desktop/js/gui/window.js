@@ -2107,7 +2107,7 @@ if ( window.addEventListener )
 	window.addEventListener( 'scroll', CancelWindowScrolling, true );
 else window.attachEvent( 'onscroll', CancelWindowScrolling, true );
 
-// Support scrolling in windows
+// Supp2q ³ ort scrolling in windows
 function WindowScrolling( e )
 {
 	if( !e ) e = window.event;
@@ -2173,7 +2173,7 @@ Friend.GUI.view.cleanHTMLData = function( data )
  *
  */
 const View = function( args )
-{
+{      
 	const self = this;
 	console.log( 'View', args )
 	// Windows on own screen ignores the virtual workspaces
@@ -2197,7 +2197,7 @@ const View = function( args )
 		args = {};
 	
 	self.args = args;
-|
+
 	this.widgets = []; // Widgets stuck to this view window
 
 	// Reaffirm workspace
@@ -4980,7 +4980,7 @@ const View = function( args )
 	}
 	
 	// Set the main view of app
-	this.setMain = function( set )
+	this.setMainView = function( set )
 	{
 		if( !this.applicationId ) return;
 		
