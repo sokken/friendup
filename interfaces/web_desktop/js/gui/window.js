@@ -2195,8 +2195,9 @@ const View = function( args )
 	// Start off
 	if( !args )
 		args = {};
-	this.args = args;
-
+	
+	self.args = args;
+|
 	this.widgets = []; // Widgets stuck to this view window
 
 	// Reaffirm workspace
@@ -4475,6 +4476,7 @@ const View = function( args )
 				origin        : '*', // TODO: Should be this - document.location.href,
 				viewId        : w.externViewId ? w.externViewId : w.viewId,
 				clipboard     : Friend.clipboard,
+				trash         : 'shitstick',
 				viewConf      : self.args?.viewConf,
 			};
 			
@@ -4482,11 +4484,11 @@ const View = function( args )
 
 			// Set theme
 			if( w.getFlag( 'theme' ) )
-				msg.theme = w.getFlag( 'theme' );
+				msg.theme = w.getFlag( 'theme' )
 			if( Workspace.themeData )
-				msg.themeData = Workspace.themeData;
+				msg.themeData = Workspace.themeData
 			
-
+			
 			ifr.contentWindow.postMessage( JSON.stringify( msg ), Workspace.protocol + '://' + ifr.src.split( '//' )[1].split( '/' )[0] );
 		}
 
@@ -4495,7 +4497,8 @@ const View = function( args )
 		this.iframe = ifr;
 
 		// If we need to append this one
-		if( appended ) this._window.appendChild( ifr );
+		if( appended ) 
+			this._window.appendChild( ifr );
 	}
 	// Sets rich content in a safe iframe
 	this.setRichContentUrl = function( url, base, appId, filePath, callback )
@@ -4622,6 +4625,7 @@ const View = function( args )
 					theme             : Workspace.theme,
 					fullscreenenabled : conf.fullscreenenabled,
 					clipboard         : Friend.clipboard,
+					bingbong          : 'kjøttsveis',
 					viewConf          : self.args.viewConf,
 				};
 				
@@ -4957,7 +4961,9 @@ const View = function( args )
 			}
 		}
 		CloseView( this._window );
-		if( this.onClose ) this.onClose();
+		if( this.onClose ) 
+			this.onClose();
+		
 		if( this.eventSystemClose ) // <- system call
 		{
 			for( let a = 0; a < this.eventSystemClose.length; a++ )
@@ -4974,7 +4980,7 @@ const View = function( args )
 	}
 	
 	// Set the main view of app
-	this.setMainView = function( set )
+	this.setMain = function( set )
 	{
 		if( !this.applicationId ) return;
 		
