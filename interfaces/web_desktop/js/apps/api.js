@@ -5809,6 +5809,7 @@ function OpenLibrary( path, id, div )
 
 function initApplicationFrame( packet, eventOrigin, initcallback )
 {
+	console.log( 'initApplicationFrame', packet )
 	// TODO: Setup correct origin
 	eventOrigin = '*';
 	
@@ -6378,11 +6379,16 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 				function runNow()
 				{
-					if( window.applicationStarted ) return;
+					if( window.applicationStarted )
+						return;
+					
 					window.applicationStarted = true;
-					if( packet.state ) Application.sessionStateSet( packet.state );
+					if( packet.state )
+						Application.sessionStateSet( packet.state );
+					
 					for( let a = 0; a < activat.length; a++ )
 						ExecuteScript( activat[a] );
+					
 					activat = [];
 					if( Application.run )
 					{
