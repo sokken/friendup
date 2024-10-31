@@ -1872,8 +1872,10 @@ function apiWrapper( event, force )
 					msg.data.applicationDisplayName = app.applicationDisplayName;
 					
 					// Add preferred workspace
-					if( app.workspace ) msg.data.workspace = app.workspace;
-					if( app.opensilent ) msg.data.openSilent = app.opensilent;
+					if( app.workspace ) 
+						msg.data.workspace = app.workspace;
+					if( app.opensilent ) 
+						msg.data.openSilent = app.opensilent;
 
 					// Redirect to the real screen
 					if( msg.data.screen && app && app.screens[ msg.data.screen ] )
