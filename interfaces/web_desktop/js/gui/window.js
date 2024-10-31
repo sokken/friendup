@@ -2175,7 +2175,7 @@ Friend.GUI.view.cleanHTMLData = function( data )
 const View = function( args )
 {
 	const self = this;
-	
+	console.log( 'View', args )
 	// Windows on own screen ignores the virtual workspaces
 	if( args.screen && args.screen != Workspace.screen )
 	{
@@ -4272,6 +4272,7 @@ const View = function( args )
 					msg[a] = packet[a];
 			}
 			
+			msg.viewConf = self.args?.viewConf
 			msg.command = 'setbodycontent';
 			msg.cachedAppData = window._applicationBasics;
 			msg.dosDrivers = Friend.dosDrivers;
@@ -4304,11 +4305,16 @@ const View = function( args )
 			{
 				msg.data = content.split( /progdir\:/i ).join( packet.filePath );
 			}
-			else msg.data = content;
+			else
+				msg.data = content;
+			
 			if( self.flags.screen )
 				msg.screenId = self.flags.screen.externScreenId;
+			
 			msg.data = msg.data.split( /system\:/i ).join( '/webclient/' );
-			if( !msg.origin ) msg.origin = '*'; //TODO: Should be fixed document.location.href;
+			
+			if( !msg.origin ) 
+				msg.origin = '*'; //TODO: Should be fixed document.location.href;
 			
 			ifr.contentWindow.postMessage( JSON.stringify( msg ), '*' );
 		}
@@ -4467,7 +4473,7 @@ const View = function( args )
 				origin        : '*', // TODO: Should be this - document.location.href,
 				viewId        : w.externViewId ? w.externViewId : w.viewId,
 				clipboard     : Friend.clipboard
-				viewConf      : self.args.viewConf
+				viewConf      : self.args?.viewConf
 			};
 			
 			console.log( 'setcontent ifr init', msg )
