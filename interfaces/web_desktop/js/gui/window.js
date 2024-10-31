@@ -2172,7 +2172,7 @@ Friend.GUI.view.cleanHTMLData = function( data )
  * @return View - a pointer to the new instance that justhas been created
  *
  */
-const View = function( args )
+var View = function( args )
 {      
 	const self = this;
 	console.log( 'View', args )
