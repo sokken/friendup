@@ -4473,7 +4473,7 @@ const View = function( args )
 				applicationId : ifr.applicationId,
 				filePath      : '/webclient/jsx/',
 				origin        : '*', // TODO: Should be this - document.location.href,
-				viewId        : ( w.externViewId ? w.externViewId : w.viewId ),
+				viewId        : w.externViewId ? w.externViewId : w.viewId,
 				clipboard     : Friend.clipboard,
 				viewConf      : self.args?.viewConf,
 			};
@@ -4622,7 +4622,7 @@ const View = function( args )
 					theme             : Workspace.theme,
 					fullscreenenabled : conf.fullscreenenabled,
 					clipboard         : Friend.clipboard,
-					viewConf          : self.args.viewConf
+					viewConf          : self.args.viewConf,
 				};
 				
 				console.log( 'ifr onload initappframe', msg )
