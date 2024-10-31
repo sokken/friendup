@@ -2172,9 +2172,9 @@ Friend.GUI.view.cleanHTMLData = function( data )
  * @return View - a pointer to the new instance that justhas been created
  *
  */
-var View = function( args )
+const View = function( args )
 {
-	let self = this;
+	const self = this;
 	
 	// Windows on own screen ignores the virtual workspaces
 	if( args.screen && args.screen != Workspace.screen )
@@ -2843,7 +2843,7 @@ var View = function( args )
 		// Tablets and mobile
 		div.ontouchstart = function( e )
 		{
-			let self = this;
+			//let self = this;
 			
 			if( isMobile && !self.parentNode.classList.contains( 'OnWorkspace' ) )
 				return;
@@ -4329,7 +4329,7 @@ var View = function( args )
 	// old hello function
 	this.setSandboxedUrl = function( conf )
 	{
-		let self = this;
+		//let self = this;
 		let appName = self.applicationName;
 		let origin = '*'; // TODO: Should be this Doors.runLevels[ 0 ].domain;
 		let domain = Doors.runLevels[ 1 ].domain;
@@ -4612,7 +4612,9 @@ var View = function( args )
 					clipboard         : Friend.clipboard,
 					viewConf          : self.args.viewConf
 				};
-
+				
+				console.log( 'ifr onload initappframe', msg )
+				
 				// Override the theme
 				if( view.getFlag( 'theme' ) )
 					msg.theme = view.getFlag( 'theme' );
@@ -5360,7 +5362,7 @@ var View = function( args )
 	this.openCamera = function( flags, callback )
 	{
 		
-		let self = this;
+		//let self = this;
 		
 		// Just get the available devices
 		function getAvailableDevices( cbk )
