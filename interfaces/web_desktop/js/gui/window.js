@@ -4473,9 +4473,9 @@ const View = function( args )
 				applicationId : ifr.applicationId,
 				filePath      : '/webclient/jsx/',
 				origin        : '*', // TODO: Should be this - document.location.href,
-				viewId        : w.externViewId ? w.externViewId : w.viewId,
-				clipboard     : Friend.clipboard
-				viewConf      : self.args?.viewConf
+				viewId        : ( w.externViewId ? w.externViewId : w.viewId ),
+				clipboard     : Friend.clipboard,
+				viewConf      : self.args?.viewConf,
 			};
 			
 			console.log( 'setcontent ifr init', msg )
