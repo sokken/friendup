@@ -4460,14 +4460,17 @@ const View = function( args )
 			ifr.contentWindow.document.getElementsByTagName( 'head' )[0].appendChild( jsx );
 
 			let msg = {
-				command:       'initappframe',
-				base:          '/',
-				applicationId: ifr.applicationId,
-				filePath:      '/webclient/jsx/',
-				origin:        '*', // TODO: Should be this - document.location.href,
-				viewId:      w.externViewId ? w.externViewId : w.viewId,
-				clipboard:     Friend.clipboard
+				command       : 'initappframe',
+				base          : '/',
+				applicationId : ifr.applicationId,
+				filePath      : '/webclient/jsx/',
+				origin        : '*', // TODO: Should be this - document.location.href,
+				viewId        : w.externViewId ? w.externViewId : w.viewId,
+				clipboard     : Friend.clipboard
+				viewConf      : self.args.viewConf
 			};
+			
+			console.log( 'setcontent ifr init', msg )
 
 			// Set theme
 			if( w.getFlag( 'theme' ) )
@@ -4597,6 +4600,7 @@ const View = function( args )
 
 		ifr.onload = function( e )
 		{
+			console.log( 'ifr onload', [ self, friendU, targetU ])
 			if( friendU && ( friendU == targetU || !targetU ) )
 			{
 				let msg = {
