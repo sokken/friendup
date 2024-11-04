@@ -2107,7 +2107,7 @@ if ( window.addEventListener )
 	window.addEventListener( 'scroll', CancelWindowScrolling, true );
 else window.attachEvent( 'onscroll', CancelWindowScrolling, true );
 
-// Supp2q ³ ort scrolling in windows
+// Supp2t scrolling in windows
 function WindowScrolling( e )
 {
 	if( !e ) e = window.event;
