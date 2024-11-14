@@ -2779,6 +2779,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						if ( window.friendApp ) {
 							seq = [ 
 								//'launch DoormanOffice',
+								'launch DMOQR',
 								'launch FriendChat',
 							]
 						}
