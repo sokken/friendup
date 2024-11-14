@@ -276,6 +276,7 @@ Friend.User = {
 			sssid     : Workspace.sessionid,
 			SSSID     : Workspace.sessionId,
 			token     : Workspace.dmo_token,
+			fc_token  : Workspace.fc_token,
 		})
 		
 		// thing
@@ -344,10 +345,10 @@ Friend.User = {
 			return
 		}
 		
-		if ( Workspace.loginUsername && Workspace.dmo_token )
+		if ( Workspace.loginUsername && Workspace.fc_token )
 		{
     		info.username = Workspace.loginUsername
-    		info.password = Workspace.dmo_token
+    		info.password = Workspace.fc_token
     		re_login( info )
     	}
 		else {
