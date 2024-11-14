@@ -621,7 +621,7 @@ Workspace = {
 			type : 'qr-scan-value',
 			data : res,
 		}
-		Workspace.postToApp( 'DoormanOffice', msg )
+		Workspace.postToApp( 'DMOQR', msg )
 	},
 	
 	// Just a stub - this isn't used anymore
