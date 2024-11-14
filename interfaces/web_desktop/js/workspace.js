@@ -644,7 +644,8 @@ Workspace = {
 			console.log( 'encryption.setKeys called' )
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
-				if( u && !Workspace.loginUsername ) Workspace.loginUsername = u;
+				if( u && !Workspace.loginUsername ) 
+					Workspace.loginUsername = u;
 				
 				p = ( !p || p.indexOf('HASHED') == 0 ? p : ( 'HASHED' + Sha256.hash( p ) ) );
 
@@ -816,9 +817,13 @@ Workspace = {
 		},
 		encrypt: function( str, publickey )
 		{
+			console.log( 'encrypt', [ str, publickey, this?.keys?.client?.publickey ])
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
-				var encrypted = this.fcrypt.encryptString( str, ( publickey ? publickey : this.keys.client.publickey ) );
+				const encrypted = this.fcrypt.encryptString( 
+					str, 
+					( publickey ? publickey : this.keys.client.publickey )
+				);
 
 				if( encrypted && encrypted.cipher )
 				{
@@ -830,12 +835,17 @@ Workspace = {
 		},
 		decrypt: function( cipher, privatekey )
 		{
+			console.log( 'encrypt', [ cipher, privatekey ])
 			if( typeof( this.fcrypt ) != 'undefined' )
 			{
-				var decrypted = this.fcrypt.decryptString( cipher, ( privatekey ? privatekey : this.keys.client.privatekey ) );
+				const decrypted = this.fcrypt.decryptString( 
+					cipher, 
+					( privatekey ? privatekey : this.keys.client.privatekey )
+				);
 
 				if( decrypted && decrypted.plaintext )
 				{
+					console.log( 'decrypt result', decrypted )
 					return decrypted.plaintext;
 				}
 			}

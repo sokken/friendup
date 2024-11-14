@@ -312,13 +312,16 @@ Friend.User = {
     	// encrypted password
     	if( Workspace.loginUsername && Workspace.loginPassword )
     	{
-    		//console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
+    		console.log( 'Trying to log in with: ' + Workspace.loginUsername + ' AND ' + Workspace.loginPassword );
     		
     		info.username = Workspace.loginUsername;
     		let enc = Workspace.encryption;
-    		info.password = enc.decrypt( Workspace.loginPassword, enc.getKeys().privatekey );
+    		info.password = enc.decrypt( 
+    			Workspace.loginPassword, 
+    			enc.getKeys().privatekey 
+    		);
     		
-    		//console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
+    		console.log( 'Unhashed, decrypted password (Workspace.loginPassword): ' + info.password );
     		
     		info.hashedPassword = false;
     		re_login( info )
@@ -338,6 +341,13 @@ Friend.User = {
     		// fall back on credentials in mobile app
 			window.friendApp.restore_session()
 		}
+		
+		if ( Workspace.loginUsername && Workspace.dmo_token )
+		{
+    		info.username = Workspace.loginUsername
+    		info.password = Workspace.dmo_token
+    		re_login( info )
+    	}
 		else {
 			// give up and force user to login in again
 			// probs dosent work super well btw
