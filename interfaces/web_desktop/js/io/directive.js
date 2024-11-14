@@ -506,12 +506,12 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				ifr.src = sdomain + filepath + 'index.html?friendup=' + sdomain;
 			}
 			
-			/*console.log( 'ExecuteApplication - opening app', {
+			console.log( 'ExecuteApplication - opening app', {
 				ifr    : ifr,
 				conf   : conf,
 				flags  : flags,
 				silent : flags.openSilent,
-			});*/
+			});
 			
 			// Register name and ID
 			ifr.applicationName = app.indexOf( ' ' ) > 0 ? app.split( ' ' )[0] : app;

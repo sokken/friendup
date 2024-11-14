@@ -1864,7 +1864,10 @@ function apiWrapper( event, force )
 				else if( !msg.method )
 				{
 					// Try to open a window
-					console.log( 'open a view', msg )
+					console.log( 'open a view', { 
+						msg        : msg,
+						opensilent : app.opensilent
+					})
 					msg.data.viewId = msg.viewId;
 					msg.data.applicationId = msg.applicationId;
 					msg.data.authId = msg.authId;

@@ -4067,6 +4067,7 @@ var View = function( args )
 		self.parseFlags( flags );
 		
 		// Only activate if needed
+		console.log( 'window flags', flags )
 		if( !flags.minimized && !flags.openSilent )
 		{
 			_ActivateWindow( div );
