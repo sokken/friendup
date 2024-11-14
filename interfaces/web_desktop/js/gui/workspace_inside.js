@@ -2783,6 +2783,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 							]
 						}
 						
+						seq = []
+						
 						if( seq.length )
 						{
 							if( ScreenOverlay.debug )
