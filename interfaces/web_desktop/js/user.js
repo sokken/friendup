@@ -275,6 +275,7 @@ Friend.User = {
 			lpwww     : Workspace.loginPassword,
 			sssid     : Workspace.sessionid,
 			SSSID     : Workspace.sessionId,
+			token     : Workspace.dmo_token,
 		})
 		
 		// thing
@@ -340,6 +341,7 @@ Friend.User = {
     	if ( window.friendApp?.restore_session ) {
     		// fall back on credentials in mobile app
 			window.friendApp.restore_session()
+			return
 		}
 		
 		if ( Workspace.loginUsername && Workspace.dmo_token )
