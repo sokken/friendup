@@ -732,7 +732,7 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				if( conf.State ) 
 					o.state = conf.State;
 				
-				if ( appName == 'DoormanOffice' ) {
+				if ( appName == 'DoormanOffice' || appName == 'DMOQR' ) {
 					o.dmo_session = Workspace.dmo_session
 					o.dmo_token   = Workspace.dmo_token
 				}

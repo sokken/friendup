@@ -2779,11 +2779,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						if ( window.friendApp ) {
 							seq = [ 
 								//'launch DoormanOffice',
-								//'launch FriendChat',
+								'launch FriendChat',
 							]
 						}
-						
-						seq = []
 						
 						if( seq.length )
 						{
@@ -10263,7 +10261,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		}
 	},
 	// Execute when everything is ready
-	onReady: function()
+	onReady: async function()
 	{
 		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
 		if( this.onReadyList.length )
@@ -10280,8 +10278,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			this.onReadyList = [];
 		}
 		
-		ExecuteApplication( 'DoormanOffice', null, null, null, { openSilent : true })
-		ExecuteApplication( 'FriendChat' )
+		//await ExecuteApplication( 'DoormanOffice' )
+		//await ExecuteApplication( 'FriendChat' )
 		
 		//
 		//if we dont have a sessionid we will need to wait a bit here...

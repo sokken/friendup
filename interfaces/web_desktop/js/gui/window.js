@@ -4068,7 +4068,11 @@ var View = function( args )
 		
 		// Only activate if needed
 		console.log( 'window flags', flags )
-		if( !flags.minimized && !flags.openSilent )
+		if( flags.minimized || flags.openSilent )
+		{
+			
+		} 
+		else
 		{
 			_ActivateWindow( div );
 			_WindowToFront( div );
