@@ -2778,8 +2778,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						
 						if ( window.friendApp ) {
 							seq = [ 
-								'launch DoormanOffice',
-								'launch FriendChat',
+								//'launch DoormanOffice',
+								//'launch FriendChat',
 							]
 						}
 						
@@ -10277,6 +10277,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			this.onReadyList = [];
 		}
+		
+		ExecuteApplication( 'DoormanOffice', null, null, null, { openSilent : true })
+		ExecuteApplication( 'FriendChat' )
 		
 		//
 		//if we dont have a sessionid we will need to wait a bit here...
