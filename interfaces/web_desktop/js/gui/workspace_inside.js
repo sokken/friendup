@@ -2553,6 +2553,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				});
 			}
 			
+			addTiming( 'updateFromSettings: settings check', uSettings )
 			console.log( 'updateFromSettings', uSettings )
 			if ( uSettings ) {
 				const dat = uSettings
@@ -2732,6 +2733,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// Do the startup sequence in sequence (only once)
 				if( !Workspace.startupSequenceRegistered )
 				{	
+					addTiming( 'startupsequence', dat )
 					console.log( 'startupsequence, singletask:', Workspace.isSingleTask )
 					Workspace.startupSequenceRegistered = true;
 					
