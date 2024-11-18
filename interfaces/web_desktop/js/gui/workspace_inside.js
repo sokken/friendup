@@ -2782,11 +2782,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						}
 						
 						if ( window.friendApp ) {
+							
+							seq = []
+							/*
 							seq = [ 
 								//'launch DoormanOffice',
 								'launch DMOQR',
 								'launch FriendChat',
 							]
+							*/
 						}
 						
 						if( seq.length )
@@ -10270,22 +10274,28 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	onReady: async function()
 	{
 		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
-		if( this.onReadyList.length )
+		
+		Workspace.onReady = function(){}
+		
+		if( this.onReadyList )
 		{
-			// Don't  run it twice
-			Workspace.onReady = function(){
-				return Workspace.receivePush( false, true );
-			};
+			//return Workspace.receivePush( false, true );
+			//};
 			
+			try {
+				this.onReadyList.forEach( fun => fun())
+			} catch( ex ) {
+				console.log( 'onreadylist ex', ex )
+			}
+			
+			/*
 			for( let a = 0; a < this.onReadyList.length; a++ )
 			{
 				this.onReadyList[ a ]();
 			}
-			this.onReadyList = [];
+			*/
+			this.onReadyList = null
 		}
-		
-		//await ExecuteApplication( 'DoormanOffice' )
-		//await ExecuteApplication( 'FriendChat' )
 		
 		//
 		//if we dont have a sessionid we will need to wait a bit here...
@@ -10294,6 +10304,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		if( window.friendApp && Workspace.sessionId )
 		{
 			Workspace.registerUMA();
+			
+			await ExecuteApplication( 'DMOQR' )
+			await ExecuteApplication( 'FriendChat' )
 			/*
 			// if this is mobile app we must register it
 			// if its already registered FC will not do it again
