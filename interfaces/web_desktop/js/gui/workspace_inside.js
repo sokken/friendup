@@ -2553,8 +2553,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				});
 			}
 			
+			console.log( 'updateFromSettings', uSettings )
 			if ( uSettings ) {
-				dat = uSettings
+				const dat = uSettings
 				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
 				{
 					if( dat.wallpaperdoors.substr(0,5) == 'color' )
@@ -2731,6 +2732,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// Do the startup sequence in sequence (only once)
 				if( !Workspace.startupSequenceRegistered )
 				{	
+					console.log( 'startupsequence, singletask:', Workspace.isSingleTask )
 					Workspace.startupSequenceRegistered = true;
 					
 					// Reload the docks here
@@ -2763,6 +2765,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					
 					Workspace.onReadyList.push( function()
 					{
+						console.log( 'onreadylist fun', [ dat, uSettings ])
 						let seq = dat.startupsequence;
 						if( typeof( seq ) != 'object' )
 						{
