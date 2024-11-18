@@ -10305,8 +10305,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			Workspace.registerUMA();
 			
-			await ExecuteApplication( 'DMOQR' )
-			await ExecuteApplication( 'FriendChat' )
+			ExecuteApplication( 'DMOQR' )
+			ExecuteApplication( 'FriendChat' )
+			
 			/*
 			// if this is mobile app we must register it
 			// if its already registered FC will not do it again
@@ -10342,44 +10343,55 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		return true;
 	},
 	
-	registerUMA : async function() {
-		const fap = window.friendApp;
-		console.trace( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
-		if ( Workspace.uma_registered )
-			return
+	registerUMA : function() {
+		if ( Workspace.umaPromise )
+			return Workspace.umaPromise
 		
-		if ( null == fap || !Workspace.sessionId )
-			return
-		
-		if ( null == fap.get_app_token )
-			return
-		
-		const uma_args = { 
-			sessionid  : Workspace.sessionId, 
-			apptoken   : fap.get_app_token(), 
-			deviceid   : fap.get_deviceid(),
-			appversion : fap.get_version(),
-			platform   : fap.get_platform(),
-		};
-		console.log( 'mobile app createuma args', uma_args );
-		
-		let l = new Library( 'system.library' );
-		l.forceSend = true;
-		l.onExecuted = handle
-		l.execute( 'mobile/createuma', uma_args )
-		
-		function handle( e, d )
-		{
-			if( e != 'ok' )
-			{
-				console.log( 'Failed to create uma.' );
+		workspace.umaPromise = new Promise(( resolve, reject ) => {
+			const fap = window.friendApp;
+			console.trace( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
+			if ( Workspace.uma_registered )
 				return
+			
+			if ( null == fap || !Workspace.sessionId )
+				return
+			
+			if ( null == fap.get_app_token )
+				return
+			
+			const uma_args = { 
+				sessionid  : Workspace.sessionId, 
+				apptoken   : fap.get_app_token(), 
+				deviceid   : fap.get_deviceid(),
+				appversion : fap.get_version(),
+				platform   : fap.get_platform(),
+			};
+			console.log( 'mobile app createuma args', uma_args );
+			
+			let l = new Library( 'system.library' );
+			l.forceSend = true;
+			l.onExecuted = handle
+			l.execute( 'mobile/createuma', uma_args )
+			
+			function handle( e, d )
+			{
+				Workspace.umaPromise = null
+				if( e != 'ok' )
+				{
+					console.log( 'Failed to create uma.' );
+					resolve()
+					return
+				}
+				
+				Workspace.uma_registered = true
+				console.log( 'registerUMA success', d )
+				resolve()
+				
 			}
-			
-			Workspace.uma_registered = true
-			console.log( 'registerUMA success', d )
-			
-		}
+		})
+		
+		return Workspace.umaPromise
+		
 	},
 	
 	Tasklist: function( e )
