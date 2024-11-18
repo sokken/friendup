@@ -27,7 +27,7 @@ function RemoveFromExecutionQueue( app, ...cb_args )
 	
 	if ( true !== _executionQueue[ app ]) {
 		const exec = _executionQueue[ app ]
-		console.log( 'removefromexeq', exec, cb_args )
+		console.log( 'removefromexeq', [ app, exec, cb_args ])
 		exec.callbacks.forEach( cb => cb( ...cb_args ))
 		exec.resolve( cb_args[ 0 ])
 	}
@@ -652,7 +652,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 			ifr.close = function()
 			{
 				// Check if iframe has a close event
-				if( ifr.onClose ) ifr.onClose();
+				if( ifr.onClose ) 
+					ifr.onClose();
 
 				// Just remove the application
 				ifr.parentNode.removeChild( ifr );
@@ -777,6 +778,8 @@ function ExecuteApplication( app, args, callback, retries, flags )
 				Workspace.prevExecutedApplication = Workspace.currentExecutedApplication;
 			}
 			Workspace.currentExecutedApplication = ifr.applicationId;
+			
+			RemoveFromExecutionQueue( appName )
 		}
 		else
 		{

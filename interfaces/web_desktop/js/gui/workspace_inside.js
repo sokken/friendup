@@ -10275,7 +10275,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	{
 		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
 		
-		Workspace.onReady = function(){}
+		Workspace.onReady = async function(){}
 		
 		if( this.onReadyList )
 		{
@@ -10306,7 +10306,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			Workspace.registerUMA();
 			
 			ExecuteApplication( 'DMOQR' )
-			ExecuteApplication( 'FriendChat' )
+			await ExecuteApplication( 'FriendChat' )
+			Workspace.switchToApp( 'FriendChat' )
 			
 			/*
 			// if this is mobile app we must register it
