@@ -2191,8 +2191,18 @@ var WorkspaceInside = {
 		// now switch to app
 		console.log( 'switch nao', app, app.windows )
 		//const vIds = Object.keys( app.windows )
+		
+		// might not have opened a view yet
+		if ( null == app.windows || !app.windows.length ) {
+			console.log( 'switchToApp, wait a bit', appName )
+			setTimeout( () => { 
+				Workspace.switchToApp( appName )
+			}, 100 )
+			return
+		}
+		
 		const w = app.windows[ 0 ]
-		console.log( 'activate etc', w )
+		console.log( 'switch to app - activate', w )
 		_ActivateWindow( w._window.parentNode )
 		_WindowToFront( w._window.parentNode )
 	},
