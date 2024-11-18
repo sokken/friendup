@@ -10347,7 +10347,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		if ( Workspace.umaPromise )
 			return Workspace.umaPromise
 		
-		workspace.umaPromise = new Promise(( resolve, reject ) => {
+		Workspace.umaPromise = new Promise(( resolve, reject ) => {
 			const fap = window.friendApp;
 			console.trace( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
 			if ( Workspace.uma_registered )
