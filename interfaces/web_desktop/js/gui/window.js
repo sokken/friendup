@@ -2844,9 +2844,9 @@ var View = function( args )
 		// Tablets and mobile
 		div.ontouchstart = function( e )
 		{
-			//let self = this;
-			
-			if( isMobile && !self.parentNode.classList.contains( 'OnWorkspace' ) )
+			const self = this;
+			console.log( 'ontouchstart', self )
+			if( isMobile && !self.parentNode?.classList.contains( 'OnWorkspace' ) )
 				return;
 			
 			else if( e && !div.classList.contains( 'Active' ) )
