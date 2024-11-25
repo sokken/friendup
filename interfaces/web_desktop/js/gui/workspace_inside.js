@@ -7553,7 +7553,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		oh += parseInt( ge('uploadFileFileDisplay').clientHeight ) + 12;
 
 		Workspace.uploadWindow.setFlag('min-height',oh);
-		Workspace.uploadWindow.activate();
+		setTimeout( toFront, 1000 )
+		function toFront() {
+			console.log( 'toFront' )
+			if ( null == Workspace.uploadWindow )
+				return
+			
+			Workspace.uploadWindow.activate();
+		}
+		
 	},
 	findUploadPath: function()
 	{
