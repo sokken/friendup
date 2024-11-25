@@ -7406,8 +7406,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	uploadFile: function( id )
 	{
-		if( !Workspace.sessionId ) return;
-
+		if( !Workspace.sessionId ) 
+			return;
+		
+		console.log( 'uploadFile', id )
 		if( id )
 		{
 			let form = ge( id );
@@ -7520,12 +7522,15 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		}
 		f.load();
 	},
-	uploadFileChanged: function(e)
+	uploadFileChanged: function( e )
 	{
+		console.log( 'uploadFilesChanged', e, e?.target?.files )
 		let listString = '';
 		let uploadSize = 0;
 		
-		if( !e.target.files ) return; // should not happen...
+		if( !e.target.files ) 
+			return; // should not happen...
+		
 		for( i = 0; i < e.target.files.length; i++ )
 		{
 			listString += ( listString != '' ? ', ' : '' ) + e.target.files[i].name;
@@ -7540,9 +7545,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	},
 	findUploadPath: function()
 	{
-		if( !Workspace.sessionId ) return;
+		if( !Workspace.sessionId ) 
+			return;
 
-		if( this.fupdialog ) return;
+		if( this.fupdialog ) 
+			return;
 		
 		let inps = currentMovable.content.getElementsByTagName( 'input' );
 		let path = 'Home:Downloads/';
