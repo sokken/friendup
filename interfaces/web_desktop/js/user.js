@@ -707,12 +707,14 @@ Friend.User = {
 	SetUserConnectionState: function( mode, force )
 	{
 		const self = this
+		/*
 		console.log( 'SetUserConnectionState', {
 			mode      : mode,
 			force     : force,
 			currState : this.State,
 			onlineH   : self.waitForOnlineHandler,
 		})
+		*/
 		
 		if ( 'online' == mode && self.waitForOnlineHandler )
 			self.waitForOnlineHandler()

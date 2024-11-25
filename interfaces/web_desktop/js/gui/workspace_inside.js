@@ -2539,9 +2539,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			
 			// Make sure we have loaded
-			addTiming( 'checkScreenSize' )
 			await checkScreenSize();
-			addTiming( 'checkScreenSize done' )
 			function checkScreenSize() {
 				return new Promise(( resolve, reject ) => {
 					if ( 'vr' == Workspace.mode ) {
@@ -2563,8 +2561,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				});
 			}
 			
-			addTiming( 'updateFromSettings: settings check', uSettings )
-			console.log( 'updateFromSettings', uSettings )
 			if ( uSettings ) {
 				const dat = uSettings
 				if( dat.wallpaperdoors && dat.wallpaperdoors.substr )
