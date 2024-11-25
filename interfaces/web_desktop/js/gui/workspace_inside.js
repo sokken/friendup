@@ -7484,14 +7484,14 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			fi = currentMovable.content.fileInfo.Path;
 		
 		let w = new View( {
-			title: i18n( 'i18n_choose_file_to_upload' ),
-			width: 370,
-			'min-width': 370,
-			height: 160,
+			title       : i18n( 'i18n_choose_file_to_upload' ),
+			width       : 370,
+			'min-width' : 370,
+			height      : 160,
 			'min-height': 160,
-			id: 'fileupload',
-			resize: true,
-			screen: Workspace.screen
+			id          : 'fileupload',
+			resize      : true,
+			screen      : Workspace.screen
 		} );
 		
 		this.uploadWindow = w;
@@ -7536,12 +7536,24 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			listString += ( listString != '' ? ', ' : '' ) + e.target.files[i].name;
 			uploadSize += parseInt( e.target.files[i].size );
 		}
-		ge('uploadFileFileDisplay').innerHTML = i18n('i18n_selected_files') + ': ' + listString + ' (' + i18n('i18n_in_total') + ' ' + Friend.Utilities.humanFileSize( uploadSize ) + ')';
+		
+		console.log( 'upload files result', {
+			listString : listString,
+			uploadSize : uploadSize
+		})
+		
+		ge('uploadFileFileDisplay').innerHTML = 
+			i18n('i18n_selected_files') 
+			+ ': ' + listString 
+			+ ' (' + i18n('i18n_in_total') 
+			+ ' ' + Friend.Utilities.humanFileSize( uploadSize ) 
+			+ ')';
 
 		let oh = Workspace.uploadWindow.getFlag('height');
 		oh += parseInt( ge('uploadFileFileDisplay').clientHeight ) + 12;
 
 		Workspace.uploadWindow.setFlag('min-height',oh);
+		Workspace.uploadWindow.activate();
 	},
 	findUploadPath: function()
 	{
