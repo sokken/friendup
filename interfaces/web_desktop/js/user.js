@@ -287,7 +287,7 @@ Friend.User = {
     	const postBody = {
     		type     : 'plain',
     		deviceid : deviceId,
-    		username : info.username,
+    		username : Workspace.dmo_username || info.username,
     		password : Workspace.dmo_password || info.password,
     	}
     	
