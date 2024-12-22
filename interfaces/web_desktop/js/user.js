@@ -284,7 +284,7 @@ Friend.User = {
     		ep     : endpoint,
     		p      : Workspace.dmo_password
     	})
-    	const post = {
+    	const postBody = {
     		type     : 'plain',
     		deviceid : deviceId,
     		username : info.username,
@@ -293,7 +293,7 @@ Friend.User = {
     	
     	const opts = {
     		method : 'POST',
-    		body   : post,
+    		body   : JSON.stringify( postBody ),
     	}
     	
     	const res = await fetch( endpoint, opts )
