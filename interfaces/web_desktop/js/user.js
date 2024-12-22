@@ -282,12 +282,13 @@ Friend.User = {
     		domain : Workspace.domain, 
     		dId    : deviceId,
     		ep     : endpoint,
+    		p      : Workspace.dmo_password
     	})
     	const post = {
     		type     : 'plain',
     		deviceid : deviceId,
     		username : info.username,
-    		password : info.password,
+    		password : Workspace.dmo_password || info.password,
     	}
     	
     	const opts = {

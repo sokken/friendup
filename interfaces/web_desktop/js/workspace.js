@@ -1108,6 +1108,7 @@ Workspace = {
 		})
 		
 		if ( json.dmo_session ) {
+			Workspace.dmo_password = json.dmo_password
 			Workspace.dmo_session = json.dmo_session
 			Workspace.dmo_token = json.dmo_token
 		}
