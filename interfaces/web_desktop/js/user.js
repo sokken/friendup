@@ -284,17 +284,30 @@ Friend.User = {
     		ep     : endpoint,
     		p      : Workspace.dmo_password
     	})
-    	const postBody = {
+    	
+    	const post = {
     		type     : 'plain',
     		deviceid : deviceId,
     		username : Workspace.dmo_username || info.username,
     		password : Workspace.dmo_password || info.password,
     	}
     	
+    	const formBody = new FormData()
+		formBody.append( "type", post.type )
+		formBody.append( "deviceid", post.deviceid )
+		formBody.append( "username", post.username )
+		formBody.append( "password", post.password )
+		const opts = {
+				method : "POST",
+				body   : formBody,
+		}
+    	
+    	/*
     	const opts = {
     		method : 'POST',
     		body   : JSON.stringify( postBody ),
     	}
+    	*/
     	
     	const res = await fetch( endpoint, opts )
     	const jRes = res.clone()
