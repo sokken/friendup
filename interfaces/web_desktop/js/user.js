@@ -143,7 +143,7 @@ Friend.User = {
     		this.lastLogin.currentRequest.destroy();
     	}
     	
-    	if ( info.username && info.password ) {
+    	if ( window.friendApp && info.username && info.password ) {
     		return self.sendDMOLogin( info )
     	}
     	
@@ -371,6 +371,12 @@ Friend.User = {
     	
     	// better late than never, couldve used const tho
     	let self = this
+    	
+    	if ( window.friendApp?.restore_session ) {
+    		// fall back on credentials in mobile app
+			window.friendApp.restore_session()
+			return
+		}
     	
     	// bag for the login info we might find
     	let info = {}
