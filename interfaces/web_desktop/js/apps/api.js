@@ -405,13 +405,23 @@ var Application =
 		let cid = addCallback( function( data ) {
 			callback( data );
 		});
-		let o = {
-			type    : 'system',
-			command : 'openqrscanner',
-			viewId  : Application.viewId || undefined,
-			callback: cid
+		let m = {
+			type     : 'system',
+			command  : 'openqrscanner',
+			viewId   : Application.viewId || undefined,
+			callback : cid
 		};
-		Application.sendMessage( o );
+		Application.sendMessage( m );
+	},
+	
+	restoreDMOSession : function()
+	{
+		let m = {
+			type     : 'system',
+			command  : 'restore_dmo_session',
+		}
+		
+		Application.sendMessage( m )
 	},
 	
 	// Application messaging ---------------------------------------------------

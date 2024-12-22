@@ -4062,6 +4062,10 @@ function apiWrapper( event, force )
 								app.contentWindow.postMessage( JSON.stringify( nmsg ), '*' );	
 						};
 						break;
+					case 'restore_dmo_session':
+						console.log( 'apiwrapper - restore_dmo_session', msg )
+						Friend.User.ReLogin()
+						break;
 					case 'toggleqravailable':
 						if ( !window.mobile_menu )
 							return

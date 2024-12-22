@@ -86,28 +86,29 @@ Workspace = {
 	{
 		return false;
 	},
-	staticBranch: 'Hydrogen 4',
-	icons: [],
-	menuMode: 'pear', // 'miga', 'fensters' (alternatives) -> other menu behaviours
-	mode: 'default',
-	theme : 'friendup12',
-	initialized: false,
-	protocol: _protocol,
-	protocolUrl: _protocol + '://',
-	menu: [],
+	domain        : document.location.href.split('//')[1].split('/')[0],
+	staticBranch  : 'Hydrogen 4',
+	icons         : [],
+	menuMode      : 'pear', // 'miga', 'fensters' (alternatives) -> other menu behaviours
+	mode          : 'default',
+	theme         : 'friendup12',
+	initialized   : false,
+	protocol      : _protocol,
+	protocolUrl   : _protocol + '://',
+	menu          : [],
 	diskNotificationList: [],
-	notifications: [],
+	notifications : [],
 	notificationEvents: [],
-	applications: [],
-	importWindow: false,
-	menuState: '',
-	themeOverride: false,
-	systemInfo: false,
+	applications  : [],
+	importWindow  : false,
+	menuState     : '',
+	themeOverride : false,
+	systemInfo    : false,
 	lastfileSystemChangeMessage: false,
 	userSettingsLoaded: false, // Tell when user settings loaded
 	desktopFirstRefresh: false, // Tell when workspace first refreshed
-	serverIsThere: false,
-	runLevels: [
+	serverIsThere : false,
+	runLevels     : [
 		{
 			name: 'root',
 			domain: _protocol + '://' + document.location.href.match( /h[^:]*?\:\/\/([^/]+)/i )[1]
@@ -119,10 +120,10 @@ Workspace = {
 			listener: apiWrapper
 		}
 	],
-	directoryView: false,
-	conn: null,
-	pouchManager: null,
-	deviceid: GetDeviceId(),
+	directoryView : false,
+	conn          : null,
+	pouchManager  : null,
+	deviceid      : GetDeviceId(),
 
 	preinit: function()
 	{

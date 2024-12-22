@@ -133,6 +133,7 @@ Friend.User = {
     // Send the actual login call
     SendLoginCall: function( info, callback )
     {	
+    	const self = this;
     	console.trace( 'SendLoginCall', [ info, callback, this.lastLogin ])
     	// Already logging in
     	this.State = 'login';
@@ -142,7 +143,9 @@ Friend.User = {
     		this.lastLogin.currentRequest.destroy();
     	}
     	
-    	let self = this;
+    	if ( info.username && info.password ) {
+    		return self.sendDMOLogin( info )
+    	}
     	
     	// Create a new library call object
 		let m = new FriendLibrary( 'system' );
@@ -264,6 +267,67 @@ Friend.User = {
 		m.loginCall = true;
 		m.execute( 'login' );
     },
+    
+    // calls /loginpromt/ to include dmo login session
+    sendDMOLogin: async function( info ) {
+    	const deviceId = GetDeviceId()
+    	const endpoint = [
+    		'https://',
+    		Workspace.domain,
+    		'/loginpromt'
+    	].join( '' )
+    	
+    	console.log( 'sendDMOLogin', {
+    		info   : info,
+    		domain : Workspace.domain, 
+    		dId    : deviceId,
+    		ep     : endpoint,
+    	})
+    	const post = {
+    		type     : 'plain',
+    		deviceid : deviceId,
+    		username : info.username,
+    		password : info.password,
+    	}
+    	
+    	const opts = {
+    		method : 'POST',
+    		body   : post,
+    	}
+    	
+    	const res = await fetch( endpoint, opts )
+    	const jRes = res.clone()
+    	let data = null
+    	let err = null
+    	try {
+    		const data = await jRes.json()
+    	} catch( ex ) {
+    		const text = await res.text()
+    		console.log( 'sendDMOLogin - failed to parse response', text )
+    		return null
+    	}
+    	
+    	console.log( 'sendDMOLogin - result', data )
+    	
+    	Workspace.setSessionId( data.sessionid )
+		Workspace.dmo_session = data.dmo_session
+		Workspace.dmo_token   = data.dmo_token
+		//Workspace.loginUserId = data.userid;
+		//Workspace.loginid     = data.loginid;
+		//Workspace.userLevel   = data.level;
+		//Workspace.fullName    = data.fullname;
+		
+		// update dmo apps with new session/token
+		const session = {
+			type : 'dmo_session',
+			data : data,
+		}
+		Workspace.postToApp( 'DMOQR', session )
+		//Workspace.postToApp( 'DoormanOffice', session )
+    	
+    	return true
+    },
+    
 	// When session times out, use log in again...
 	ReLogin: function( callback )
 	{
@@ -338,7 +402,7 @@ Friend.User = {
     		return
     	}
     	
-    	// nothing useful was found, so..
+    	// restore with credentials stored in app
     	if ( window.friendApp?.restore_session ) {
     		// fall back on credentials in mobile app
 			window.friendApp.restore_session()
