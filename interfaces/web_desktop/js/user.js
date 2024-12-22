@@ -274,7 +274,7 @@ Friend.User = {
     	const endpoint = [
     		'https://',
     		Workspace.domain,
-    		'/loginpromt'
+    		'/loginprompt'
     	].join( '' )
     	
     	console.log( 'sendDMOLogin', {
