@@ -292,6 +292,7 @@ Friend.User = {
     		password : Workspace.dmo_password || info.password,
     	}
     	
+    	/*
     	const formBody = new FormData()
 		formBody.append( "type", post.type )
 		formBody.append( "deviceid", post.deviceid )
@@ -300,6 +301,16 @@ Friend.User = {
 		const opts = {
 				method : "POST",
 				body   : formBody,
+		}
+		*/
+		
+		const body = new URLSearchParams( post )
+		const opts = {
+			methos  : 'POST',
+			headers : { 
+				'Content-Type': 'application/x-www-form-urlencoded'
+			},
+			body : body,
 		}
     	
     	/*
