@@ -324,12 +324,23 @@ Friend.User = {
     	const jRes = res.clone()
     	let data = null
     	let err = null
+    	let text = await res.text()
+    	console.log( 'text', text )
     	try {
-    		const data = await jRes.json()
+    		data = await jRes.json()
     	} catch( ex ) {
-    		const text = await res.text()
+    		//const text = await res.text()
     		console.log( 'sendDMOLogin - failed to parse response', text )
-    		return null
+    		//return null
+    	}
+    	
+    	if ( null == data ) {
+	    	try {
+	    		data = JSON.parse( text )
+	    	} catch( ex ) {
+	    		console.log( 'sendDMOLogin - could not parse text', text )
+	    		return null
+	    	}
     	}
     	
     	console.log( 'sendDMOLogin - result', data )
