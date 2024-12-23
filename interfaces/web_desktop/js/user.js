@@ -306,7 +306,7 @@ Friend.User = {
 		
 		const body = new URLSearchParams( post )
 		const opts = {
-			methos  : 'POST',
+			method  : 'POST',
 			headers : { 
 				'Content-Type': 'application/x-www-form-urlencoded'
 			},
