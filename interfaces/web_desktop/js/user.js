@@ -346,6 +346,8 @@ Friend.User = {
     	console.log( 'sendDMOLogin - result', data )
     	
     	Workspace.setSessionId( data.sessionid )
+    	Friend.User.SetUserConnectionState( 'online' )
+    	
 		Workspace.dmo_session = data.dmo_session
 		Workspace.dmo_token   = data.dmo_token
 		//Workspace.loginUserId = data.userid;
