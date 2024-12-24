@@ -10383,7 +10383,13 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		
 		Workspace.umaPromise = new Promise(( resolve, reject ) => {
 			const fap = window.friendApp;
-			console.trace( 'resgisterUMA', [ fap, Workspace.sessionId, Workspace.uma_registered ]);
+			console.trace( 'resgisterUMA', {
+				fap   : fap,
+				sid   : Workspace.sessionId, 
+				reg   : Workspace.uma_registered,
+				token : fap?.get_app_token,
+			});
+			
 			if ( Workspace.uma_registered )
 				return
 			
@@ -10393,22 +10399,37 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if ( null == fap.get_app_token )
 				return
 			
-			const uma_args = { 
-				sessionid  : Workspace.sessionId, 
-				apptoken   : fap.get_app_token(), 
-				deviceid   : fap.get_deviceid(),
-				appversion : fap.get_version(),
-				platform   : fap.get_platform(),
-			};
+			let uma_args = null
+			try {
+				uma_args = { 
+					sessionid  : Workspace.sessionId, 
+					apptoken   : fap.get_app_token(), 
+					deviceid   : fap.get_deviceid(),
+					appversion : fap.get_version(),
+					platform   : fap.get_platform(),
+				};
+			} catch ( ex ) {
+				console.log( 'fishy uma', ex )
+				return
+				//return Workspace.registerUMA()
+			}
+			
 			console.log( 'mobile app createuma args', uma_args );
 			
 			let l = new Library( 'system.library' );
 			l.forceSend = true;
 			l.onExecuted = handle
 			l.execute( 'mobile/createuma', uma_args )
+			Workspace.umaTimeout = window.setTimeout( fail, 3000 )
 			
 			function handle( e, d )
 			{
+				console.log( 'registerUMA handle', [ e, d ])
+				if ( Workspace.umaTimeout ) {
+					window.clearTimeout( Workspace.umaTimeout )
+					delete Workspace.umaTimeout
+				}
+				
 				Workspace.umaPromise = null
 				if( e != 'ok' )
 				{
@@ -10421,6 +10442,13 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				console.log( 'registerUMA success', d )
 				resolve()
 				
+			}
+			
+			function timedout() {
+				console.log( 'uma timeout' )
+				delete Workspace.umaTimeout
+				delete Workspace.umaPromise
+				Workspace.registerUMA()
 			}
 		})
 		
