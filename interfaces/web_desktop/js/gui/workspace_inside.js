@@ -10396,14 +10396,19 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if ( null == fap || !Workspace.sessionId )
 				return
 			
-			if ( null == fap.get_app_token )
+			if ( null == fap.get_app_token ) {
+				console.log( 'get_app_token not found, go around', fap.get_app_token )
+				window.setTimeout( timedout, 500 )
+				delete Workspace.umaPromise
+				resolve()
 				return
+			}
 			
 			let uma_args = null
 			try {
 				uma_args = { 
-					sessionid  : Workspace.sessionId, 
-					apptoken   : fap.get_app_token(), 
+					sessionid  : Workspace.sessionId,
+					apptoken   : fap.get_app_token(),
 					deviceid   : fap.get_deviceid(),
 					appversion : fap.get_version(),
 					platform   : fap.get_platform(),
@@ -10414,9 +10419,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				//return Workspace.registerUMA()
 			}
 			
-			console.log( 'mobile app createuma args', uma_args );
+			console.log( 'mobile app createuma args', uma_args )
 			
-			let l = new Library( 'system.library' );
+			let l = new Library( 'system.library' )
 			l.forceSend = true;
 			l.onExecuted = handle
 			l.execute( 'mobile/createuma', uma_args )
