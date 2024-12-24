@@ -10381,6 +10381,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		if ( Workspace.umaPromise )
 			return Workspace.umaPromise
 		
+		if ( null != Workspace.umaTimeout )
+			return
+		
 		Workspace.umaPromise = new Promise(( resolve, reject ) => {
 			const fap = window.friendApp;
 			console.trace( 'resgisterUMA', {
@@ -10398,7 +10401,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			if ( null == fap.get_app_token ) {
 				console.log( 'get_app_token not found, go around', fap.get_app_token )
-				window.setTimeout( timedout, 500 )
+				Wokrspace.umaTimeout = window.setTimeout( umaTimeout, 500 )
 				delete Workspace.umaPromise
 				resolve()
 				return
@@ -10425,7 +10428,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			l.forceSend = true;
 			l.onExecuted = handle
 			l.execute( 'mobile/createuma', uma_args )
-			Workspace.umaTimeout = window.setTimeout( fail, 3000 )
+			Workspace.umaTimeout = window.setTimeout( umaTimeout, 3000 )
 			
 			function handle( e, d )
 			{
@@ -10449,7 +10452,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				
 			}
 			
-			function timedout() {
+			function umaTimeout() {
 				console.log( 'uma timeout' )
 				delete Workspace.umaTimeout
 				delete Workspace.umaPromise
