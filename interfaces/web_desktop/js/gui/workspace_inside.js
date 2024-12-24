@@ -10391,6 +10391,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				sid   : Workspace.sessionId, 
 				reg   : Workspace.uma_registered,
 				token : fap?.get_app_token,
+				did   : fap?.get_deviceid,
 			});
 			
 			if ( Workspace.uma_registered )
@@ -10399,8 +10400,12 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			if ( null == fap || !Workspace.sessionId )
 				return
 			
-			if ( null == fap.get_app_token ) {
-				console.log( 'get_app_token not found, go around', fap.get_app_token )
+			if ( null == fap.get_app_token 
+				|| null == fap.get_deviceid
+				|| null == fap.get_version
+				|| null == fap.get_platform
+			) {
+				console.log( 'required friendApp functions not found, go around', fap )
 				Workspace.umaTimeout = window.setTimeout( umaTimeout, 500 )
 				delete Workspace.umaPromise
 				resolve()
