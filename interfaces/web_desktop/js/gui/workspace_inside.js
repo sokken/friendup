@@ -10401,7 +10401,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			if ( null == fap.get_app_token ) {
 				console.log( 'get_app_token not found, go around', fap.get_app_token )
-				Wokrspace.umaTimeout = window.setTimeout( umaTimeout, 500 )
+				Workspace.umaTimeout = window.setTimeout( umaTimeout, 500 )
 				delete Workspace.umaPromise
 				resolve()
 				return
