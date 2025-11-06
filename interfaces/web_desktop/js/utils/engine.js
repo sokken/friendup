@@ -2530,7 +2530,7 @@ function checkMobileBrowser()
 		window.isMobile = true;
 	}
 	
-	window.isMobile = true;
+	//window.isMobile = true;
 	window.isTouch = !!('ontouchstart' in window);
 	if( window.isMobile )
 	{
