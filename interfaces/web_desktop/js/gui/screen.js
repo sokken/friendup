@@ -603,7 +603,7 @@ Screen = function ( flags, initObject )
 		{
 			if( !scrn.touch.moved && diffy < -60 && !Workspace.mainDock.open )
 			{
-				Workspace.mainDock.openDesklet( e );
+				//Workspace.mainDock.openDesklet( e );
 			}
 		}
 		// Don't do this on mobile

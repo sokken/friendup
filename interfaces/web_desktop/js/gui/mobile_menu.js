@@ -16,6 +16,8 @@
 		
 		self.chat_butt    = null
 		self.dmo_butt     = null
+		self.menu_butt    = null
+		self.punch_butt    = null
 		self.logout_butt  = null
 		
 		console.log( 'Mobile_menu constructor', containing_element, self )
@@ -42,6 +44,7 @@
 	
 	ns.Mobile_menu.prototype.init = function( container ) {
 		const self = this
+		
 		// qr button 
 		self.qr_butt = self.create_button( 'icon_butt qr_butt im-disabled', 'fa-qrcode' )
 		self.qr_butt.addEventListener( 'click', on_qr_click, false )
@@ -67,8 +70,24 @@
 			self.ws.switchToApp( 'DoormanOffice' )
 		}
 		
+		self.menu_butt = self.create_button( 'icon_butt menu_butt', 'fa-bars' )
+		self.menu_butt.addEventListener( 'click', on_menu_butt_click, false )
+		self.setupMenu()
+		// add menu for logout and things
+		function on_menu_butt_click( e ) {
+			self.menu.classList.toggle( 'hidden' )
+		}
+		
+		// switch to punch clock
+		self.punch_butt = self.create_in_menu_button( 'punch_clock', 'fa-clock-o', 'Stempelur' )
+		self.punch_butt.addEventListener( 'click', on_punch_clock_click, false )
+		async function on_punch_clock_click( e ) {
+			const res = await self.ws.showPunchClockForDoorman()
+			console.log( 'punch butt res', res )
+		}
+		
 		// logut button
-		self.logout_butt = self.create_button( 'icon_butt logout', 'fa-sign-out' )
+		self.logout_butt = self.create_in_menu_button( 'logout', 'fa-sign-out', 'Logout' )
 		self.logout_butt.addEventListener( 'click', on_logout_click, false )
 		function on_logout_click( e ) {
 			self.ws.logout()
@@ -88,6 +107,42 @@
 		
 		self.container.appendChild( div )
 		return div
+	}
+	
+	ns.Mobile_menu.prototype.create_in_menu_button = function( class_name, icon_class, text ) {
+		const self = this
+		// main
+		const outer = document.createElement( 'div' )
+		outer.className = 'app_menu_menu_item ' + class_name
+		
+		// icon
+		const icon_div = document.createElement( 'div' )
+		icon_div.className = 'icon_butt';
+		const icon = document.createElement( 'i' )
+		icon.className = 'fa fa-fw ' + icon_class
+		
+		// text
+		const text_div = document.createElement( 'div' )
+		text_div.className = 'butt_text'
+		text_div.innerHTML = text
+		
+		//
+		icon_div.appendChild( icon )
+		outer.appendChild( icon_div )
+		outer.appendChild( text_div )
+		self.menu.appendChild( outer )
+		
+		return outer
+	}
+	
+	
+	ns.Mobile_menu.prototype.setupMenu = function() {
+		const self = this;
+		self.menu = document.createElement( 'div' )
+		self.menu.id = 'ws_mobile_menu'
+		self.menu.className = 'hidden'
+		
+		self.container.appendChild( self.menu )
 	}
 	
 	

@@ -2117,6 +2117,7 @@ var WorkspaceInside = {
 			try{
 				window.mobile_menu = new window.Mobile_menu( appMenu )
 			} catch( ex ) {
+				console.log( 'mobile_menu_init ex', ex )
 				throw new Error( 'mobile_menu init fail', ex )
 			}
 			
@@ -2172,7 +2173,6 @@ var WorkspaceInside = {
 	switchToApp : async function( appName ) {
 		const self = this
 		window.addTiming( 'switchToApp', appName )
-		console.log( 'switchToApp', appName )
 		if ( !appName )
 			return
 		
@@ -2180,21 +2180,16 @@ var WorkspaceInside = {
 		//_WindowToFront( app.windows[ z ]._window.parentNode );
 		//ActivateApplication( app, conf );
 		let app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
-		console.log( 'switchToApp - app?', Workspace.applications, app )
 		if ( !app ) {
-			console.log( 'not found, start app', appName )
 			let res = await ExecuteApplication( appName )
 			app = Workspace.applications.filter( ifr => ifr.applicationName == appName )[0]
-			console.log( 'app executed', appName, res, app )
 		}
 		
 		// now switch to app
-		console.log( 'switch nao', app, app.windows )
 		//const vIds = Object.keys( app.windows )
 		
 		// might not have opened a view yet
 		if ( null == app.windows || !app.windows.length ) {
-			console.log( 'switchToApp, wait a bit', appName )
 			setTimeout( () => { 
 				Workspace.switchToApp( appName )
 			}, 100 )
@@ -2202,7 +2197,6 @@ var WorkspaceInside = {
 		}
 		
 		const w = app.windows[ 0 ]
-		console.log( 'switch to app - activate', w )
 		_ActivateWindow( w._window.parentNode )
 		_WindowToFront( w._window.parentNode )
 	},

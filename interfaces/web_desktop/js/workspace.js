@@ -525,6 +525,7 @@ Workspace = {
 			// For mobiles
 			else
 			{
+				/*
 				self.mainDock.dom.oncontextmenu = function( e )
 				{
 					let tar = e.target ? e.target : e.srcElement;
@@ -533,9 +534,10 @@ Workspace = {
 						MobileContextMenu.show( tar );
 					}
 				}
+				*/
 			}
 			
-			self.reloadDocks();
+			//self.reloadDocks();
 		}
 	},
 	setLoading: function( isLoading )
@@ -606,6 +608,34 @@ Workspace = {
 					friendApp.postMessage( j_event )
 			})
 		}
+		
+		friendApp.showPunchClock = function() {
+			const self = this
+			console.log( 'showPunchClock' )
+			
+			return new Promise(( resolve, reject ) => {
+				// only allow one sq request at a time
+				const cb_id = 'punch_clock'
+				if ( self._callbacks[ cb_id ]) {
+					resolve( null )
+					return
+				}
+				
+				
+				self._callbacks[ cb_id ] = resolve
+				const event = {
+					type : 'showPunchClock',
+					data : cb_id,
+				}
+				
+				const j_event = JSON.stringify( event )
+				if ( friendApp.get_platform() == 'iOS' ) {
+					console.log( 'ios postmessage')
+					webkit.messageHandlers.showPunchClock.postMessage( j_event )
+				} else
+					friendApp.postMessage( j_event )
+			})
+		}
 	},
 	
 	scanQRForDoorman : async function() {
@@ -623,6 +653,17 @@ Workspace = {
 			data : res,
 		}
 		Workspace.postToApp( 'DMOQR', msg )
+	},
+	
+	showPunchClockForDoorman : async function() {
+		console.log( 'showPunchClockForDoorman' )
+		if ( !window.friendApp )
+			return
+		
+		if ( !friendApp.scanQRCode )
+			Workspace.setupFriendApp()
+		
+		const res = await friendApp.showPunchClock()
 	},
 	
 	// Just a stub - this isn't used anymore
