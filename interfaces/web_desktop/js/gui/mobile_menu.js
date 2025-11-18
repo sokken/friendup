@@ -75,14 +75,14 @@
 		self.setupMenu()
 		// add menu for logout and things
 		function on_menu_butt_click( e ) {
-			self.menu.classList.toggle( 'hidden' )
-			self.meuu.focus()
+			self.toggle_menu();
 		}
 		
 		// switch to punch clock
 		self.punch_butt = self.create_in_menu_button( 'punch_clock', 'fa-clock-o', 'Stempelur' )
 		self.punch_butt.addEventListener( 'click', on_punch_clock_click, false )
 		async function on_punch_clock_click( e ) {
+			self.toggle_menu( true );
 			const res = await self.ws.showPunchClockForDoorman()
 			console.log( 'punch butt res', res )
 		}
@@ -144,13 +144,27 @@
 		self.menu.className = 'hidden'
 		self.menu.tabindex = -1;
 		self.menu.addEventListener( 'focus', handle_focus, false )
-		self.menu.classList.toggle( 'hidden' )
+		self.menu_hidden = true;
+		self.menu.classList.toggle( 'hidden', true );
 		
 		self.container.appendChild( self.menu )
 		
 		function handle_focus( e ) {
 			console.log( 'handle_focus', e );
 		}
+	}
+	
+	ns.Mobile_menu.prototype.toggle_menu = function( force ) {
+		const self = this;
+		if ( undefined != force  ) {
+			self.menu_hidden = force;
+		} else
+			self.menu_hidden = !self.menu_hidden;
+		
+		self.menu.classList.toggle( 'hidden', self.menu_hidden )
+		if ( !self.menu_hidden )
+			self.menu.focus()
+		
 	}
 	
 	
