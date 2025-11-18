@@ -76,6 +76,7 @@
 		// add menu for logout and things
 		function on_menu_butt_click( e ) {
 			self.menu.classList.toggle( 'hidden' )
+			self.meuu.focus()
 		}
 		
 		// switch to punch clock
@@ -141,8 +142,15 @@
 		self.menu = document.createElement( 'div' )
 		self.menu.id = 'ws_mobile_menu'
 		self.menu.className = 'hidden'
+		self.menu.tabindex = -1;
+		self.menu.addEventListener( 'focus', handle_focus, false )
+		self.menu.classList.toggle( 'hidden' )
 		
 		self.container.appendChild( self.menu )
+		
+		function handle_focus( e ) {
+			console.log( 'handle_focus', e );
+		}
 	}
 	
 	
