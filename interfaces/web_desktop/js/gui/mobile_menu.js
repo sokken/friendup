@@ -64,9 +64,6 @@
 		self.punch_butt.addEventListener( 'click', on_punch_click, false )
 		function on_punch_click( e ) { 
 			console.log( 'punch_butt click' )
-			if ( !self.qr_available )
-				return
-			
 			self.ws.showPunchClockForDoorman()
 		}
 		
