@@ -28,6 +28,7 @@
 	
 	ns.Mobile_menu.prototype.toggle_qr_available = function( opts ) {
 		const self = this;
+		return;
 		console.log( 'toggle_qr_available', opts )
 		if ( opts.is_admin != null )
 			self.qr_opts.is_admin = opts.is_admin
@@ -45,6 +46,7 @@
 	ns.Mobile_menu.prototype.init = function( container ) {
 		const self = this
 		
+		/*
 		// qr button 
 		self.qr_butt = self.create_button( 'icon_butt qr_butt im-disabled', 'fa-qrcode' )
 		self.qr_butt.addEventListener( 'click', on_qr_click, false )
@@ -54,6 +56,18 @@
 				return
 			
 			self.ws.scanQRForDoorman()
+		}
+		*/
+		
+		// qr button 
+		self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
+		self.punch_butt.addEventListener( 'click', on_punch_click, false )
+		function on_punch_click( e ) { 
+			console.log( 'punch_butt click' )
+			if ( !self.qr_available )
+				return
+			
+			self.ws.showPunchClockForDoorman()
 		}
 		
 		// chat button
@@ -70,6 +84,14 @@
 			self.ws.switchToApp( 'DoormanOffice' )
 		}
 		
+		// logout
+		self.logout_butt = self.create_button( 'icon_butt logout', 'fa-sign-out' )
+		self.logout_butt.addEventListener( 'click', on_logout_click, false )
+		function on_logout_click( e ) {
+			self.ws.logout()
+		}
+		
+		/*
 		self.menu_butt = self.create_button( 'icon_butt menu_butt', 'fa-bars' )
 		self.menu_butt.addEventListener( 'click', on_menu_butt_click, false )
 		self.setupMenu()
@@ -93,6 +115,7 @@
 		function on_logout_click( e ) {
 			self.ws.logout()
 		}
+		*/
 		
 	}
 	
@@ -145,7 +168,7 @@
 		self.menu.tabindex = -1;
 		self.menu.addEventListener( 'focus', handle_focus, false )
 		self.menu_hidden = true;
-		self.menu.classList.toggle( 'hidden', true );
+		self.menu.classList.toggle( 'hidden', true )
 		
 		self.container.appendChild( self.menu )
 		
