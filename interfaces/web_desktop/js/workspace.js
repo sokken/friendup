@@ -17,6 +17,18 @@
 
 var _protocol = document.location.href.split( '://' )[0];
 
+window.addEventListener( 'error', ( ...args ) => {
+	console.log( 'error', args )
+	
+	if ( null == window.friendApp || null == window.friendApp.reportEx ) {
+		console.log( 'error - friendApp no ready' )
+		return
+	}
+	
+	let json = JSON.stringify({ 'ex' : args })
+	window.friendApp.reportEx( args )
+})
+
 window._timings = []
 window.addTiming = function( str, obj ) {
 	const self = this
