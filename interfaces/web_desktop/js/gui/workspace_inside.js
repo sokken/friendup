@@ -2544,11 +2544,12 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						return
 					}
 					
-					let checkTimer = setInterval( check, 50 )
+					let checkTimer = setInterval( check, 200 )
 					check()
 					
 					function check() {
 						push_log( 'check' )
+						/*
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
 								push_log( 'check', Workspace.screen.contentDiv.offsetHeight )
@@ -2556,6 +2557,9 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 								resolve()
 							}
 						}
+						*/
+						window.clearInterval( checkTimer )
+						resolve()
 					}
 				});
 			}
