@@ -4180,7 +4180,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			addTiming( 'refreshTheme' )
 			push_log( 'refreshTheme', {
 				'themeRefreshed' : self.themeRefreshed, 
-				'update'         : update  
+				'update'         : update,
+				'no-null'        : true,
 			})
 			
 			// Only on force or first time
