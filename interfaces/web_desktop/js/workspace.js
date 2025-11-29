@@ -29,6 +29,17 @@ window.addEventListener( 'error', ( ...args ) => {
 	window.friendApp.reportEx( args )
 })
 
+function push_log( label, ...args ) {
+	if ( !friendApp || !friendApp.push_log ) {
+		return
+	}
+	
+	friendApp.push_log({
+		label : label,
+		args  : args,
+	});
+}
+
 window._timings = []
 window.addTiming = function( str, obj ) {
 	const self = this
@@ -559,6 +570,7 @@ Workspace = {
 			isLoading   : isLoading,
 			initWrkSpcs : this.initializingWorkspaces,
 		})
+		push_log( 'setLoading', isLoading );
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -1152,6 +1164,7 @@ Workspace = {
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
+		push_log( 'initUserWorkspace', json, { 'isMobile' : isMobile } );
 		console.log( 'initUserWorkspace', { 
 			ev   : ev, 
 			json : json, 

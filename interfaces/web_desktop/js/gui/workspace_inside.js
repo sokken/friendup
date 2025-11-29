@@ -4178,6 +4178,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		async function refresh( resolve, reject )
 		{
 			addTiming( 'refreshTheme' )
+			push_log( 'refreshTheme' )
 			
 			// Only on force or first time
 			if( self.themeRefreshed && !update )
@@ -10301,7 +10302,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	onReady: async function()
 	{
 		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
-		
+		push_log( 'onReady' )
 		Workspace.onReady = async function(){}
 		
 		if( this.onReadyList )
