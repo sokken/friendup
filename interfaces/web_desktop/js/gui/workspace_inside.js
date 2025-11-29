@@ -4178,7 +4178,10 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		async function refresh( resolve, reject )
 		{
 			addTiming( 'refreshTheme' )
-			push_log( 'refreshTheme' )
+			push_log( 'refreshTheme', {
+				'themeRefreshed' : self.themeRefreshed, 
+				'update'         : update  
+			})
 			
 			// Only on force or first time
 			if( self.themeRefreshed && !update )
@@ -4221,6 +4224,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			Workspace.themeRefreshed = true
 			await Workspace.refreshUserSettings()
 			addTiming( 'refreshTheme - refreshUserSettings done' )
+			push_log( 'refreshUserSettings done' )
 			
 			CheckScreenTitle();
 			
@@ -4252,9 +4256,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			// Make sure screen dimensions are read
 			_kresize();
+			push_log( '_kresize done' )
 			
 			// Constrain all windows
 			ConstrainWindows();
+			push_log( 'ConstrainWindows done' )
 			
 			// Update running applications
 			let taskIframes = ge( 'Tasks' ).getElementsByClassName( 'AppSandbox' );
@@ -4276,6 +4282,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// Flush theme info
 			themeInfo.loaded = false;
 			addTiming( 'refreshTheme - style loaded' );
+			push_log( 'setTHemeStyle done' );
 			
 			document.body.classList.add( 'ThemeLoaded' );
 			setTimeout( function()
@@ -4287,6 +4294,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			addTiming( 'refreshTheme - check wallpaper' )
 			await waitForWallpaper()
 			addTiming( 'refreshTheme - wallpaper done' );
+			push_log( 'waitForWallpaper done' )
 			
 			Workspace.redrawIcons();
 			ScreenOverlay.hide()
