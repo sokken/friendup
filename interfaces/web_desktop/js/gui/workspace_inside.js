@@ -2533,6 +2533,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		async function updateFromSettings( uSettings )
 		{
 			
+			push_log( 'updateFromSettings' )
 			// Make sure we have loaded
 			await checkScreenSize();
 			push_log( 'checkScreenSize done' )
@@ -2547,6 +2548,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					check()
 					
 					function check() {
+						push_log( 'check' )
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
 								push_log( 'check', Workspace.screen.contentDiv.offsetHeight )
