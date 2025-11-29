@@ -2523,7 +2523,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			window.addTiming( 'refreshUserSettings' )
 			const uSettings = await self.getGeneralSettings()
-			push_log( 'uSettings', uSettings );
 			await updateFromSettings( uSettings )
 			
 			delete Workspace.refreshUserSettingsPromise
@@ -2533,10 +2532,8 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		async function updateFromSettings( uSettings )
 		{
 			
-			push_log( 'updateFromSettings' )
 			// Make sure we have loaded
 			await checkScreenSize();
-			push_log( 'checkScreenSize done' )
 			function checkScreenSize() {
 				return new Promise(( resolve, reject ) => {
 					if ( 'vr' == Workspace.mode ) {
@@ -2548,7 +2545,6 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					check()
 					
 					function check() {
-						push_log( 'check' )
 						/*
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
@@ -10354,7 +10350,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			Workspace.registerUMA();
 			
-			ExecuteApplication( 'DMOQR' )
+			//ExecuteApplication( 'DMOQR' )
 			await ExecuteApplication( 'FriendChat' )
 			Workspace.switchToApp( 'FriendChat' )
 			

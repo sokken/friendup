@@ -636,6 +636,7 @@ Workspace = {
 		friendApp.showPunchClock = function() {
 			const self = this
 			console.log( 'showPunchClock' )
+			push_log( 'showPunchClock' )
 			
 			return new Promise(( resolve, reject ) => {
 				// only allow one sq request at a time
@@ -653,6 +654,9 @@ Workspace = {
 				}
 				
 				const j_event = JSON.stringify( event )
+				friendApp.postMessage( j_event )
+				return
+				
 				if ( friendApp.get_platform() == 'iOS' ) {
 					console.log( 'ios postmessage')
 					webkit.messageHandlers.showPunchClock.postMessage( j_event )
