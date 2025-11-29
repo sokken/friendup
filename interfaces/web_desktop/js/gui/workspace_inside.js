@@ -2523,7 +2523,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			window.addTiming( 'refreshUserSettings' )
 			const uSettings = await self.getGeneralSettings()
-			push_log( 'uSettings' );
+			push_log( 'uSettings', uSettings );
 			await updateFromSettings( uSettings )
 			
 			delete Workspace.refreshUserSettingsPromise
@@ -2549,6 +2549,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 					function check() {
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
+								push_log( 'check', Workspace.screen.contentDiv.offsetHeight )
 								window.clearInterval( checkTimer )
 								resolve()
 							}
