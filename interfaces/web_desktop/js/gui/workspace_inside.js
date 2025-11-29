@@ -2523,6 +2523,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			window.addTiming( 'refreshUserSettings' )
 			const uSettings = await self.getGeneralSettings()
+			push_log( 'uSettings' );
 			await updateFromSettings( uSettings )
 			
 			delete Workspace.refreshUserSettingsPromise
@@ -2534,6 +2535,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			// Make sure we have loaded
 			await checkScreenSize();
+			push_log( 'checkScreenSize done' )
 			function checkScreenSize() {
 				return new Promise(( resolve, reject ) => {
 					if ( 'vr' == Workspace.mode ) {
@@ -2733,6 +2735,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// Do the startup sequence in sequence (only once)
 				if( !Workspace.startupSequenceRegistered )
 				{	
+					push_log( 'startupsequence' )
 					addTiming( 'startupsequence', dat )
 					console.log( 'startupsequence, singletask:', Workspace.isSingleTask )
 					Workspace.startupSequenceRegistered = true;
@@ -2804,6 +2807,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									if( Workspace.getWebSocketsState() != 'open' )
 									{
 										//console.log( 'Waiting for websocket... ' + Math.random() );
+										push_log( 'waiting for websocket' )
 										return setTimeout( function(){ l.func() }, 500 );
 									}
 
@@ -4408,6 +4412,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			
 			function done() {
+				push_log( 'refreshTheme - done' );
 				delete Workspace.refreshThemePromise
 				resolve()
 			}
