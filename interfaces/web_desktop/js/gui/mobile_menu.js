@@ -59,12 +59,15 @@
 		}
 		*/
 		
-		// qr button 
-		self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
-		self.punch_butt.addEventListener( 'click', on_punch_click, false )
-		function on_punch_click( e ) { 
-			console.log( 'punch_butt click' )
-			self.ws.showPunchClockForDoorman()
+		// punch clock button 
+		//if ( window.friendApp?.get_platform() != 'iOS' ) {
+		if ( true ) {
+			self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
+			self.punch_butt.addEventListener( 'click', on_punch_click, false )
+			function on_punch_click( e ) { 
+				console.log( 'punch_butt click' )
+				self.ws.showPunchClockForDoorman()
+			}
 		}
 		
 		// chat button
