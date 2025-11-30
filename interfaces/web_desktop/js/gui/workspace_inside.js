@@ -2548,7 +2548,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 						/*
 						if( Workspace.screen?.contentDiv ) {
 							if( Workspace.screen.contentDiv.offsetHeight >= 100 ) {
-								push_log( 'check', Workspace.screen.contentDiv.offsetHeight )
+								window.push_log( 'check', Workspace.screen.contentDiv.offsetHeight )
 								window.clearInterval( checkTimer )
 								resolve()
 							}
@@ -2738,7 +2738,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 				// Do the startup sequence in sequence (only once)
 				if( !Workspace.startupSequenceRegistered )
 				{	
-					push_log( 'startupsequence' )
+					window.push_log( 'startupsequence' )
 					addTiming( 'startupsequence', dat )
 					console.log( 'startupsequence, singletask:', Workspace.isSingleTask )
 					Workspace.startupSequenceRegistered = true;
@@ -2810,7 +2810,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 									if( Workspace.getWebSocketsState() != 'open' )
 									{
 										//console.log( 'Waiting for websocket... ' + Math.random() );
-										push_log( 'waiting for websocket' )
+										window.push_log( 'waiting for websocket' )
 										return setTimeout( function(){ l.func() }, 500 );
 									}
 
@@ -4185,7 +4185,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		async function refresh( resolve, reject )
 		{
 			addTiming( 'refreshTheme' )
-			push_log( 'refreshTheme', {
+			window.push_log( 'refreshTheme', {
 				'themeRefreshed' : self.themeRefreshed, 
 				'update'         : update,
 				'no-null'        : true,
@@ -4232,7 +4232,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			Workspace.themeRefreshed = true
 			await Workspace.refreshUserSettings()
 			addTiming( 'refreshTheme - refreshUserSettings done' )
-			push_log( 'refreshUserSettings done' )
+			window.push_log( 'refreshUserSettings done' )
 			
 			CheckScreenTitle();
 			
@@ -4264,11 +4264,11 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			
 			// Make sure screen dimensions are read
 			_kresize();
-			push_log( '_kresize done' )
+			window.push_log( '_kresize done' )
 			
 			// Constrain all windows
 			ConstrainWindows();
-			push_log( 'ConstrainWindows done' )
+			window.push_log( 'ConstrainWindows done' )
 			
 			// Update running applications
 			let taskIframes = ge( 'Tasks' ).getElementsByClassName( 'AppSandbox' );
@@ -4290,7 +4290,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			// Flush theme info
 			themeInfo.loaded = false;
 			addTiming( 'refreshTheme - style loaded' );
-			push_log( 'setTHemeStyle done' );
+			window.push_log( 'setTHemeStyle done' );
 			
 			document.body.classList.add( 'ThemeLoaded' );
 			setTimeout( function()
@@ -4302,7 +4302,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			addTiming( 'refreshTheme - check wallpaper' )
 			await waitForWallpaper()
 			addTiming( 'refreshTheme - wallpaper done' );
-			push_log( 'waitForWallpaper done' )
+			window.push_log( 'waitForWallpaper done' )
 			
 			Workspace.redrawIcons();
 			ScreenOverlay.hide()
@@ -4415,7 +4415,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 			}
 			
 			function done() {
-				push_log( 'refreshTheme - done' );
+				window.push_log( 'refreshTheme - done' );
 				delete Workspace.refreshThemePromise
 				resolve()
 			}
@@ -10319,7 +10319,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 	onReady: async function()
 	{
 		console.trace( 'onReady', [ window.friendApp, Workspace.sessionId, this.onReadyList ])
-		push_log( 'onReady' )
+		window.push_log( 'onReady' )
 		Workspace.onReady = async function(){}
 		
 		if( this.onReadyList )

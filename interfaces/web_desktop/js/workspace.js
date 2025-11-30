@@ -29,7 +29,7 @@ window.addEventListener( 'error', ( ...args ) => {
 	window.friendApp.reportEx( args )
 })
 
-function push_log( label, ...args ) {
+window.push_log = function( label, ...args ) {
 	if ( !window.friendApp || !window.friendApp.push_log )
 		return
 	
@@ -572,7 +572,7 @@ Workspace = {
 			isLoading   : isLoading,
 			initWrkSpcs : this.initializingWorkspaces,
 		})
-		push_log( 'setLoading', isLoading );
+		window.push_log( 'setLoading', isLoading );
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -638,7 +638,7 @@ Workspace = {
 		friendApp.showPunchClock = function() {
 			const self = this
 			console.log( 'showPunchClock' )
-			push_log( 'showPunchClock' )
+			window.push_log( 'showPunchClock' )
 			
 			return new Promise(( resolve, reject ) => {
 				// only allow one sq request at a time
@@ -1170,7 +1170,7 @@ Workspace = {
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
-		push_log( 'initUserWorkspace', json, { 'isMobile' : isMobile } );
+		window.push_log( 'initUserWorkspace', json, { 'isMobile' : isMobile } );
 		console.log( 'initUserWorkspace', { 
 			ev   : ev, 
 			json : json, 
