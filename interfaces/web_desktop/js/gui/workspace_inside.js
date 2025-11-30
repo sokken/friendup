@@ -2533,7 +2533,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			
 			// Make sure we have loaded
-			await checkScreenSize();
+			//await checkScreenSize();
 			function checkScreenSize() {
 				return new Promise(( resolve, reject ) => {
 					if ( 'vr' == Workspace.mode ) {
