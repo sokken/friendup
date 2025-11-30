@@ -20,7 +20,7 @@ var _protocol = document.location.href.split( '://' )[0];
 window.addEventListener( 'error', ( ...args ) => {
 	console.log( 'error', args )
 	
-	if ( null == window.friendApp || null == window.friendApp.reportEx ) {
+	if ( !window.friendApp || null == window.friendApp.reportEx ) {
 		console.log( 'error - friendApp no ready' )
 		return
 	}
@@ -30,11 +30,13 @@ window.addEventListener( 'error', ( ...args ) => {
 })
 
 function push_log( label, ...args ) {
-	if ( !friendApp || !friendApp.push_log ) {
+	if ( !window.friendApp || !window.friendApp.push_log )
 		return
-	}
 	
-	friendApp.push_log({
+	if ( !window.friendApp.debug )
+		return
+	
+	window.friendApp.push_log({
 		label : label,
 		args  : args,
 	});
