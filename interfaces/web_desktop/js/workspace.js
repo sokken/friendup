@@ -16,6 +16,7 @@
 *******************************************************************************/
 
 var _protocol = document.location.href.split( '://' )[0];
+window.version_code = '?v=1.0.1';
 
 window.addEventListener( 'error', ( ...args ) => {
 	console.log( 'error', args )
@@ -1819,7 +1820,8 @@ Workspace = {
 			'webclient/js/friendmind.js;' +
 			'webclient/js/frienddos.js;' +
 			'webclient/js/oo.js;' + 
-			'webclient/js/api/friendAPIv1_2.js';
+			'webclient/js/api/friendAPIv1_2.js' +
+			window.version_code;
 		
 		const skriptContent = await this.getterOfText( skriptsPath );
 		//const skripts = await this.loadManySkripts();
