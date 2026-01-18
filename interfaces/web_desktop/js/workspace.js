@@ -975,6 +975,10 @@ Workspace = {
 	},
 	showLoginPrompt: function()
 	{
+		//if ( window.friendApp )
+		if ( true )
+			return;
+		
 		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
 		if ( Workspace.loginPrompt ) {
 			Workspace.loginPrompt.activate();
@@ -1167,6 +1171,30 @@ Workspace = {
 		Workspace.loginPrompt.content.parentNode.style.opacity = 0
 		Workspace.setLoading( true )
 		
+	},
+	handle_dmo_login: function( json ) {
+		const self = this;
+		console.log( 'handle_dmo_login', json );
+		
+		self.sessionId     = json.sessionid;
+		self.loginUsername = json.username;
+		self.loginUserId   = json.userid;
+		self.loginid       = json.loginid;
+		self.userLevel     = json.level;
+		self.fullName      = json.fullname;
+		
+		// This is needed for Friend.User.ReLogin()
+		if( res.token && self.encryption )
+		{
+			self.loginPassword = self.encryption.encrypt( res.token );
+			self.loginHashed = true;
+		}
+		
+		// We are now online!
+		Friend.User.SetUserConnectionState( 'online' );
+		
+		
+		self.initUserWorkspace( json )
 	},
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{

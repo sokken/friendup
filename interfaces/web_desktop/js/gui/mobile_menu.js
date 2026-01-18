@@ -28,7 +28,6 @@
 	
 	ns.Mobile_menu.prototype.toggle_qr_available = function( opts ) {
 		const self = this;
-		return;
 		console.log( 'toggle_qr_available', opts )
 		if ( opts.is_admin != null )
 			self.qr_opts.is_admin = opts.is_admin
@@ -47,6 +46,9 @@
 		const self = this
 		
 		/*
+		 bottom bar stuff
+		*/
+		
 		// qr button 
 		self.qr_butt = self.create_button( 'icon_butt qr_butt im-disabled', 'fa-qrcode' )
 		self.qr_butt.addEventListener( 'click', on_qr_click, false )
@@ -57,8 +59,8 @@
 			
 			self.ws.scanQRForDoorman()
 		}
-		*/
 		
+		/*
 		// punch clock button 
 		//if ( window.friendApp?.get_platform() != 'iOS' ) {
 		self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
@@ -67,6 +69,7 @@
 			console.log( 'punch_butt click' )
 			self.ws.showPunchClockForDoorman()
 		}
+		*/
 		
 		// chat button
 		self.chat_butt = self.create_button( 'switch_to_FriendChat' )
@@ -82,14 +85,19 @@
 			self.ws.switchToApp( 'DoormanOffice' )
 		}
 		
+		/*
 		// logout
 		self.logout_butt = self.create_button( 'icon_butt logout', 'fa-sign-out' )
 		self.logout_butt.addEventListener( 'click', on_logout_click, false )
 		function on_logout_click( e ) {
 			self.ws.logout()
 		}
+		*/
 		
 		/*
+		 menu button stuff
+		*/
+		
 		self.menu_butt = self.create_button( 'icon_butt menu_butt', 'fa-bars' )
 		self.menu_butt.addEventListener( 'click', on_menu_butt_click, false )
 		self.setupMenu()
@@ -113,8 +121,6 @@
 		function on_logout_click( e ) {
 			self.ws.logout()
 		}
-		*/
-		
 	}
 	
 	ns.Mobile_menu.prototype.create_button = function( append_class_name, append_icon_class ) {

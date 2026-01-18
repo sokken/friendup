@@ -10350,7 +10350,7 @@ body .View.Active.IconWindow ::-webkit-scrollbar-thumb
 		{
 			Workspace.registerUMA();
 			
-			//ExecuteApplication( 'DMOQR' )
+			ExecuteApplication( 'DMOQR' )
 			await ExecuteApplication( 'FriendChat' )
 			Workspace.switchToApp( 'FriendChat' )
 			
