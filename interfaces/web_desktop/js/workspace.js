@@ -975,8 +975,7 @@ Workspace = {
 	},
 	showLoginPrompt: function()
 	{
-		//if ( window.friendApp )
-		if ( true )
+		if ( window.friendApp )
 			return;
 		
 		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
@@ -1184,9 +1183,9 @@ Workspace = {
 		self.fullName      = json.fullname;
 		
 		// This is needed for Friend.User.ReLogin()
-		if( res.token && self.encryption )
+		if( json.token && self.encryption )
 		{
-			self.loginPassword = self.encryption.encrypt( res.token );
+			self.loginPassword = self.encryption.encrypt( json.token );
 			self.loginHashed = true;
 		}
 		
