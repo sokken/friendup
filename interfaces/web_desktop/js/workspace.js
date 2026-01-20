@@ -617,6 +617,7 @@ Workspace = {
 				// only allow one sq request at a time
 				const cb_id = 'scan_qr_code'
 				if ( self._callbacks[ cb_id ]) {
+					window.push_log( 'scan_qr_code already in callbacks' )
 					resolve( null )
 					return
 				}
@@ -629,11 +630,16 @@ Workspace = {
 				}
 				
 				const j_event = JSON.stringify( event )
+				friendApp.postMessage( j_event )
+				return
+				
+				/*
 				if ( friendApp.get_platform() == 'iOS' ) {
 					console.log( 'ios postmessage')
 					webkit.messageHandlers.scanQRCode.postMessage( j_event )
 				} else
 					friendApp.postMessage( j_event )
+				*/
 			})
 		}
 		
@@ -648,24 +654,24 @@ Workspace = {
 				if ( self._callbacks[ cb_id ]) {
 					resolve( null )
 					return
-				}
+				} else				
+					self._callbacks[ cb_id ] = resolve
 				
-				
-				self._callbacks[ cb_id ] = resolve
 				const event = {
 					type : 'showPunchClock',
 					data : cb_id,
 				}
-				
 				const j_event = JSON.stringify( event )
 				friendApp.postMessage( j_event )
 				return
 				
+				/*
 				if ( friendApp.get_platform() == 'iOS' ) {
 					console.log( 'ios postmessage')
 					webkit.messageHandlers.showPunchClock.postMessage( j_event )
 				} else
 					friendApp.postMessage( j_event )
+				*/
 			})
 		}
 	},
