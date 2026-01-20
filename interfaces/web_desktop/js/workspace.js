@@ -610,6 +610,7 @@ Workspace = {
 		
 		friendApp.scanQRCode = function() {
 			const self = this
+			window.push_log( 'scanQRCode' );
 			console.log( 'scanQRCode', friendUP )
 			
 			return new Promise(( resolve, reject ) => {
@@ -671,6 +672,7 @@ Workspace = {
 	
 	scanQRForDoorman : async function() {
 		console.log( 'scanQRForDoorman' )
+		window.push_log( 'scanQRForDoorman', [ !!window.friendApp, !!window.friendApp?.scanQRCode ])
 		if ( !window.friendApp )
 			return
 		
@@ -679,6 +681,7 @@ Workspace = {
 		
 		const res = await friendApp.scanQRCode()
 		console.log( 'scanQRForDoorman res', res )
+		
 		const msg = {
 			type : 'qr-scan-value',
 			data : res,
@@ -695,6 +698,7 @@ Workspace = {
 			Workspace.setupFriendApp()
 		
 		const res = await friendApp.showPunchClock()
+		return res
 	},
 	
 	// Just a stub - this isn't used anymore
@@ -1181,6 +1185,8 @@ Workspace = {
 		self.loginid       = json.loginid;
 		self.userLevel     = json.level;
 		self.fullName      = json.fullname;
+		json.dmo_pass = json.password
+		json.dmo_user = json.username
 		
 		// This is needed for Friend.User.ReLogin()
 		if( json.token && self.encryption )

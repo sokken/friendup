@@ -52,7 +52,8 @@
 		// qr button 
 		self.qr_butt = self.create_button( 'icon_butt qr_butt im-disabled', 'fa-qrcode' )
 		self.qr_butt.addEventListener( 'click', on_qr_click, false )
-		function on_qr_click( e ) { 
+		function on_qr_click( e ) {
+			window.push_log( 'qr butt click' )
 			console.log( 'qr_butt click', self.qr_available )
 			if ( !self.qr_available )
 				return
