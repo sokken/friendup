@@ -16,6 +16,32 @@
 *******************************************************************************/
 
 var _protocol = document.location.href.split( '://' )[0];
+window.version_code = '?v=1.0.1';
+
+window.addEventListener( 'error', ( ...args ) => {
+	console.log( 'error', args )
+	
+	if ( !window.friendApp || null == window.friendApp.reportEx ) {
+		console.log( 'error - friendApp no ready' )
+		return
+	}
+	
+	let json = JSON.stringify({ 'ex' : args })
+	window.friendApp.reportEx( args )
+})
+
+window.push_log = function( label, ...args ) {
+	if ( !window.friendApp || !window.friendApp.push_log )
+		return
+	
+	if ( !window.friendApp.debug )
+		return
+	
+	window.friendApp.push_log({
+		label : label,
+		args  : args,
+	});
+}
 
 window._timings = []
 window.addTiming = function( str, obj ) {
@@ -525,6 +551,7 @@ Workspace = {
 			// For mobiles
 			else
 			{
+				/*
 				self.mainDock.dom.oncontextmenu = function( e )
 				{
 					let tar = e.target ? e.target : e.srcElement;
@@ -533,9 +560,10 @@ Workspace = {
 						MobileContextMenu.show( tar );
 					}
 				}
+				*/
 			}
 			
-			self.reloadDocks();
+			//self.reloadDocks();
 		}
 	},
 	setLoading: function( isLoading )
@@ -545,6 +573,7 @@ Workspace = {
 			isLoading   : isLoading,
 			initWrkSpcs : this.initializingWorkspaces,
 		})
+		window.push_log( 'setLoading', isLoading );
 		if( isLoading )
 		{
 			document.body.classList.add( 'Loading' );
@@ -581,12 +610,14 @@ Workspace = {
 		
 		friendApp.scanQRCode = function() {
 			const self = this
+			window.push_log( 'scanQRCode' );
 			console.log( 'scanQRCode', friendUP )
 			
 			return new Promise(( resolve, reject ) => {
 				// only allow one sq request at a time
 				const cb_id = 'scan_qr_code'
 				if ( self._callbacks[ cb_id ]) {
+					window.push_log( 'scan_qr_code already in callbacks' )
 					resolve( null )
 					return
 				}
@@ -599,17 +630,55 @@ Workspace = {
 				}
 				
 				const j_event = JSON.stringify( event )
+				friendApp.postMessage( j_event )
+				return
+				
+				/*
 				if ( friendApp.get_platform() == 'iOS' ) {
 					console.log( 'ios postmessage')
 					webkit.messageHandlers.scanQRCode.postMessage( j_event )
 				} else
 					friendApp.postMessage( j_event )
+				*/
+			})
+		}
+		
+		friendApp.showPunchClock = function() {
+			const self = this
+			console.log( 'showPunchClock' )
+			window.push_log( 'showPunchClock' )
+			
+			return new Promise(( resolve, reject ) => {
+				// only allow one sq request at a time
+				const cb_id = 'punch_clock'
+				if ( self._callbacks[ cb_id ]) {
+					resolve( null )
+					return
+				} else				
+					self._callbacks[ cb_id ] = resolve
+				
+				const event = {
+					type : 'showPunchClock',
+					data : cb_id,
+				}
+				const j_event = JSON.stringify( event )
+				friendApp.postMessage( j_event )
+				return
+				
+				/*
+				if ( friendApp.get_platform() == 'iOS' ) {
+					console.log( 'ios postmessage')
+					webkit.messageHandlers.showPunchClock.postMessage( j_event )
+				} else
+					friendApp.postMessage( j_event )
+				*/
 			})
 		}
 	},
 	
 	scanQRForDoorman : async function() {
 		console.log( 'scanQRForDoorman' )
+		window.push_log( 'scanQRForDoorman', [ !!window.friendApp, !!window.friendApp?.scanQRCode ])
 		if ( !window.friendApp )
 			return
 		
@@ -618,11 +687,24 @@ Workspace = {
 		
 		const res = await friendApp.scanQRCode()
 		console.log( 'scanQRForDoorman res', res )
+		
 		const msg = {
 			type : 'qr-scan-value',
 			data : res,
 		}
 		Workspace.postToApp( 'DMOQR', msg )
+	},
+	
+	showPunchClockForDoorman : async function() {
+		console.log( 'showPunchClockForDoorman' )
+		if ( !window.friendApp )
+			return
+		
+		if ( !friendApp.scanQRCode )
+			Workspace.setupFriendApp()
+		
+		const res = await friendApp.showPunchClock()
+		return res
 	},
 	
 	// Just a stub - this isn't used anymore
@@ -903,6 +985,9 @@ Workspace = {
 	},
 	showLoginPrompt: function()
 	{
+		if ( window.friendApp )
+			return;
+		
 		console.trace( 'showLoginPrompt', Workspace.loginPrompt )
 		if ( Workspace.loginPrompt ) {
 			Workspace.loginPrompt.activate();
@@ -1096,9 +1181,36 @@ Workspace = {
 		Workspace.setLoading( true )
 		
 	},
+	handle_dmo_login: function( json ) {
+		const self = this;
+		console.log( 'handle_dmo_login', json );
+		
+		self.sessionId     = json.sessionid;
+		self.loginUsername = json.username;
+		self.loginUserId   = json.userid;
+		self.loginid       = json.loginid;
+		self.userLevel     = json.level;
+		self.fullName      = json.fullname;
+		json.dmo_pass = json.password
+		json.dmo_user = json.username
+		
+		// This is needed for Friend.User.ReLogin()
+		if( json.token && self.encryption )
+		{
+			self.loginPassword = self.encryption.encrypt( json.token );
+			self.loginHashed = true;
+		}
+		
+		// We are now online!
+		Friend.User.SetUserConnectionState( 'online' );
+		
+		
+		self.initUserWorkspace( json )
+	},
 	initUserWorkspace: async function( json, not_a_callback, ev )
 	{
 		window.addTiming( 'initUserWorkspace' );
+		window.push_log( 'initUserWorkspace', json, { 'isMobile' : isMobile } );
 		console.log( 'initUserWorkspace', { 
 			ev   : ev, 
 			json : json, 
@@ -1747,7 +1859,8 @@ Workspace = {
 			'webclient/js/friendmind.js;' +
 			'webclient/js/frienddos.js;' +
 			'webclient/js/oo.js;' + 
-			'webclient/js/api/friendAPIv1_2.js';
+			'webclient/js/api/friendAPIv1_2.js' +
+			window.version_code;
 		
 		const skriptContent = await this.getterOfText( skriptsPath );
 		//const skripts = await this.loadManySkripts();
