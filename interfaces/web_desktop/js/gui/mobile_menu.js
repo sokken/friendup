@@ -61,16 +61,6 @@
 			self.ws.scanQRForDoorman()
 		}
 		
-		/*
-		// punch clock button 
-		//if ( window.friendApp?.get_platform() != 'iOS' ) {
-		self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
-		self.punch_butt.addEventListener( 'click', on_punch_click, false )
-		function on_punch_click( e ) { 
-			console.log( 'punch_butt click' )
-			self.ws.showPunchClockForDoorman()
-		}
-		*/
 		
 		// chat button
 		self.chat_butt = self.create_button( 'switch_to_FriendChat' )
@@ -86,6 +76,14 @@
 			self.ws.switchToApp( 'DoormanOffice' )
 		}
 		
+		// punch clock button 
+		self.punch_butt = self.create_button( 'icon_butt punch_butt', 'fa-clock-o' )
+		self.punch_butt.addEventListener( 'click', on_punch_click, false )
+		function on_punch_click( e ) { 
+			console.log( 'punch_butt click' )
+			self.ws.showPunchClockForDoorman()
+		}
+		
 		/*
 		// logout
 		self.logout_butt = self.create_button( 'icon_butt logout', 'fa-sign-out' )
@@ -99,6 +97,7 @@
 		 menu button stuff
 		*/
 		
+		/*
 		self.menu_butt = self.create_button( 'icon_butt menu_butt', 'fa-bars' )
 		self.menu_butt.addEventListener( 'click', on_menu_butt_click, false )
 		self.setupMenu()
@@ -106,7 +105,9 @@
 		function on_menu_butt_click( e ) {
 			self.toggle_menu();
 		}
+		*/
 		
+		/*
 		// switch to punch clock
 		self.punch_butt = self.create_in_menu_button( 'punch_clock', 'fa-clock-o', 'Stempelur' )
 		self.punch_butt.addEventListener( 'click', on_punch_clock_click, false )
@@ -115,6 +116,7 @@
 			const res = await self.ws.showPunchClockForDoorman()
 			console.log( 'punch butt res', res )
 		}
+		*/
 		
 		/*
 		// logut button
