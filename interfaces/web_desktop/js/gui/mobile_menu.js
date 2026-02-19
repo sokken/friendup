@@ -116,12 +116,14 @@
 			console.log( 'punch butt res', res )
 		}
 		
+		/*
 		// logut button
 		self.logout_butt = self.create_in_menu_button( 'logout', 'fa-sign-out', 'Logout' )
 		self.logout_butt.addEventListener( 'click', on_logout_click, false )
 		function on_logout_click( e ) {
 			self.ws.logout()
 		}
+		*/
 	}
 	
 	ns.Mobile_menu.prototype.create_button = function( append_class_name, append_icon_class ) {
