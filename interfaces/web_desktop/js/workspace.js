@@ -1208,6 +1208,8 @@ Workspace = {
 		// We are now online!
 		Friend.User.SetUserConnectionState( 'online' );
 		
+		if ( Workspace.userWorkspaceInitialized )
+			return;
 		
 		self.initUserWorkspace( json )
 	},
