@@ -645,6 +645,10 @@ Workspace = {
 		
 		friendApp.showPunchClock = function() {
 			const self = this
+			console.log( 'restore_session' )
+			friendApp.restore_session()
+			return
+			
 			console.log( 'showPunchClock' )
 			window.push_log( 'showPunchClock' )
 			
